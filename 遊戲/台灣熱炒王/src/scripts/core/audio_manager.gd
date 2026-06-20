@@ -33,13 +33,13 @@ var _sfx_player: AudioStreamPlayer
 # ============================================================
 
 ## BGM 音量（0.0 = 靜音，1.0 = 滿音量）
-var bgm_volume: float = 1.0 :
+var bgm_volume: float = 0.6 :
 	set(value):
 		bgm_volume = clampf(value, 0.0, 1.0)
 		_apply_bgm_volume()
 
 ## SFX 音量（0.0 = 靜音，1.0 = 滿音量）
-var sfx_volume: float = 1.0 :
+var sfx_volume: float = 0.8 :
 	set(value):
 		sfx_volume = clampf(value, 0.0, 1.0)
 		_apply_sfx_volume()
@@ -124,6 +124,18 @@ func stop_bgm() -> void:
 		_bgm_player.stop()
 	_current_bgm_stream = null
 	print("[AudioManager] BGM 停止")
+
+
+## 用 Tween 將 BGM 音量淡出到目標值
+## target_volume: 0.0~1.0 線性音量
+## duration: 淡出時間（秒）
+func fade_bgm(target_volume: float, duration: float) -> void:
+	if _bgm_player == null:
+		return
+	var target_db: float = _linear_to_db(clampf(target_volume, 0.001, 1.0))
+	var tw := create_tween()
+	tw.tween_property(_bgm_player, "volume_db", target_db, duration)
+	print("[AudioManager] BGM 淡出至 %.2f（%.1f 秒）" % [target_volume, duration])
 
 
 # ============================================================

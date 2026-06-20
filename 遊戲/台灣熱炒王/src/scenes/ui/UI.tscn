@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://a5f8c2e1"]
+[gd_scene load_steps=3 format=3 uid="uid://a5f8c2e1"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/dialog_ui.gd" id="2_dialog"]
 
 [node name="UI" type="Node"]
 
@@ -18,6 +19,7 @@ grow_vertical = 2
 
 [node name="dialog_layer" type="CanvasLayer" parent="."]
 layer = 2
+script = ExtResource("2_dialog")
 
 [node name="DialogBox" type="Control" parent="dialog_layer"]
 visible = false

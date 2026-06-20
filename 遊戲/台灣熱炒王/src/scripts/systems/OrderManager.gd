@@ -122,8 +122,15 @@ func _auto_deliver_order(order_id: String) -> void:
 	order_delivered.emit(order_data)
 	print("[OrderManager] 訂單 %s 備用送達完成" % order_id)
 
-	# 結帳
-	complete_payment(customer_id, 160.0)
+	# 從菜品資料取得實際售價
+	var dish_id: String = order_data.get("dish_id", "")
+	var price: float = 160.0  # 預設值
+	var mm := get_node_or_null("/root/MenuManager")
+	if mm != null and mm.has_method("get_dish") and dish_id != "":
+		var dish: Dictionary = mm.get_dish(dish_id)
+		if not dish.is_empty():
+			price = float(dish.get("price", dish.get("base_price", 160.0)))
+	complete_payment(customer_id, price)
 
 
 # ============================================================
@@ -237,22 +244,36 @@ func deliver_to_table(order_id: String, staff_id: String) -> void:
 	order_delivered.emit(order_data)
 	print("[OrderManager] 訂單 %s 由 %s 送達" % [order_id, staff_id])
 
-	# 結帳（菜單整合前暫用固定金額）
-	complete_payment(customer_id, 160.0)
+	# 從菜品資料取得實際售價
+	var dish_id_pay: String = order_data.get("dish_id", "")
+	var pay_price: float = 160.0  # 預設值
+	var mm_node := get_node_or_null("/root/MenuManager")
+	if mm_node != null and mm_node.has_method("get_dish") and dish_id_pay != "":
+		var dish_info: Dictionary = mm_node.get_dish(dish_id_pay)
+		if not dish_info.is_empty():
+			pay_price = float(dish_info.get("price", dish_info.get("base_price", 160.0)))
+	complete_payment(customer_id, pay_price)
 
 
 ## 客人結帳，金錢入帳並將訂單標記為完成
 func complete_payment(customer_id: String, amount: float) -> void:
-	GameManager.add_money(amount)
-	print("[OrderManager] 客人 %s 結帳 $%s" % [customer_id, amount])
-
 	# 找到該客人對應且正在 delivering 的訂單，標記為 done
 	# 只標記第一筆 delivering 訂單（精確匹配當次送餐結帳動作）
+	var found_delivering: bool = false
 	for order_id: String in _orders:
 		var order_data: Dictionary = _orders[order_id]
 		if order_data["customer_id"] == customer_id and order_data.get("status", "") == "delivering":
 			order_data["status"] = "done"
+			found_delivering = true
 			break
+
+	# 防重複付款：若無任何 delivering 訂單（已全部標記為 done），直接略過
+	if not found_delivering:
+		push_warning("[OrderManager] complete_payment：客人 %s 無 delivering 訂單，略過（防重複付款）" % customer_id)
+		return
+
+	GameManager.add_money(amount)
+	print("[OrderManager] 客人 %s 結帳 $%s" % [customer_id, amount])
 
 
 # ============================================================

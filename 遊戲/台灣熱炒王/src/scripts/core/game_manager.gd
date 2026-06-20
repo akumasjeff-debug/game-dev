@@ -32,6 +32,12 @@ signal staff_morale_changed(new_value: float)
 signal game_paused
 signal game_resumed
 
+## 第一次收到付款（amount >= 50 才觸發，避免測試用小額誤觸）
+signal first_payment_received
+
+## 特殊時段事件信號（hour：遊戲時刻，message：顯示訊息）
+signal hour_milestone_reached(hour: int, message: String)
+
 
 # ============================================================
 # 遊戲狀態變數
@@ -92,6 +98,7 @@ const REPUTATION_MIN: int = 0
 var _hour_accumulator: float = 0.0
 var _today_income: float = 0.0
 var _low_morale_penalty_active: bool = false
+var _first_payment_done: bool = false
 
 
 # ============================================================
@@ -119,7 +126,7 @@ func _ready() -> void:
 func _initialize_default_state() -> void:
 	current_year = 1
 	current_day = 1
-	current_hour = 8.0   # 早上 8 點開始（還未營業）
+	current_hour = 17.5  # 從 17:30 開始，避免第一幀觸發 day_started
 	is_open = false
 	money = 10000.0
 	reputation = 0
@@ -127,6 +134,7 @@ func _initialize_default_state() -> void:
 	_today_income = 0.0
 	_hour_accumulator = 0.0
 	_low_morale_penalty_active = false
+	_first_payment_done = false
 
 
 # ============================================================
@@ -171,6 +179,15 @@ func _advance_one_hour() -> void:
 	if hour_int >= CLOSE_HOUR and was_open:
 		_on_day_ended()
 
+	# 特殊時段提示（在歸零之前判斷，確保 hour_int 正確）
+	match hour_int:
+		17:
+			if not was_open:  # 只在剛開門時發出
+				hour_milestone_reached.emit(17, "開門！熱炒王正式營業")
+		22:
+			if was_open:      # 確認在營業中
+				hour_milestone_reached.emit(22, "宵夜時段，客人多但也更晚")
+
 	# 達到凌晨 2 點（26 小時）才歸零，保持跨日累積正確
 	if current_hour >= float(CLOSE_HOUR):
 		current_hour -= float(CLOSE_HOUR)
@@ -183,12 +200,23 @@ func _on_day_started() -> void:
 	# TODO: 通知 StaffManager 員工就位
 	day_started.emit(current_year, current_day)
 	print("[GameManager] Day %d Year %d 開始營業" % [current_day, current_year])
+	# 播放開門音效（17:00）
+	var am := get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("play_sfx"):
+		var sfx_enter := "res://assets/audio/sfx/customer_enter.wav"
+		if ResourceLoader.exists(sfx_enter):
+			am.play_sfx(load(sfx_enter))
 
 
 ## 每日結束處理
 func _on_day_ended() -> void:
 	is_open = false
+	hour_milestone_reached.emit(26, "今天打烊了")
 	day_ended.emit(_today_income)
+	# 打烊：BGM 音量用 Tween 淡出到 0.2（歷時 2 秒）
+	var am_fade := get_node_or_null("/root/AudioManager")
+	if am_fade != null and am_fade.has_method("fade_bgm"):
+		am_fade.fade_bgm(0.2, 2.0)
 
 	# 員工士氣低下懲罰（士氣 < 30 時效率 -20%，由各 AI 系統讀取此旗標）
 	if staff_morale < 30.0:
@@ -239,6 +267,11 @@ func add_money(amount: float) -> void:
 	money += amount
 	_today_income += amount
 	money_changed.emit(money)
+
+	# 第一次收到付款（>= 50 元才算，避免測試觸發）
+	if not _first_payment_done and amount >= 50.0:
+		_first_payment_done = true
+		first_payment_received.emit()
 
 
 ## 扣除金錢（支出）
@@ -371,7 +404,8 @@ func export_save_data() -> Dictionary:
 func apply_save_data(data: Dictionary) -> void:
 	current_year = data.get("year", 1)
 	current_day = data.get("day", 1)
-	current_hour = data.get("hour", 17.0)  # 預設開店時間 17 點
+	# 強制設為 17.5，避免讀入存檔時的 hour 值觸發首幀 day_started（例如 hour=17.0 或 0.0）
+	current_hour = 17.5
 	money = data.get("money", 10000.0)
 	reputation = data.get("reputation", 0)
 	staff_morale = data.get("staff_morale", 100.0)

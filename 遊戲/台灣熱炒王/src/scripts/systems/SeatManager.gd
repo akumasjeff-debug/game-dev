@@ -44,6 +44,9 @@ func unregister_seat(tile: Vector2i) -> void:
 ## 無空位時回傳 Vector2i(-1, -1)。
 ## 注意：目前為線性掃描，座位數量多時可考慮維護一個 empty_seats 集合。
 func get_available_seat() -> Vector2i:
+	if seats.is_empty():
+		push_warning("SeatManager: 座位表為空，尚未登記任何座位")
+		return Vector2i(-1, -1)
 	for tile: Vector2i in seats:
 		if seats[tile]["status"] == SeatStatus.EMPTY:
 			return tile

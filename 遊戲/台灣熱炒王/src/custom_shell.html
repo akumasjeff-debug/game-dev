@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣熱炒王</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+	width: 100%; height: 100%;
+	background: #000;
+	display: flex; justify-content: center; align-items: center;
+	overflow: hidden;
+}
+#canvas {
+	display: block;
+	width: 100%; height: 100%;
+	image-rendering: pixelated;
+}
+#loading {
+	position: absolute;
+	color: #fff;
+	font-family: sans-serif;
+	font-size: 18px;
+}
+</style>
+$GODOT_HEAD_INCLUDE
+</head>
+<body>
+<div id="loading">載入中…</div>
+<canvas id="canvas"></canvas>
+<script src="index.js"></script>
+<script>
+// 使用 Godot 注入的設定，但強制關閉 CrossOriginIsolation 限制
+const GODOT_CONFIG = $GODOT_CONFIG;
+GODOT_CONFIG.ensureCrossOriginIsolationHeaders = false;
+GODOT_CONFIG.canvasResizePolicy = 2;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+if (missing.length !== 0) {
+	document.getElementById('loading').textContent = '不支援：' + missing.join(', ');
+} else {
+	engine.startGame({
+		onProgress: function(cur, total) {
+			if (total > 0) {
+				document.getElementById('loading').textContent =
+					'載入中… ' + Math.round(cur / total * 100) + '%';
+			}
+		}
+	}).then(function() {
+		document.getElementById('loading').style.display = 'none';
+	}).catch(function(err) {
+		document.getElementById('loading').textContent = '錯誤：' + String(err);
+		console.error(err);
+	});
+}
+</script>
+</body>
+</html>

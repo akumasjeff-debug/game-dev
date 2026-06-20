@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://redtest001"]
+
+[node name="RedTest" type="Node2D"]
+
+[node name="CL" type="CanvasLayer" parent="."]
+
+[node name="BG" type="ColorRect" parent="CL"]
+position = Vector2(0, 0)
+size = Vector2(480, 270)
+color = Color(1, 0, 0, 1)
+
+[node name="Label" type="Label" parent="CL"]
+offset_right = 480.0
+offset_bottom = 270.0
+text = "HTML5 OK"
+horizontal_alignment = 1
+vertical_alignment = 1

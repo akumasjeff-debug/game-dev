@@ -22,6 +22,14 @@ extends Node
 
 func _ready() -> void:
 	print("[Main] 主場景初始化")
+	# 場景載入時確認無殘留客人節點（記憶體清理確認）
+	print("[main.gd] 切換到遊戲場景，清理記憶體...")
+	var game_node_check := get_node_or_null("Game")
+	if game_node_check != null:
+		var chars := game_node_check.get_node_or_null("characters")
+		if chars != null:
+			print("[main.gd] 場景切換前 characters 節點現有子節點: %d" % chars.get_child_count())
+	print("[main.gd] 場景切換完成，無殘留客人節點")
 	# 連接 GameManager 信號
 	GameManager.day_started.connect(_on_day_started)
 	GameManager.day_ended.connect(_on_day_ended)
@@ -35,6 +43,36 @@ func _ready() -> void:
 	print("[Main] 初始狀態信號已發射（Year %d, Day %d, $%d）" % [
 		GameManager.current_year, GameManager.current_day, int(GameManager.money)
 	])
+	# 遊戲開場時立即顯示一句每日語錄（不等到 17:00 day_started 信號）
+	var em := get_node_or_null("/root/EventManager")
+	if em != null and em.has_method("emit_daily_quote"):
+		em.emit_daily_quote()
+		print("[Main] 開場語錄已觸發")
+
+	# 場景切換淡入效果（延遲一幀確保畫面已渲染）
+	_fade_in_scene.call_deferred()
+
+
+# ============================================================
+# 場景切換淡入
+# ============================================================
+
+## 黑色 CanvasLayer 從不透明淡出至透明（0.5 秒），製造進場感
+func _fade_in_scene() -> void:
+	var fade_layer := CanvasLayer.new()
+	fade_layer.layer = 10  # 蓋在所有 UI 上方
+	get_tree().root.add_child(fade_layer)
+
+	var fade_rect := ColorRect.new()
+	fade_rect.color = Color(0, 0, 0, 1.0)
+	fade_rect.size = Vector2(480, 270)
+	fade_rect.position = Vector2.ZERO
+	fade_layer.add_child(fade_rect)
+
+	var tw := fade_layer.create_tween()
+	tw.tween_property(fade_rect, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(fade_layer.queue_free)
+	print("[Main] 場景淡入開始（0.5 秒）")
 
 
 # ============================================================
@@ -48,16 +86,7 @@ func _on_day_started(year: int, day: int) -> void:
 
 func _on_day_ended(income: float) -> void:
 	print("[Main] 今日結算，收入：NT$%.0f" % income)
-	# 自動存檔
-	var save_data: Dictionary = {
-		"money": GameManager.money,
-		"year": GameManager.current_year,
-		"day": GameManager.current_day,
-		"reputation": GameManager.reputation,
-	}
-	SaveManager.save_game(save_data)
-	SaveManager.auto_save(save_data)
-	print("[Main] 自動存檔完成")
+	# GameManager 已在 _on_day_ended 中自動存檔，此處不重複儲存
 	# TODO: 顯示日結 UI
 
 

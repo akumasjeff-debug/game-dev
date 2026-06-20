@@ -34,14 +34,15 @@ EventManager="*res://scripts/systems/EventManager.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 TutorialManager="*res://scripts/systems/TutorialManager.gd"
 OrderManager="*res://scripts/systems/OrderManager.gd"
+YearEndingManager="*res://scripts/systems/YearEndingManager.gd"
 
 [display]
 
 window/size/viewport_width=480
 window/size/viewport_height=270
 window/size/initial_position_type=2
-window/size/resizable=false
-window/stretch/mode="viewport"
+window/size/resizable=true
+window/stretch/mode="canvas_items"
 window/stretch/scale=1.0
 window/handheld/orientation=1
 

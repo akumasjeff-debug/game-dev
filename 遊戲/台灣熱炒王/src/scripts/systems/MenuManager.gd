@@ -3,6 +3,9 @@
 ## 遊戲啟動時自動載入，供訂單系統、UI、成就系統查詢。
 extends Node
 
+## 菜色解鎖時發出（供 hud.gd 播放視覺效果）
+signal dish_unlocked(dish_id: String, dish_name: String)
+
 ## dishes.json 資料路徑（Godot res:// 路徑）
 const DISHES_DATA_PATH: String = "res://resources/data/dishes.json"
 
@@ -16,6 +19,7 @@ var _dishes: Dictionary = {}
 
 func _ready() -> void:
 	_load_dishes()
+	print("[MenuManager] 載入 %d 道菜，已解鎖 %d 道" % [_dishes.size(), get_available_dishes().size()])
 
 
 ## 從 JSON 載入菜品資料。
@@ -55,9 +59,32 @@ func _load_dishes() -> void:
 			continue
 		var dish_id: String = str(dish["id"])
 		_dishes[dish_id] = dish
+		# 欄位別名（相容舊程式）
+		if dish.has("name_zh") and not dish.has("name"):
+			_dishes[dish_id]["name"] = dish["name_zh"]
+		if dish.has("base_price") and not dish.has("price"):
+			_dishes[dish_id]["price"] = dish["base_price"]
+		# 預設 unlocked 狀態（unlock_year == 1 且沒有 special 條件的預設解鎖）
+		if not dish.has("unlocked"):
+			var unlock_year: int = int(dish.get("unlock_year", 999))
+			_dishes[dish_id]["unlocked"] = (unlock_year <= 1)
 
-	# 載入完成，回報數量（方便 debug）
-	# print("MenuManager: 已載入 %d 道菜品" % _dishes.size())
+	# 明確鎖定需要聲望解鎖的高級菜色（即使 unlock_year == 1 也要鎖）
+	const LOCKED_UNTIL_REPUTATION: Array[String] = [
+		"three_cup_chicken",    # 三杯雞：需聲望 10
+		"stir_fry_clams",       # 炒蛤蜊：需聲望 15
+		"ginger_intestines",    # 薑絲大腸：需聲望 20
+	]
+	for locked_id: String in LOCKED_UNTIL_REPUTATION:
+		if _dishes.has(locked_id):
+			_dishes[locked_id]["unlocked"] = false
+			_dishes[locked_id]["requires_reputation"] = true
+			if locked_id == "three_cup_chicken":
+				_dishes[locked_id]["unlock_reputation"] = 10
+			elif locked_id == "stir_fry_clams":
+				_dishes[locked_id]["unlock_reputation"] = 15
+			elif locked_id == "ginger_intestines":
+				_dishes[locked_id]["unlock_reputation"] = 20
 
 
 ## 回傳所有已解鎖（unlocked == true）的菜品 Dictionary 陣列。
@@ -85,6 +112,9 @@ func unlock_dish(dish_id: String) -> void:
 		push_warning("MenuManager: 嘗試解鎖不存在的菜品 '%s'" % dish_id)
 		return
 	_dishes[dish_id]["unlocked"] = true
+	var dish_name: String = _dishes[dish_id].get("name", dish_id)
+	dish_unlocked.emit(dish_id, dish_name)
+	print("[MenuManager] 解鎖菜色：%s（%s）" % [dish_id, dish_name])
 
 
 ## 鎖定菜色（設 unlocked = false）。
@@ -113,6 +143,12 @@ func get_dishes_by_category(category: String) -> Array:
 		if dish.get("category", "") == category and dish.get("unlocked", false):
 			result.append(dish)
 	return result
+
+
+## 回傳所有菜品（不論解鎖狀態）的 Dictionary 陣列。
+## 供 MenuUI 等介面顯示完整菜單並提供切換功能。
+func get_all_dishes() -> Array:
+	return _dishes.values()
 
 
 ## 重新從 JSON 載入所有菜品資料，覆蓋當前記憶體狀態。

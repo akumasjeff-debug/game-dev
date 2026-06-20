@@ -109,6 +109,16 @@ var has_task: bool = false
 ## 待機位置（由 game.gd 生成員工後透過 set_home_position 設定）
 var home_position: Vector2 = Vector2.ZERO
 
+# ============================================================
+# 烹飪進度條（CanvasLayer，廚師工作時顯示）
+# ============================================================
+
+## 進度條容器 CanvasLayer（layer = 3）
+var _cook_bar_layer: CanvasLayer = null
+## 進度條橘色填充 ColorRect
+var _cook_bar_fill: ColorRect = null
+const COOK_BAR_MAX_W: float = 80.0  # 進度條最大寬度（像素）
+
 ## 炒鍋位置（固定對應地圖上的炒菜台 Vector2i(1,1) * 16）
 var cook_position: Vector2 = Vector2(16.0, 16.0)
 
@@ -271,7 +281,11 @@ func _process_working(delta: float) -> void:
 	if _work_progress >= 1.0:
 		_work_progress = 1.0
 		task_done = true
+		_remove_cook_bar()
 		_complete_current_task()
+	else:
+		# 更新烹飪進度條寬度
+		_update_cook_bar(_work_progress)
 
 
 ## SATISFIED：完成任務慶祝動畫
@@ -346,6 +360,9 @@ func _enter_state(state: State) -> void:
 			_work_progress = 0.0
 			task_done = false
 			# TODO: 動畫整合後：animated_sprite.play(current_work_animation)
+			# 若為廚師炒菜任務，顯示進度條
+			if _is_chef and current_task.get("type", "") == "cook":
+				_create_cook_bar()
 
 		State.SATISFIED:
 			_satisfied_timer = SATISFIED_DISPLAY_DURATION
@@ -402,6 +419,12 @@ func _complete_current_task() -> void:
 	morale = minf(morale + MORALE_RECOVER_PER_TASK, 1.0)
 	# 串接 OrderManager：炒菜完成通知
 	if task_type == "cook" and OrderManager:
+		# 炒菜完成時播放音效
+		var am_cook := get_node_or_null("/root/AudioManager")
+		if am_cook != null and am_cook.has_method("play_sfx"):
+			var sfx_cook := "res://assets/audio/sfx/cook_done.wav"
+			if ResourceLoader.exists(sfx_cook):
+				am_cook.play_sfx(load(sfx_cook))
 		OrderManager.complete_cooking(completed_id)
 	# 串接 OrderManager：送餐完成通知
 	elif task_type == "serve" and OrderManager:
@@ -420,7 +443,14 @@ func _complete_current_task() -> void:
 					order_data["status"] = "done"
 					var customer_id: String = order_data.get("customer_id", "")
 					if customer_id != "":
-						OrderManager.complete_payment(customer_id, 160.0)
+						var dish_id_pay: String = order_data.get("dish_id", "")
+						var pay_price: float = 160.0
+						var mm_pay := get_node_or_null("/root/MenuManager")
+						if mm_pay != null and dish_id_pay != "":
+							var dish_pay: Dictionary = mm_pay.get_dish(dish_id_pay)
+							if not dish_pay.is_empty():
+								pay_price = float(dish_pay.get("price", dish_pay.get("base_price", 160.0)))
+						OrderManager.complete_payment(customer_id, pay_price)
 	current_task = {}
 	has_task = false
 	_transition_to(State.SATISFIED)
@@ -432,6 +462,7 @@ func clear_task_queue() -> void:
 	task_queue.clear()
 	current_task = {}
 	has_task = false
+	_remove_cook_bar()
 
 
 # ============================================================
@@ -507,6 +538,69 @@ func get_task_queue_size() -> int:
 func set_sprite(s: Sprite2D, is_chef: bool = false) -> void:
 	_sprite = s
 	_is_chef = is_chef
+
+
+# ============================================================
+# 烹飪進度條管理
+# ============================================================
+
+## 在炒菜台上方（像素位置 16,16 對應 tile(1,1)）建立進度條 CanvasLayer
+func _create_cook_bar() -> void:
+	_remove_cook_bar()  # 確保舊的已清除
+
+	if get_tree() == null:
+		return
+
+	_cook_bar_layer = CanvasLayer.new()
+	_cook_bar_layer.layer = 3
+	get_tree().root.add_child(_cook_bar_layer)
+
+	# 進度條顯示在畫面左側（對應廚房區域上方）
+	const BAR_X: float = 120.0  # 靠左，對應廚房區域
+	const BAR_Y: float = 32.0   # HUD 下方緊接語錄區
+
+	var bar_bg := ColorRect.new()
+	bar_bg.color = Color(0.3, 0.3, 0.3, 0.85)
+	bar_bg.size = Vector2(COOK_BAR_MAX_W, 6)
+	bar_bg.position = Vector2(BAR_X, BAR_Y)
+	_cook_bar_layer.add_child(bar_bg)
+
+	# 「烹飪中」標籤（進度條左側，與進度條同 y）
+	var bar_label := Label.new()
+	bar_label.name = "cook_label"
+	var cook_font_path := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
+	if ResourceLoader.exists(cook_font_path):
+		bar_label.text = "烹飪中"
+		var cook_font = load(cook_font_path)
+		bar_label.add_theme_font_override("font", cook_font)
+		bar_label.add_theme_font_size_override("font_size", 8)
+	else:
+		bar_label.text = "cooking"
+		bar_label.add_theme_font_size_override("font_size", 8)
+	bar_label.position = Vector2(BAR_X - 36, BAR_Y - 1)
+	bar_label.add_theme_color_override("font_color", Color(1, 0.7, 0.2))
+	_cook_bar_layer.add_child(bar_label)
+
+	_cook_bar_fill = ColorRect.new()
+	_cook_bar_fill.color = Color(0.95, 0.55, 0.1)
+	_cook_bar_fill.size = Vector2(0, 6)
+	_cook_bar_fill.position = Vector2(BAR_X, BAR_Y)
+	_cook_bar_layer.add_child(_cook_bar_fill)
+
+
+## 更新進度條寬度（progress: 0.0 ~ 1.0）
+func _update_cook_bar(progress: float) -> void:
+	if _cook_bar_fill == null or not is_instance_valid(_cook_bar_fill):
+		return
+	_cook_bar_fill.size.x = COOK_BAR_MAX_W * clampf(progress, 0.0, 1.0)
+
+
+## 移除進度條
+func _remove_cook_bar() -> void:
+	if _cook_bar_layer != null and is_instance_valid(_cook_bar_layer):
+		_cook_bar_layer.queue_free()
+	_cook_bar_layer = null
+	_cook_bar_fill = null
 
 
 ## 幀切換 tick（由 _update_state 末尾呼叫）
