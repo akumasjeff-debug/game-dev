@@ -4,6 +4,7 @@
 size = Vector2(80, 80)
 
 [node name="ExitZone" type="Area2D"]
+collision_mask = 9
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("1")

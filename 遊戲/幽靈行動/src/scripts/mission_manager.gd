@@ -60,8 +60,14 @@ func on_enemy_died(enemy: Node2D):
 
 # 逃脫區域觸發
 func _on_exit_body_entered(body: Node2D):
-	if mission_type == MissionType.RESCUE:
-		if body == hostage:
+	if mission_type != MissionType.RESCUE:
+		return
+	if body == hostage:
+		# 人質直接走進出口
+		emit_signal("mission_complete")
+	elif body.is_in_group("player") and is_instance_valid(hostage):
+		# 玩家進入出口，人質只要在跟隨中就算完成（容錯：人質可能跟不上）
+		if hostage.has_method("get_is_following") and hostage.get_is_following():
 			emit_signal("mission_complete")
 
 # 人質死亡時呼叫

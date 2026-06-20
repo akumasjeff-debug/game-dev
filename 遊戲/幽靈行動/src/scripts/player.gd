@@ -199,10 +199,20 @@ func _fire(target):
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
 	if _sfx_gunshot and _sfx_gunshot.stream:
 		_sfx_gunshot.play()
-	if target.has_method("take_damage"):
-		target.take_damage(DAMAGE)
+	_spawn_bullet(target.global_position)
 	if ammo <= 0:
 		_start_reload()
+
+func _spawn_bullet(target_pos: Vector2):
+	var scene = load("res://scenes/Bullet.tscn")
+	if not scene:
+		return
+	var bullet = scene.instantiate()
+	bullet.global_position = global_position
+	bullet.direction = (target_pos - global_position).normalized()
+	bullet.damage = DAMAGE
+	bullet.from_player = true
+	get_parent().add_child(bullet)
 
 func _start_reload():
 	if reloading:

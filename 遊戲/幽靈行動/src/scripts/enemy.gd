@@ -190,15 +190,17 @@ func _do_shoot(_delta):
 		_shoot()
 
 func _shoot():
-	if player and player.has_method("take_damage"):
-		# 簡易命中判斷：射線（用 vision_ray 重用）
-		if vision_ray:
-			vision_ray.target_position = to_local(player.global_position)
-			vision_ray.force_raycast_update()
-			if vision_ray.is_colliding():
-				var hit = vision_ray.get_collider()
-				if hit and hit.is_in_group("player"):
-					player.take_damage(DAMAGE)
+	if not player:
+		return
+	var scene = load("res://scenes/Bullet.tscn")
+	if not scene:
+		return
+	var bullet = scene.instantiate()
+	bullet.global_position = global_position
+	bullet.direction = (player.global_position - global_position).normalized()
+	bullet.damage = DAMAGE
+	bullet.from_player = false
+	get_parent().add_child(bullet)
 
 func _set_state(new_state: State):
 	state = new_state
