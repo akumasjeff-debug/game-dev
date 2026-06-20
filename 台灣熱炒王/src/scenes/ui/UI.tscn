@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://a5f8c2e1"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[node name="UI" type="Node"]
+
+[node name="hud_layer" type="CanvasLayer" parent="."]
+script = ExtResource("1_hud")
+layer = 1
+
+[node name="HUD" type="Control" parent="hud_layer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="dialog_layer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="DialogBox" type="Control" parent="dialog_layer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="build_layer" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="BuildPanel" type="Control" parent="build_layer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

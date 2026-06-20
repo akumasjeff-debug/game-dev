@@ -1,5 +1,5 @@
 // 國語小練習 v2.0 — 仿考卷 8 種題型，純 HTML/JS
-const VERSION = '20260620 0828';
+const VERSION = '20260620 1500';
 
 // =====================================================================
 // ZHUYIN TABLE — 一至三年級常見字
@@ -113,7 +113,7 @@ const FILL_BLANK_Q = [
   { sent:'大（　）缸裡有紅金魚游過去。', answer:'魚', options:['魚','玻','水','石'] },
   { sent:'七彩的虹送給他（　）。', answer:'們', options:['們','個','的','啊'] },
   { sent:'我收到一張生日（　）片，好開心！', answer:'卡', options:['卡','名','明','信'] },
-  { sent:'太（　）國王要大掃除了。', answer:'陽', options:['陽','陰','陽','陽'] },
+  { sent:'太（　）國王要大掃除了。', answer:'陽', options:['陽','陰','太','火'] },
   { sent:'太陽（　）王要大掃除了。', answer:'國', options:['國','公','天','老'] },
   { sent:'她拉著長（　）的線放風箏。', answer:'長', options:['長','短','細','粗'] },
   { sent:'七（　）的虹好漂亮！', answer:'彩', options:['彩','色','光','百'] },
@@ -151,26 +151,16 @@ const WRONG_CHAR_Q = [
   { text:'她拉著風【棉】，升得好高。', wrongChar:'棉', answer:'箏', options:['箏','筆','竿','線'] },
   { text:'我每天都很【忍】真地念書。', wrongChar:'忍', answer:'認', options:['認','記','想','努'] },
   { text:'妹妹穿了一【隻】紅雨鞋。', wrongChar:'隻', answer:'雙', options:['雙','條','個','件'] },
-  { text:'她【第】一次收到生日卡片。', wrongChar:'第', answer:'第', // trick: 第 is correct here actually
-    // Let me change this one
-    // Actually let me use a different sentence
-    text2:'太陽國【往】要大掃除了。', wrongChar2:'往', answer2:'王' },
   { text:'太陽國【往】要大掃除了。', wrongChar:'往', answer:'王', options:['王','公','皇','帝'] },
-  { text:'路燈在前【面】跑，我追不上。', wrongChar:'面', answer:'面',
-    // this is correct... need a different one
-  },
+  { text:'路燈在我【錢】面跑，好快！', wrongChar:'錢', answer:'前', options:['前','後','旁','外'] },
   { text:'今天是我的生【目】快樂。', wrongChar:'目', answer:'日', options:['日','月','年','時'] },
-  { text:'黑天【鵝】是我最喜歡的鳥。', wrongChar:'鵝', answer:'鵝',
-    // also correct...
-  },
+  { text:'黑天【餓】游在水上，好漂亮。', wrongChar:'餓', answer:'鵝', options:['鵝','鴨','雞','鳥'] },
   { text:'棉【化】糖甜甜的，很好吃。', wrongChar:'化', answer:'花', options:['花','火','貨','華'] },
   { text:'風箏升得好【低】，好神奇！', wrongChar:'低', answer:'高', options:['高','遠','快','大'] },
   { text:'她不太【青】楚路怎麼走。', wrongChar:'青', answer:'清', options:['清','明','知','懂'] },
   { text:'雨滴一落下，水面就【閉】了。', wrongChar:'閉', answer:'開', options:['開','動','破','碎'] },
 ];
 
-// 清理錯誤資料（移除沒有answer或格式不對的）
-const WRONG_CHAR_CLEAN = WRONG_CHAR_Q.filter(q => q.wrongChar && q.answer && q.options && q.options.length === 4 && q.text && !q.text2);
 
 // =====================================================================
 // ○× 判斷題
@@ -225,12 +215,12 @@ const CLASSIFIERS = [
 const WORDS = [
   '作夢','黑雲','躺在','自己','變成','黑天鵝','棉花糖','變得','更漂亮','妹妹的紅雨鞋',
   '一雙','穿上','雨滴','玩遊戲','一顆顆','小珍珠','一落下','水面','大魚缸','紅金魚',
-  '游過去','太陽','國王','要大掃除','洗淨','高高低低','馬路','很認真','大樹',
+  '游過去','來','太陽','國王','要大掃除','洗淨','高高低低','馬路','很認真','大樹',
   '葉子','刷亮','七彩的虹','送給他們','跑跑跳跳','說說笑笑','每件事情','草地','變化',
-  '好有趣','拉著','長長的','線','放風箏','升得','好神奇','下課時','知道',
-  '記得','今天是','生日快樂','謝謝','第一次','放學時','收到',
-  '生日卡片','祝福','跑','路燈','在我','前面','加油',
-  '不太','清楚','停下來','誰快','誰慢','分不出','休息','一會兒',
+  '好有趣','拉著','長長的','線','放風箏','升得','高','好神奇','下課時','知道','嗎',
+  '記得','今天是','生日快樂','謝謝','第一次','這','放學時','我','收到',
+  '一張','生日卡片','祝福','跑','路燈','在我','前面','快一點','一半','到','加油',
+  '不太','清楚','停下來','誰快','誰慢','分不出','休息','一會兒','吧',
 ];
 
 // =====================================================================
@@ -283,13 +273,25 @@ function withRuby(text) {
   }).join('');
 }
 
+// 兒童書格式注音：字右側直排，聲調在最後符號右下
+function inlineZy(zy) {
+  const { syms, tone } = parseZy(zy);
+  if (!syms.length) return '';
+  const rows = syms.map((s, i) => {
+    const isLast = i === syms.length - 1;
+    const t = (isLast && tone) ? `<span class="ann-tone">${tone}</span>` : '';
+    return `<div class="ann-row">${s}${t}</div>`;
+  });
+  return `<div class="ann-zy">${rows.join('')}</div>`;
+}
+
 // 題目注音標注；hideChars（Set）內的字只顯示字，不顯示注音
 function annotate(text, hideChars = new Set()) {
   return Array.from(text).map(ch => {
     const zy = ZHUYIN[ch];
     if (!zy) return ch;
     if (hideChars.has(ch)) return ch;
-    return `<ruby>${ch}<rt>${zy}</rt></ruby>`;
+    return `<span class="char-unit">${ch}${inlineZy(zy)}</span>`;
   }).join('');
 }
 
@@ -297,12 +299,11 @@ function annotate(text, hideChars = new Set()) {
 // 產生題目
 // =====================================================================
 function genZhuyinQ() {
-  // 給字，選注音（4 個相似注音）
-  const chars = ALL_ZY_CHARS.filter(c => ZHUYIN[c] && !TONES.has(c));
-  const char = rand(chars);
+  // 從課文詞語表抽字（只考 8-12 課詞彙中出現的字）
+  const pool = [...new Set(WORDS.flatMap(w => [...w]))].filter(ch => ZHUYIN[ch]);
+  const char = rand(pool);
   const answer = ZHUYIN[char];
-  // 干擾項：同聲母或同韻母的字
-  const wrongChars = pick(chars.filter(c => ZHUYIN[c] !== answer), 3);
+  const wrongChars = pick(pool.filter(c => ZHUYIN[c] !== answer), 3);
   const options = shuffle([answer, ...wrongChars.map(c => ZHUYIN[c])]);
   return { type:'zhuyin', char, answer, options, key:`zy:${char}` };
 }
@@ -330,10 +331,8 @@ function genFillBlankQ() {
 }
 
 function genWrongCharQ() {
-  const valid = WRONG_CHAR_CLEAN;
-  if (!valid.length) return genFillBlankQ();
-  const q = rand(valid);
-  return { type:'wrong_char', ...q, key:`wc:${q.wrongChar}` };
+  const q = rand(WRONG_CHAR_Q);
+  return { type:'wrong_char', ...q, key:`wc:${q.wrongChar}:${q.answer}` };
 }
 
 function genRadicalQ() {
@@ -357,7 +356,7 @@ function genRadicalQ() {
 
 function genTrueFalseQ() {
   const q = rand(TRUE_FALSE_Q);
-  return { type:'true_false', ...q, key:`tf:${q.text.slice(0,8)}` };
+  return { type:'true_false', ...q, key:`tf:${q.text.slice(0,14)}` };
 }
 
 const GEN_FNS = [
@@ -438,23 +437,20 @@ function renderStart() {
     <div class="sub">仿考卷題型 · 每次不一樣</div>
     <div class="version-tag">v${VERSION}</div>
 
+    ${wrongs.length >= 3 ? `
+    <div class="card" style="border:2px solid #fde0e0;padding:12px 16px;">
+      <div class="btn danger" id="retryBtn" style="margin:0">🔁 重測錯題（${wrongs.length} 題）</div>
+    </div>` : ''}
+
     <div class="card">
       <div class="section-title">選擇題數</div>
       <div class="count-btns">
         <button class="count-btn" data-n="10">10題</button>
         <button class="count-btn" data-n="20">20題</button>
         <button class="count-btn" data-n="30">30題</button>
+        <button class="count-btn" data-n="50">50題</button>
       </div>
-      <div class="slider-wrap">
-        <span class="slider-label">5</span>
-        <input type="range" id="slider" min="5" max="50" value="10" step="1">
-        <span class="slider-label">50</span>
-      </div>
-      <div class="count-display" id="countDisplay">已選：<strong>10</strong> 題</div>
       <div class="btn primary" id="startBtn">開始練習 ▶</div>
-      ${wrongs.length >= 3
-        ? `<div class="btn danger" id="retryBtn">🔁 重測錯題（${wrongs.length} 題）</div>`
-        : ''}
       <div class="admin-link" id="adminLink">🔧 題庫總覽（老師用）</div>
     </div>
 
@@ -475,17 +471,12 @@ function renderStart() {
   `;
 
   let selectedN = 10;
-  const display = document.getElementById('countDisplay');
-  const slider = document.getElementById('slider');
   function setN(n) {
     selectedN = n;
-    slider.value = n;
-    display.innerHTML = `已選：<strong>${n}</strong> 題`;
     document.querySelectorAll('.count-btn').forEach(b => b.classList.toggle('active', +b.dataset.n === n));
   }
   setN(10);
   document.querySelectorAll('.count-btn').forEach(b => { b.onclick = () => setN(+b.dataset.n); });
-  slider.oninput = () => setN(+slider.value);
   document.getElementById('startBtn').onclick = () => {
     state = { index:0, score:0, questions:genQuestionSet(selectedN), total:selectedN };
     renderQuestion();
@@ -511,9 +502,16 @@ function startRetry() {
 // =====================================================================
 function renderQuestion() {
   const q = state.questions[state.index];
+  const pct = Math.round(state.index / state.questions.length * 100);
   const hdr = `
-    <div class="progress">第 ${state.index+1} 題 / 共 ${state.questions.length} 題</div>
-    <div class="score">得分：${state.score}</div>
+    <div class="quiz-hdr">
+      <div>
+        <div class="progress">第 ${state.index+1} 題 / 共 ${state.questions.length} 題</div>
+        <div class="score">得分：${state.score}</div>
+      </div>
+      <button class="exit-btn" id="exitBtn">✕ 離開</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
   `;
   const dispatch = {
     zhuyin: renderZhuyinQ,
@@ -526,6 +524,7 @@ function renderQuestion() {
     true_false: renderTrueFalseQ,
   };
   (dispatch[q.type] || renderFillBlankQ)(hdr, q);
+  document.getElementById('exitBtn').onclick = renderStart;
 }
 
 function typeTag(label) {
@@ -687,7 +686,7 @@ function renderChoices(options, answer, displayFn) {
   options.forEach(opt => {
     const el = document.createElement('div');
     el.className = 'choice';
-    el.innerHTML = displayFn ? displayFn(opt) : annotate(opt);
+    el.innerHTML = displayFn ? displayFn(opt) : opt;
     el.dataset.val = opt;
     el.onclick = () => {
       if (locked) return;
@@ -699,7 +698,7 @@ function renderChoices(options, answer, displayFn) {
           if (c.dataset.val === answer) c.classList.add('correct');
         });
       }
-      showFeedback(ok, displayFn ? displayFn(answer) : annotate(answer));
+      showFeedback(ok, displayFn ? displayFn(answer) : answer);
     };
     box.appendChild(el);
   });
@@ -729,7 +728,9 @@ function showFeedback(ok, correctHtml) {
 function renderResult() {
   saveScore(state.score, state.questions.length);
   const pct = state.score / state.questions.length;
-  const msg = pct >= 0.8 ? '太厲害了！🌟' : pct >= 0.6 ? '不錯喔，繼續加油！💪' : '再練習一次就會更好！😊';
+  const pctInt = Math.round(pct * 100);
+  const stars = pct >= 0.9 ? '🌟🌟🌟' : pct >= 0.7 ? '🌟🌟' : pct >= 0.5 ? '🌟' : '';
+  const msg = pct >= 0.8 ? '太厲害了！' : pct >= 0.6 ? '不錯喔，繼續加油！' : '再練習一次就會更好！';
   const wrongs = lsGet(LS_WRONGS);
   const wrongChips = wrongs.slice(0,12).map(q => {
     const label = q.char || q.answer || q.wrongChar || '?';
@@ -738,10 +739,11 @@ function renderResult() {
   app.innerHTML = `
     <h1>📚 國語小練習</h1>
     <div class="card">
-      <div class="question">完成！<br>得分：${state.score} / ${state.questions.length}</div>
-      <div class="sub">${msg}</div>
+      <div class="result-score">${pctInt}<span class="result-pct-sign">%</span></div>
+      <div class="result-detail">${state.score} / ${state.questions.length} 題答對 ${stars}</div>
+      <div class="result-msg">${msg}</div>
       ${wrongs.length ? `<div style="margin:10px 0 4px;font-size:13px;color:#888;">累積錯題：</div><div>${wrongChips}</div>` : ''}
-      <div class="btn primary" id="againBtn" style="margin-top:14px">再玩一次 🔁</div>
+      <div class="btn primary" id="againBtn" style="margin-top:16px">再玩一次 🔁</div>
       ${wrongs.length ? `<div class="btn danger" id="retryBtn">重測錯題（${wrongs.length}題）</div>` : ''}
       <div class="btn" id="homeBtn">回首頁</div>
     </div>

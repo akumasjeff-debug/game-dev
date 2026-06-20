@@ -1,0 +1,242 @@
+[
+  {
+    "id": "chef_a_long",
+    "name_zh": "阿龍師傅",
+    "role": "chef",
+    "daily_wage": 500,
+    "unlock_year": 1,
+    "unlock_condition": "開局自帶（不可解雇）",
+    "hire_cost": 0,
+    "can_fire": false,
+    "skills": [
+      {
+        "id": "wok_master",
+        "name_zh": "鑊氣大師",
+        "description_zh": "炒菜類料理客滿意度 +15%，廚房失火觸發率 -30%"
+      },
+      {
+        "id": "old_chef_insistence",
+        "name_zh": "老師傅的堅持",
+        "description_zh": "食材腐壞損耗 -20%，食材品質低於標準時主動回報（觸發提示事件）"
+      }
+    ],
+    "personality_zh": "嘴硬心軟的老廚師，菜沒做好絕對不出餐，罵人難聽但永遠站在你這邊。",
+    "sprite_id": "staff_chef_a_long"
+  },
+  {
+    "id": "chef_xiao_yu",
+    "name_zh": "小玉",
+    "role": "chef",
+    "daily_wage": 350,
+    "unlock_year": 2,
+    "unlock_condition": "Year 2 店面升級至 Lv2 後可付費招募",
+    "hire_cost": 2000,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "recipe_master",
+        "name_zh": "食譜達人",
+        "description_zh": "新菜學習速度 +25%，解鎖特定菜色的時間縮短 3 天"
+      },
+      {
+        "id": "prep_efficiency",
+        "name_zh": "備菜效率",
+        "description_zh": "每日開店備料時間 -15 分鐘（遊戲內時間），料理失誤率 -20%"
+      }
+    ],
+    "personality_zh": "科班出身的年輕廚師，理論一流但缺乏鑊氣，跟著阿龍師傅學才慢慢開竅。",
+    "sprite_id": "staff_chef_xiao_yu"
+  },
+  {
+    "id": "helper_a_di",
+    "name_zh": "阿弟",
+    "role": "helper",
+    "daily_wage": 180,
+    "unlock_year": 1,
+    "unlock_condition": "Year 1 開局後第 30 天自動觸發招募事件「門口的男孩」",
+    "hire_cost": 0,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "hard_worker",
+        "name_zh": "拼命三郎",
+        "description_zh": "高峰時段幫廚速度 +25%，但體力條消耗加快 40%/小時"
+      },
+      {
+        "id": "growing_up",
+        "name_zh": "成長中（Lv1）",
+        "description_zh": "隨店齡提升自動升級，Year 4 後解鎖副廚能力，最終可轉職為正式廚師"
+      }
+    ],
+    "personality_zh": "國中剛畢業、懵懵懂懂的大男孩，什麼都不會但什麼都肯學，腦子動得快。",
+    "sprite_id": "staff_helper_a_di"
+  },
+  {
+    "id": "waiter_xiu_lan",
+    "name_zh": "秀蘭姐",
+    "role": "waiter",
+    "daily_wage": 300,
+    "unlock_year": 1,
+    "unlock_condition": "Year 1 開局後第 15 天可招募",
+    "hire_cost": 500,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "customer_recognition",
+        "name_zh": "人客識別",
+        "description_zh": "自動辨識老客人，回頭客滿意度 +15%，記住客人習慣（桌位偏好、常點菜色）"
+      },
+      {
+        "id": "drink_refill_expert",
+        "name_zh": "補酒神手",
+        "description_zh": "主動察覺客人杯子空了，補酒成功率 +35%，飲料追加銷售 +80 元/桌"
+      }
+    ],
+    "personality_zh": "做了二十幾年外場的大姐，動作快嘴巴更快，客人進門叫一聲就知道點什麼。",
+    "sprite_id": "staff_waiter_xiu_lan"
+  },
+  {
+    "id": "waiter_a_cai",
+    "name_zh": "阿財",
+    "role": "waiter",
+    "daily_wage": 220,
+    "unlock_year": 2,
+    "unlock_condition": "Year 2 隨機觸發事件「求職的大學生」後可招募",
+    "hire_cost": 0,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "warm_greeting",
+        "name_zh": "親切招呼",
+        "description_zh": "新客人第一次消費滿意度 +12%，轉換為回頭客機率 +20%"
+      },
+      {
+        "id": "mobile_ordering",
+        "name_zh": "手機點餐",
+        "description_zh": "可操作電子點餐系統（需解鎖「電子看板」設備），桌位翻桌速度 +20%"
+      }
+    ],
+    "personality_zh": "打工中的大學生，念觀光科系，課本學的全用在這，認真到讓人有點心疼。",
+    "sprite_id": "staff_waiter_a_cai"
+  },
+  {
+    "id": "waiter_jin_feng",
+    "name_zh": "金鳳",
+    "role": "waiter",
+    "daily_wage": 350,
+    "unlock_year": 3,
+    "unlock_condition": "Year 3 名聲達到 Lv3 後觸發事件「老主顧的媳婦」可招募",
+    "hire_cost": 0,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "liven_up",
+        "name_zh": "炒熱氣氛",
+        "description_zh": "在場時全店客人滿意度基礎值 +10，噪音值也 +5（需平衡管理）"
+      },
+      {
+        "id": "drink_promoter",
+        "name_zh": "勸酒師",
+        "description_zh": "觸發「加點飲料」機率 +30%，酒類銷售額 +150 元/夜"
+      }
+    ],
+    "personality_zh": "老客人阿財爸的媳婦，豪爽大方，能喝酒能說笑，跟任何客人都能聊起來。",
+    "sprite_id": "staff_waiter_jin_feng"
+  },
+  {
+    "id": "buyer_da_ming",
+    "name_zh": "大明伯",
+    "role": "manager",
+    "daily_wage": 280,
+    "unlock_year": 2,
+    "unlock_condition": "Year 2 店面升級至 Lv2 後可付費招募",
+    "hire_cost": 1500,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "market_intel",
+        "name_zh": "市場情報",
+        "description_zh": "食材每日採購價格 -15%，特殊食材（海鮮類）缺貨警示提前 2 天"
+      },
+      {
+        "id": "old_friendship",
+        "name_zh": "老交情",
+        "description_zh": "食材品質隨機提升機率 +25%（老攤販特別留好貨），節慶食材取得難度 -30%"
+      }
+    ],
+    "personality_zh": "每天凌晨四點就去魚市場的老采購，認識所有的攤販，砍價是他的第二天性。",
+    "sprite_id": "staff_buyer_da_ming"
+  },
+  {
+    "id": "cleaner_grandma",
+    "name_zh": "阿嬤（清潔阿嬤）",
+    "role": "helper",
+    "daily_wage": 150,
+    "unlock_year": 1,
+    "unlock_condition": "Year 1 開局後第 7 天自動出現「來應徵的阿嬤」事件",
+    "hire_cost": 0,
+    "can_fire": true,
+    "skills": [
+      {
+        "id": "spotless",
+        "name_zh": "一塵不染",
+        "description_zh": "店面清潔度維持在高水準，衛生局稽查通過率 +40%，客人衛生滿意度 +12"
+      },
+      {
+        "id": "waste_magic",
+        "name_zh": "廚餘魔法",
+        "description_zh": "廚餘廢料處理效率 +35%，垃圾桶爆滿惡化速度 -25%"
+      }
+    ],
+    "personality_zh": "六十歲的退休阿嬤，手腳俐落、把店裡當自己家在顧，看見亂就不舒服。",
+    "sprite_id": "staff_cleaner_grandma"
+  },
+  {
+    "id": "manager_wife",
+    "name_zh": "陳老闆娘",
+    "role": "manager",
+    "daily_wage": 0,
+    "unlock_year": 3,
+    "unlock_condition": "Year 3 觸發劇情事件「她說她要來幫忙」（主線劇情）",
+    "hire_cost": 0,
+    "can_fire": false,
+    "skills": [
+      {
+        "id": "finance_manager",
+        "name_zh": "財務管理",
+        "description_zh": "每日帳務自動整理，偷竊/錯帳事件觸發率 -35%，月底結算多顯示一項「實際獲利」"
+      },
+      {
+        "id": "face_project",
+        "name_zh": "面子工程",
+        "description_zh": "店面外觀升級費用 -20%，名聲加成 +15（老闆娘坐鎮氣場不同），偶爾帶來娘家人脈客群"
+      }
+    ],
+    "personality_zh": "精打細算、又愛面子，一邊嫌棄店裡亂一邊捨不得離開，是你最強的後援也是最強的壓力。",
+    "sprite_id": "staff_manager_wife"
+  },
+  {
+    "id": "inspector_michelin",
+    "name_zh": "米其林探員（神秘客）",
+    "role": "manager",
+    "daily_wage": 0,
+    "unlock_year": 5,
+    "unlock_condition": "Year 5 以後、名聲 Lv5 以上，機率觸發事件「奇怪的客人」",
+    "hire_cost": 0,
+    "can_fire": false,
+    "skills": [
+      {
+        "id": "hidden_evaluation",
+        "name_zh": "隱形考核",
+        "description_zh": "出現時當日所有指標被全面評估，評估結果影響「台灣美食評鑑」解鎖條件"
+      },
+      {
+        "id": "word_of_mouth_bomb",
+        "name_zh": "口碑炸彈",
+        "description_zh": "若通過考核，名聲大幅提升 +30；若失敗名聲 -20，觸發「評鑑危機」事件"
+      }
+    ],
+    "personality_zh": "穿著普通、點菜挑剔，沉默地記錄每一個細節，你永遠不知道他是誰。",
+    "sprite_id": "staff_inspector_michelin"
+  }
+]

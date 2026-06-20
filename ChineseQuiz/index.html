@@ -191,25 +191,23 @@ h1 { text-align: center; color: #2a6fb0; font-size: 24px; margin: 8px 0 2px; }
   color: #fff;
   border-color: #2a6fb0;
 }
-.slider-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0 10px;
-}
-.slider-label { color: #888; font-size: 13px; min-width: 20px; text-align: center; }
-#slider {
-  flex: 1;
-  accent-color: #2a6fb0;
-  height: 4px;
-}
-.count-display {
-  text-align: center;
-  color: #555;
-  font-size: 15px;
-  margin-bottom: 14px;
-}
-.count-display strong { color: #2a6fb0; font-size: 20px; }
+/* ── 進度條 ── */
+.progress-bar { height: 6px; background: #e3f0ff; border-radius: 3px; margin: 8px 0 16px; }
+.progress-fill { height: 100%; background: #2a6fb0; border-radius: 3px; transition: width 0.4s ease; }
+
+/* ── 答題動畫 ── */
+@keyframes pop-correct { 0%{transform:scale(1)} 40%{transform:scale(1.04)} 100%{transform:scale(1)} }
+@keyframes shake-wrong { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+.choice.correct { animation: pop-correct 0.25s ease forwards; }
+.choice.wrong   { animation: shake-wrong 0.3s ease forwards; }
+.tf-btn.correct { animation: pop-correct 0.25s ease forwards; }
+.tf-btn.wrong   { animation: shake-wrong 0.3s ease forwards; }
+
+/* ── 結果頁 ── */
+.result-score { text-align:center; font-size:72px; font-weight:bold; color:#2a6fb0; line-height:1.1; margin:8px 0 4px; }
+.result-pct-sign { font-size:30px; vertical-align:super; }
+.result-detail { text-align:center; font-size:18px; color:#555; margin-bottom:4px; }
+.result-msg { text-align:center; font-size:15px; color:#888; margin-bottom:14px; }
 
 /* ── 最近記錄 ── */
 .history-row {
@@ -248,10 +246,16 @@ h1 { text-align: center; color: #2a6fb0; font-size: 24px; margin: 8px 0 2px; }
 .hidden { display: none; }
 .version-tag { text-align: center; color: #bbb; font-size: 11px; margin-bottom: 6px; letter-spacing: 0.5px; }
 
-/* ── 注音 ruby 標注 ── */
-ruby { ruby-align: center; }
-ruby rt { font-size: 0.48em; color: #6699cc; line-height: 1; font-weight: normal; }
-.choice ruby rt { font-size: 0.42em; }
+/* ── 注音直排標注（兒童書格式）── */
+.char-unit { display: inline-flex; align-items: center; vertical-align: middle; margin: 0 1px; }
+.ann-zy { display: inline-flex; flex-direction: column; align-items: flex-start; font-size: 0.38em; color: #5588bb; line-height: 1.3; margin-left: 1.5px; }
+.ann-row { display: flex; align-items: flex-start; }
+.ann-tone { font-size: 0.8em; margin-top: 2px; }
+
+/* ── 退出按鈕 ── */
+.quiz-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+.exit-btn { background: none; border: 1.5px solid #ddd; border-radius: 8px; color: #bbb; font-size: 13px; padding: 4px 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.exit-btn:active { background: #f5f5f5; color: #999; }
 </style>
 </head>
 <body>

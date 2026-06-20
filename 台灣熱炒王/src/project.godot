@@ -1,0 +1,92 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes in []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="台灣熱炒王"
+config/name_localized={
+"zh_TW": "台灣熱炒王"
+}
+run/main_scene="res://scenes/main_menu/MainMenu.tscn"
+config/features=PackedStringArray("4.3", "Mobile")
+config/icon="res://assets/ui/icon.png"
+
+[autoload]
+
+GameManager="*res://scripts/core/game_manager.gd"
+PathfindingManager="*res://scripts/systems/PathfindingManager.gd"
+SeatManager="*res://scripts/systems/SeatManager.gd"
+MenuManager="*res://scripts/systems/MenuManager.gd"
+SaveManager="*res://scripts/systems/SaveManager.gd"
+BuildManager="*res://scripts/systems/BuildManager.gd"
+EventManager="*res://scripts/systems/EventManager.gd"
+AudioManager="*res://scripts/core/audio_manager.gd"
+TutorialManager="*res://scripts/systems/TutorialManager.gd"
+OrderManager="*res://scripts/systems/OrderManager.gd"
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=270
+window/size/resizable=false
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/handheld/orientation=1
+
+[input]
+
+touch_tap={
+"deadzone": 0.5,
+"events": [Object(InputEventScreenTouch,"resource_local_to_scene":false,"resource_name":"","device":-1,"index":0,"position":Vector2(0, 0),"canceled":false,"pressed":true,"double_tap":false,"script":null)
+]
+}
+touch_drag={
+"deadzone": 0.5,
+"events": [Object(InputEventScreenDrag,"resource_local_to_scene":false,"resource_name":"","device":-1,"index":0,"position":Vector2(0, 0),"relative":Vector2(0, 0),"screen_relative":Vector2(0, 0),"velocity":Vector2(0, 0),"screen_velocity":Vector2(0, 0),"tilt":Vector2(0, 0),"pressure":0.0,"pen_inverted":false,"script":null)
+]
+}
+ui_build_mode={
+"deadzone": 0.5,
+"events": []
+}
+ui_cancel_build={
+"deadzone": 0.5,
+"events": []
+}
+ui_rotate_equipment={
+"deadzone": 0.5,
+"events": []
+}
+ui_speed_up={
+"deadzone": 0.5,
+"events": []
+}
+ui_pause={
+"deadzone": 0.5,
+"events": []
+}
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.1, 0.05, 0.02, 1)
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[layer_names]
+
+2d_render/layer_1="world"
+2d_render/layer_2="characters"
+2d_render/layer_3="vfx"
+2d_render/layer_4="ui"

@@ -180,7 +180,7 @@
 
 | 用途 | 推薦字體 | 授權 |
 |------|----------|------|
-| 中文標題/內文 | Zpix（中文像素字體） | MIT |
+| 中文標題/內文 | Fusion Pixel Font（8px/10px/12px） | OFL-1.1 |
 | 數字/金錢顯示 | Press Start 2P | OFL |
 | 英文輔助 | Press Start 2P | OFL |
 

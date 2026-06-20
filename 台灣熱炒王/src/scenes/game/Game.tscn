@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://d7e2b4c8"]
+
+[ext_resource type="Script" path="res://scripts/core/game.gd" id="1_game"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game")
+
+[node name="Camera" type="Camera2D" parent="."]
+
+[node name="floor_layer" type="TileMapLayer" parent="."]
+z_index = 0
+
+[node name="object_layer" type="TileMapLayer" parent="."]
+z_index = 1
+
+[node name="characters" type="Node2D" parent="."]
+
+[node name="vfx" type="Node2D" parent="."]

@@ -13,6 +13,10 @@
           {
             "type": "command",
             "command": "python \"d:\\開發遊戲\\.claude\\hooks\\save_tokens.py\""
+          },
+          {
+            "type": "command",
+            "command": "python \"d:\\開發遊戲\\.claude\\hooks\\notify_line.py\""
           }
         ]
       }
