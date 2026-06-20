@@ -759,6 +759,144 @@ function sch_render() {
     sch_updateStats();
 }
 
+// -------------------------------------------------------
+//  AI 排班：輔助函數
+// -------------------------------------------------------
+
+// 取得前 N 天的日期字串 YYYY-M-D（簡單月內計算）
+function sch_prevDateKey(y, m, d, back) {
+    const dt = new Date(y, m - 1, d - back);
+    return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+}
+
+// 後處理驗證：檢查 6休1 與固定公休，回傳 { roster, violations }
+function sch_validateAndFix(aiRoster, startDay, endDay, y, m) {
+    const violations = [];
+    const wkLabels = ['日','一','二','三','四','五','六'];
+
+    for (let d = startDay; d <= endDay; d++) {
+        const key = `${y}-${m}-${d}`;
+        const dayRoster = aiRoster[key];
+        if (!dayRoster || dayRoster.length === 0) continue;
+
+        const weekday = wkLabels[new Date(y, m - 1, d).getDay()];
+
+        // 反向迭代，移除違規項不影響索引
+        for (let i = dayRoster.length - 1; i >= 0; i--) {
+            const job = dayRoster[i];
+            const emp = sharedData.emps.find(e => e.id === job.eId);
+            if (!emp) continue;
+
+            // 1. 固定公休檢查
+            if ((emp.unavailableDays || []).includes(weekday)) {
+                violations.push(`${emp.name} ${d}號（週${weekday}）違反固定公休`);
+                dayRoster.splice(i, 1);
+                continue;
+            }
+
+            // 2. 6休1 檢查：往前數連班天數
+            let consecutive = 0;
+            for (let back = 1; back <= 6; back++) {
+                const prevKey = sch_prevDateKey(y, m, d, back);
+                const prevDay = aiRoster[prevKey] || sch_roster[prevKey] || [];
+                if (prevDay.some(j => j.eId === job.eId)) consecutive++;
+                else break;
+            }
+            if (consecutive >= 6) {
+                violations.push(`${emp.name} ${d}號違反6休1（前已連上${consecutive}天）`);
+                dayRoster.splice(i, 1);
+            }
+        }
+
+        // 修正 idx 序號
+        dayRoster.forEach((job, idx) => { job.idx = idx; });
+        aiRoster[key] = dayRoster;
+    }
+
+    return { roster: aiRoster, violations };
+}
+
+// 更新 loading 訊息
+function sch_setLoadingMsg(msg) {
+    const el = document.getElementById('sch-loadingMsg');
+    if (el) el.innerText = msg;
+}
+
+// 構建結構化 prompt
+function sch_buildPrompt(y, m, startDay, endDay, history) {
+    const wkLabels = ['日','一','二','三','四','五','六'];
+
+    // 預先計算每日各門市需求人數
+    const storeLines = [];
+    Object.values(sharedData.stores).forEach(s => {
+        const parts = [];
+        for (let wk = 0; wk <= 6; wk++) {
+            const total = parseInt(s.config?.[wk]?.total) || 0;
+            if (total > 0) parts.push(`週${wkLabels[wk]}需${total}人`);
+        }
+        storeLines.push(`  - ${s.name}（id:${s.id}）：${parts.join('、') || '無需求'}`);
+    });
+
+    // 員工摘要
+    const empLines = sharedData.emps.map(e => {
+        const histBefore = history[e.id] || 0;
+        const storeNames = (e.canWorkStores || []).join('、');
+        const wishArr = typeof e.wishLeaves === 'string'
+            ? e.wishLeaves.split(',').map(x => x.trim()).filter(Boolean)
+            : (Array.isArray(e.wishLeaves) ? e.wishLeaves : []);
+        const wishInRange = wishArr.filter(d => {
+            const parts = d.split('-');
+            if (parts.length < 3) return false;
+            const dm = parseInt(parts[1]), dd = parseInt(parts[2]);
+            return dm === m && dd >= startDay && dd <= endDay;
+        }).map(d => d.split('-')[2] + '號').join('、');
+
+        return [
+            `  - ${e.name}（id:${e.id}）`,
+            `    可排門市：${storeNames || '無'}`,
+            `    固定公休：每週${(e.unavailableDays || []).join('、') || '無'}`,
+            `    目標工時：${e.minHours || 60}~${e.maxHours || 80}h`,
+            `    區間前已連班：${histBefore}天`,
+            wishInRange ? `    許願休假（本區間）：${wishInRange}` : null
+        ].filter(Boolean).join('\n');
+    });
+
+    // 班別說明
+    const shiftLines = sharedData.shifts.map(s =>
+        `  - ${s.code}：${s.startTime}-${s.endTime}（${s.workHours}h）`
+    );
+
+    return `你是一位嚴格執行勞動法規的排班系統。請為以下門市安排 ${y}年${m}月 ${startDay}號到${endDay}號的班表。
+
+【硬性規則 - 絕對不可違反，違反視為無效輸出】
+1. 6休1：任何員工連續工作不可超過6天。「區間前已連班N天」代表此段開始前員工已連上幾天，必須計入。
+2. 固定公休：員工的「固定公休」星期絕對不排班，即使人力不足也不可排。
+3. 單店限制：「可排門市」只有一家的員工，只能排那家門市。
+
+【軟性規則 - 盡量滿足，人力確實不足時可例外但需盡力】
+1. 許願休假優先：「許願休假」的日期盡量安排該員工休假。
+2. 工時目標：每月總工時盡量在「目標工時」的 min~max 之間。
+3. 排班優先順序：只能排單一門市的員工優先排滿，再用多店機動員工補缺口。
+
+【各門市每週人力需求】
+${storeLines.join('\n')}
+
+【員工清單】
+${empLines.join('\n')}
+
+【可用班別】
+${shiftLines.join('\n')}
+
+【回傳格式】重要：只回傳純 JSON，不要加任何說明文字、Markdown、程式碼區塊。
+格式：{"YYYY-M-D": [{"sId":"門市ID","idx":0,"eId":"員工ID","eName":"員工姓名","sh":"班別代碼"}]}
+idx 從0起算，同一天同一門市若有多人則用不同 idx。
+若某天某門市需求為0人則該天不需該門市條目。
+不需排班的日期（員工全休）不需出現該日期的條目。`;
+}
+
+// -------------------------------------------------------
+//  主函數
+// -------------------------------------------------------
 async function sch_startAiScheduler() {
     const apiKey = document.getElementById("apiKey").value.trim();
     if (!apiKey) return alert("請先設定 API Key！");
@@ -769,14 +907,31 @@ async function sch_startAiScheduler() {
     sch_closeModal('sch-aiModal');
 
     try {
+        // === 步驟1：讀取可用模型 ===
+        sch_setLoadingMsg('正在讀取可用模型清單...');
         const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
         const modelData = await modelRes.json();
-        const availableModels = modelData.models
-            .filter(m => m.supportedGenerationMethods.includes("generateContent"))
+
+        // 偏好準確度：pro > flash-thinking > flash，依序嘗試
+        const modelPriority = [
+            '2.5-pro', '2.0-pro', '1.5-pro',
+            '2.5-flash-thinking', '2.0-flash-thinking',
+            '2.5-flash', '2.0-flash', '1.5-flash'
+        ];
+        const availableModels = (modelData.models || [])
+            .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
             .map(m => m.name)
-            .sort((a, b) => a.includes("flash") ? -1 : 1);
+            .sort((a, b) => {
+                const ai = modelPriority.findIndex(p => a.includes(p));
+                const bi = modelPriority.findIndex(p => b.includes(p));
+                return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+            });
+
+        if (availableModels.length === 0) throw new Error('找不到可用模型，請確認 API Key 是否有效。');
 
         const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+
+        // === 步驟2：計算區間前連班歷史 ===
         const history = {};
         sharedData.emps.forEach(e => {
             let con = 0;
@@ -787,53 +942,112 @@ async function sch_startAiScheduler() {
             history[e.id] = con;
         });
 
-        const context = {
-            targetRange: { start: startDay, end: endDay, month: `${y}-${m}` },
-            employees: sharedData.emps.map(e => ({
-                id: e.id, name: e.name, stores: e.canWorkStores || [],
-                min: e.minHours || 60, max: e.maxHours || 80,
-                wish: e.wishLeaves, fixedOff: e.unavailableDays,
-                workHistoryBeforeRange: history[e.id]
-            })),
-            stores: Object.values(sharedData.stores).map(s => ({ id: s.id, name: s.name, config: s.config })),
-            currentRoster: sch_roster
-        };
+        // === 步驟3：建立 Prompt ===
+        const basePrompt = sch_buildPrompt(y, m, startDay, endDay, history);
 
-        const prompt = `你是專業排班專家。請為 ${y}年${m}月 的 ${startDay} 到 ${endDay} 號排班。
-            最高禁令：
-            1. 絕對不允許連續上班超過 6 天。請參考每位員工的 workHistoryBeforeRange (區間開始前已連上的天數)。
-            2. 如果員工在區間內已經達到連 6，第 7 天必須強迫排休。
-            3. 每位員工的總工時應在 [Min, Max] 之間。
-            4. 優先讓只能在一家固定上班的店員排班，保留機動人員遞補。
-            回傳格式：純 JSON {"YYYY-M-D": [{"sId":"店ID","idx":0,"eId":"員工ID","eName":"名","sh":"班別"}]}
-            數據：${JSON.stringify(context)}`;
+        // === 步驟4：呼叫 AI，最多重試一次（帶違規清單） ===
+        let aiRoster = null;
+        let usedModel = '';
+        let retryDone = false;
+        let finalViolations = [];
 
-        let success = false;
-        for (let targetModel of availableModels) {
-            if (success) break;
-            try {
-                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } })
-                });
-                const resJson = await resp.json();
-                const aiText = resJson.candidates[0].content.parts[0].text;
-                const jsonMatch = aiText.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    const aiRoster = JSON.parse(jsonMatch[0]);
-                    for (let d = startDay; d <= endDay; d++) {
-                        const key = `${y}-${m}-${d}`;
-                        if (aiRoster[key]) sch_roster[key] = aiRoster[key];
+        for (let modelIdx = 0; modelIdx < availableModels.length; modelIdx++) {
+            const targetModel = availableModels[modelIdx];
+            const modelShort = targetModel.replace('models/', '');
+            sch_setLoadingMsg(`使用模型：${modelShort}，正在生成班表...`);
+
+            let prompt = basePrompt;
+
+            while (true) { // 最多執行兩輪（原始 + 帶違規重試）
+                try {
+                    const resp = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                generationConfig: { temperature: 0.1, maxOutputTokens: 16384 }
+                            })
+                        }
+                    );
+                    const resJson = await resp.json();
+
+                    if (resJson.error) throw new Error(resJson.error.message);
+
+                    const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    // 更強的 JSON 提取：找最外層完整 {...}
+                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) throw new Error('AI 回傳內容無法解析為 JSON');
+
+                    aiRoster = JSON.parse(jsonMatch[0]);
+                    usedModel = modelShort;
+
+                    // === 步驟5：後處理驗證 ===
+                    sch_setLoadingMsg(`驗證 AI 結果中...`);
+                    const { roster: fixedRoster, violations } = sch_validateAndFix(aiRoster, startDay, endDay, y, m);
+                    aiRoster = fixedRoster;
+                    finalViolations = violations;
+
+                    if (violations.length > 3 && !retryDone) {
+                        // 有超過3個違規且還沒重試過 → 帶違規清單重打
+                        retryDone = true;
+                        const violationSummary = violations.slice(0, 10).join('\n');
+                        prompt = basePrompt + `\n\n【修正要求】上一次生成的班表有以下違規，請在重新生成時嚴格修正：\n${violationSummary}`;
+                        sch_setLoadingMsg(`發現 ${violations.length} 個違規，帶修正清單重新生成...`);
+                        continue; // 重打同一模型
                     }
-                    sch_render();
-                    success = true;
-                    alert(`AI 已完成 ${startDay}-${endDay} 號排班 (已執行 6休1 檢查)。`);
+
+                    // 驗證通過（或重試後接受結果）
+                    break;
+
+                } catch (err) {
+                    console.warn(`模型 ${targetModel} 失敗：`, err.message);
+                    break; // 此模型失敗，嘗試下一個
                 }
-            } catch (err) { console.warn(`模型 ${targetModel} 失敗`); }
+            }
+
+            if (aiRoster) break; // 已成功取得結果，不繼續嘗試其他模型
         }
-    } catch (e) { alert(`錯誤：${e.message}`); }
-    finally { loading.style.display = 'none'; }
+
+        if (!aiRoster) throw new Error('所有可用模型均失敗，請檢查 API Key 或稍後再試。');
+
+        // === 步驟6：合併進現有班表 ===
+        const violMsg = finalViolations.length > 0
+            ? `（自動修正了 ${finalViolations.length} 個違規）`
+            : '';
+        sch_setLoadingMsg(`套用班表中...${violMsg}`);
+
+        for (let d = startDay; d <= endDay; d++) {
+            const key = `${y}-${m}-${d}`;
+            if (aiRoster[key] !== undefined) sch_roster[key] = aiRoster[key];
+        }
+
+        // 更新模型徽章
+        const badge = document.getElementById('modelBadge');
+        if (badge) {
+            badge.innerText = `模型：${usedModel}`;
+            badge.style.display = 'inline-block';
+        }
+
+        sch_render();
+
+        const summaryMsg = [
+            `AI 已完成 ${startDay}-${endDay} 號排班`,
+            `使用模型：${usedModel}`,
+            finalViolations.length > 0
+                ? `已自動修正 ${finalViolations.length} 個違規：\n` + finalViolations.slice(0, 5).join('\n') + (finalViolations.length > 5 ? `\n...共 ${finalViolations.length} 項` : '')
+                : '通過驗證，無違規。'
+        ].join('\n');
+
+        sch_setLoadingMsg('完成！');
+        setTimeout(() => alert(summaryMsg), 100);
+
+    } catch (e) {
+        alert(`錯誤：${e.message}`);
+    } finally {
+        loading.style.display = 'none';
+    }
 }
 
 window.sch_openAiModal = () => {
