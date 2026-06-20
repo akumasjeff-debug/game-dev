@@ -1,4 +1,5 @@
 // 國語小練習 v2.0 — 仿考卷 8 種題型，純 HTML/JS
+const VERSION = '20260620 0828';
 
 // =====================================================================
 // ZHUYIN TABLE — 一至三年級常見字
@@ -435,6 +436,7 @@ function renderStart() {
   app.innerHTML = `
     <h1>📚 國語小練習</h1>
     <div class="sub">仿考卷題型 · 每次不一樣</div>
+    <div class="version-tag">v${VERSION}</div>
 
     <div class="card">
       <div class="section-title">選擇題數</div>
