@@ -967,22 +967,22 @@ function sch_prevDateKey(y, m, d, back) {
     return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
 }
 
-// 跨月查詢某人某日是否有班（同時查當月與上個月）
-function hasShiftOnDate(y, m, d, empId) {
+// 跨月查詢某人某日是否有班（同時查當月與上個月，extraRoster 優先查）
+function hasShiftOnDate(y, m, d, empId, extraRoster = {}) {
     if (d <= 0) {
         let pm = m - 1, py = y;
         if (pm <= 0) { pm = 12; py--; }
         const prevMonthDays = new Date(py, pm, 0).getDate();
         const rd = prevMonthDays + d;
-        const k = `${py}-${pm}-${rd}`;
-        return (sch_prevRoster[k] || []).some(j => j.eId === empId);
+        const prevKey = `${py}-${pm}-${rd}`;
+        return (extraRoster[prevKey] || sch_prevRoster[prevKey] || []).some(j => j.eId === empId);
     }
-    const k = `${y}-${m}-${d}`;
-    return (sch_roster[k] || []).some(j => j.eId === empId);
+    const key = `${y}-${m}-${d}`;
+    return (extraRoster[key] || sch_roster[key] || []).some(j => j.eId === empId);
 }
 
-// 後處理驗證：檢查 6休1 與固定公休，回傳 { roster, violations }
-function sch_validateAndFix(aiRoster, startDay, endDay, y, m) {
+// 後處理驗證：檢查 6休1、固定公休、門市支援、工時上限，回傳 { roster, violations }
+function sch_validateAndFix(aiRoster, startDay, endDay, y, m, prevBatchRoster = {}) {
     const violations = [];
     const wkLabels = ['日','一','二','三','四','五','六'];
 
@@ -1010,13 +1010,38 @@ function sch_validateAndFix(aiRoster, startDay, endDay, y, m) {
             let consecutive = 0;
             for (let back = 1; back <= 6; back++) {
                 const prevKey = sch_prevDateKey(y, m, d, back);
-                const prevDay = aiRoster[prevKey] || sch_roster[prevKey] || [];
+                const prevDay = aiRoster[prevKey] || prevBatchRoster[prevKey] || sch_roster[prevKey] || [];
                 if (prevDay.some(j => j.eId === job.eId)) consecutive++;
                 else break;
             }
             if (consecutive >= 6) {
                 violations.push(`${emp.name} ${d}號違反6休1（前已連上${consecutive}天）`);
                 dayRoster.splice(i, 1);
+                continue;
+            }
+
+            // 3. 門市支援檢查
+            const canWork = emp.canWorkStores || [];
+            const storeName = sharedData.stores[job.sId]?.name || '';
+            if (canWork.length > 0 && !canWork.includes(job.sId) && !canWork.includes(storeName)) {
+                violations.push(`${emp.name} 不支援 ${storeName}，已移除`);
+                dayRoster.splice(i, 1);
+                continue;
+            }
+
+            // 4. 工時上限檢查（計算此員工在 aiRoster 中已累積工時）
+            const maxH = emp.maxHours || 999;
+            let accHours = 0;
+            for (let cd = startDay; cd < d; cd++) {
+                const ck = `${y}-${m}-${cd}`;
+                const cjob = (aiRoster[ck] || []).find(j => j.eId === job.eId);
+                if (cjob) accHours += sch_getShiftHours(cjob.sh);
+            }
+            accHours += sch_getShiftHours(job.sh);
+            if (accHours > maxH) {
+                violations.push(`${emp.name} 累計工時 ${accHours.toFixed(1)}h 超過上限 ${maxH}h，已移除 ${d}號`);
+                dayRoster.splice(i, 1);
+                continue;
             }
         }
 
@@ -1079,6 +1104,19 @@ function sch_buildPrompt(y, m, startDay, endDay, history) {
         `  - ${s.code}：${s.startTime}-${s.endTime}（${s.workHours}h）`
     );
 
+    // 收集排班範圍內已有的排班
+    const existingEntries = [];
+    for (let d = startDay; d <= endDay; d++) {
+        const key = `${y}-${m}-${d}`;
+        if (sch_roster[key]?.length) {
+            const names = sch_roster[key].map(j => j.eName).join('、');
+            existingEntries.push(`  ${m}/${d}：${names}`);
+        }
+    }
+    const existingBlock = existingEntries.length > 0
+        ? `\n\n【已有人工排班，請勿覆蓋這些天的安排，僅填補未安排的門市/班別缺口】\n${existingEntries.join('\n')}`
+        : '';
+
     return `你是一位嚴格執行勞動法規的排班系統。請為以下門市安排 ${y}年${m}月 ${startDay}號到${endDay}號的班表。
 
 【硬性規則 - 絕對不可違反，違反視為無效輸出】
@@ -1105,7 +1143,7 @@ ${shiftLines.join('\n')}
 格式：{"YYYY-M-D": [{"sId":"門市ID","idx":0,"eId":"員工ID","eName":"員工姓名","sh":"班別代碼"}]}
 idx 從0起算，同一天同一門市若有多人則用不同 idx。
 若某天某門市需求為0人則該天不需該門市條目。
-不需排班的日期（員工全休）不需出現該日期的條目。`;
+不需排班的日期（員工全休）不需出現該日期的條目。${existingBlock}`;
 }
 
 // -------------------------------------------------------
@@ -1167,17 +1205,19 @@ async function sch_startAiScheduler() {
         let allAiRoster = {};
         let allFinalViolations = [];
         let usedModel = '';
+        let batchTemperature = 0.1;
 
         // === 步驟4：逐批呼叫 AI，最多重試一次（帶違規清單） ===
         for (const batch of batches) {
             const batchStart = batch.s, batchEnd = batch.e;
 
-            // 為此批次重算連班歷史（查 batchStart 前）
+            // 為此批次重算連班歷史（查 batchStart 前，第二批起加入已完成的 allAiRoster）
             const batchHistory = {};
+            batchTemperature = 0.1; // 每批重置 temperature
             sharedData.emps.forEach(e => {
                 let con = 0;
                 for (let i = 1; i <= 6; i++) {
-                    if (hasShiftOnDate(y, m, batchStart - i, e.id)) con++;
+                    if (hasShiftOnDate(y, m, batchStart - i, e.id, allAiRoster)) con++;
                     else break;
                 }
                 batchHistory[e.id] = con;
@@ -1206,7 +1246,7 @@ async function sch_startAiScheduler() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     contents: [{ parts: [{ text: prompt }] }],
-                                    generationConfig: { temperature: 0.1, maxOutputTokens: 16384 }
+                                    generationConfig: { temperature: batchTemperature, maxOutputTokens: 16384 }
                                 })
                             }
                         );
@@ -1226,13 +1266,14 @@ async function sch_startAiScheduler() {
 
                         // === 步驟5：後處理驗證 ===
                         sch_setLoadingMsg(`驗證 AI 結果中...`);
-                        const { roster: fixedRoster, violations } = sch_validateAndFix(aiRoster, batchStart, batchEnd, y, m);
+                        const { roster: fixedRoster, violations } = sch_validateAndFix(aiRoster, batchStart, batchEnd, y, m, allAiRoster);
                         aiRoster = fixedRoster;
                         finalViolations = violations;
 
                         if (violations.length > 3 && !retryDone) {
-                            // 有超過3個違規且還沒重試過 → 帶違規清單重打
+                            // 有超過3個違規且還沒重試過 → 帶違規清單重打，提高 temperature 增加多樣性
                             retryDone = true;
+                            batchTemperature = 0.4;
                             const violationSummary = violations.slice(0, 10).join('\n');
                             prompt = basePrompt + `\n\n【修正要求】上一次生成的班表有以下違規，請在重新生成時嚴格修正：\n${violationSummary}`;
                             sch_setLoadingMsg(`發現 ${violations.length} 個違規，帶修正清單重新生成...`);
@@ -1270,7 +1311,18 @@ async function sch_startAiScheduler() {
 
         for (let d = startDay; d <= endDay; d++) {
             const key = `${y}-${m}-${d}`;
-            if (aiRoster[key] !== undefined) sch_roster[key] = aiRoster[key];
+            if (aiRoster[key] !== undefined) {
+                // 依門市分組，重新從 0 編 idx（不依賴 AI 給的 idx）
+                const grouped = {};
+                aiRoster[key].forEach(job => {
+                    if (!grouped[job.sId]) grouped[job.sId] = [];
+                    grouped[job.sId].push(job);
+                });
+                aiRoster[key] = Object.values(grouped).flatMap((jobs) =>
+                    jobs.map((job, idx) => ({ ...job, idx }))
+                );
+                sch_roster[key] = aiRoster[key];
+            }
         }
 
         // 更新模型徽章
