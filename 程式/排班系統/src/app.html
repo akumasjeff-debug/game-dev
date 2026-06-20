@@ -283,6 +283,165 @@
         .store-tag { color: #555; font-size: 9px; display: block; margin-top: 1px; }
         .is-weekend-col { background: #f5f5f5; }
         .hours-row td { background: #e8f0fe; font-weight: bold; font-size: 11px; }
+
+        /* ===================================================
+           RWD：手機版（768px 以下）
+           =================================================== */
+
+        #mobile-tabbar { display: none; }
+
+        @media (max-width: 768px) {
+
+            #sidebar { display: none !important; }
+            #main {
+                margin-left: 0 !important;
+                padding: 12px 12px 72px 12px;
+            }
+
+            #mobile-tabbar {
+                display: flex;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: 60px;
+                background: var(--nav-bg);
+                z-index: 200;
+                border-top: 1px solid rgba(255,255,255,0.12);
+            }
+            .mob-tab {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                color: #bdc3c7;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+                transition: color 0.15s;
+                min-height: 44px;
+                padding: 8px 0;
+            }
+            .mob-tab .tab-icon { font-size: 20px; line-height: 1; }
+            .mob-tab.active { color: white; }
+
+            /* 月曆改週視圖 */
+            #sch-mainGrid { display: none !important; }
+            #sch-week-view { display: block !important; }
+
+            .week-nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+            }
+            .week-nav-label { font-size: 14px; font-weight: bold; color: #444; }
+            .week-scroll-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 15px; }
+            .week-strip { display: flex; gap: 8px; width: max-content; padding-bottom: 4px; }
+            .week-day-card {
+                width: 100px;
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 10px 8px;
+                cursor: pointer;
+                transition: box-shadow 0.15s;
+            }
+            .week-day-card.today { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.25); }
+            .week-day-card .wdc-date { font-size: 15px; font-weight: bold; color: #333; }
+            .week-day-card .wdc-wk { font-size: 11px; color: #888; margin-bottom: 6px; }
+            .week-day-card .wdc-store {
+                font-size: 10px; background: #e8f0fe; color: var(--primary);
+                border-radius: 4px; padding: 2px 4px; margin-bottom: 3px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .week-day-card .wdc-understaffed { background: #fff5f5 !important; color: var(--danger) !important; }
+
+            #sch-day-detail {
+                background: white; border: 1px solid #ddd;
+                border-radius: 12px; padding: 15px; margin-bottom: 15px;
+            }
+            .day-detail-store { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #f0f0f0; }
+            .day-detail-store:last-child { border-bottom: none; margin-bottom: 0; }
+            .day-detail-store-name { font-weight: bold; color: var(--primary); font-size: 13px; margin-bottom: 8px; }
+            .day-detail-person {
+                display: flex; align-items: center; justify-content: space-between;
+                background: #f8f9fa; border-radius: 8px; padding: 10px 12px;
+                margin-bottom: 6px; font-size: 13px; min-height: 44px; cursor: pointer;
+            }
+            .day-detail-empty {
+                background: #fff5f5; border: 1px dashed var(--danger); color: var(--danger);
+                border-radius: 8px; padding: 10px 12px; font-size: 12px;
+                text-align: center; margin-bottom: 6px; cursor: pointer;
+                min-height: 44px; display: flex; align-items: center; justify-content: center;
+            }
+
+            /* form grid 單欄 */
+            .form-grid-3, .form-grid-2 { grid-template-columns: 1fr !important; }
+            .tool-bar { flex-direction: column !important; }
+
+            /* Modal → 底部 Sheet */
+            .modal { align-items: flex-end !important; }
+            .modal-content {
+                width: 100% !important; max-width: 100% !important;
+                border-radius: 20px 20px 0 0 !important;
+                padding: 20px 16px 32px !important;
+                max-height: 80vh !important; overflow-y: auto;
+            }
+            .modal-content::before {
+                content: ''; display: block;
+                width: 40px; height: 4px;
+                background: #ddd; border-radius: 2px;
+                margin: 0 auto 16px;
+            }
+
+            /* 表格 → Card 列表 */
+            .card table thead { display: none; }
+            #emp-tableBody tr, #store-tableBody tr, #shift-body tr {
+                display: block; background: white;
+                border-radius: 10px; margin-bottom: 10px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.07); overflow: hidden;
+            }
+            #emp-tableBody td, #store-tableBody td, #shift-body td {
+                display: block; padding: 10px 14px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px; text-align: left !important;
+            }
+            #emp-tableBody tr td:last-child,
+            #store-tableBody tr td:last-child,
+            #shift-body tr td:last-child {
+                border-bottom: none;
+                display: flex; gap: 8px; flex-wrap: wrap;
+            }
+
+            /* 員工班表 保留 table 格式 */
+            #memberTable { display: table !important; }
+            #memberTable thead { display: table-header-group !important; }
+            #member-tbody tr { display: table-row !important; border-radius: 0 !important; box-shadow: none !important; }
+            #member-tbody td { display: table-cell !important; }
+
+            /* 按鈕最小點擊區 */
+            .btn { min-height: 44px; }
+
+            /* api-panel 換行 */
+            .api-panel { flex-wrap: wrap; }
+            .api-panel input { width: 100% !important; }
+
+            /* 門市設定 config-layout 單欄 */
+            .config-layout { grid-template-columns: 1fr !important; }
+
+            /* 水平捲動 */
+            .member-table-wrapper, .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            #memberTable th, #memberTable td { min-width: 44px; padding: 4px 2px; font-size: 9px; }
+            .emp-name-col { min-width: 72px !important; font-size: 10px !important; }
+        }
+
+        @media (min-width: 769px) {
+            #mobile-tabbar { display: none !important; }
+            #sch-week-view { display: none !important; }
+            #sch-mainGrid { display: grid !important; }
+        }
     </style>
 </head>
 <body>
@@ -1948,14 +2107,142 @@ window.member_changeMonth = (v) => {
 
 
 // =====================================================
+//  手機版 RWD — 底部 Tab Bar & 週視圖
+// =====================================================
+
+// ── 手機底部 Tab ──
+function mob_switch(id) {
+    switchSection(id);
+    document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.getElementById('mobtab-' + id);
+    if (tab) tab.classList.add('active');
+    if (id === 'scheduler' && window.innerWidth <= 768) mob_renderWeekView();
+}
+
+// ── 週視圖容器注入 ──
+(function() {
+    const grid = document.getElementById('sch-mainGrid');
+    if (!grid) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'sch-week-view';
+    wrap.style.display = 'none';
+    wrap.innerHTML = `
+        <div class="week-nav">
+            <button class="btn btn-gray" onclick="mob_prevWeek()" style="min-height:44px;padding:8px 14px;">❮ 上週</button>
+            <span class="week-nav-label" id="mob-week-label"></span>
+            <button class="btn btn-gray" onclick="mob_nextWeek()" style="min-height:44px;padding:8px 14px;">下週 ❯</button>
+        </div>
+        <div class="week-scroll-wrap"><div class="week-strip" id="mob-week-strip"></div></div>
+        <div id="sch-day-detail"></div>`;
+    grid.parentNode.insertBefore(wrap, grid);
+})();
+
+let mob_weekOffset = 0;
+let mob_selectedDay = null;
+const mob_wkLabels = ['日','一','二','三','四','五','六'];
+
+function mob_getWeekDays() {
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    const total = new Date(y, m, 0).getDate();
+    const start = 1 + mob_weekOffset * 7;
+    if (start > total) { mob_weekOffset = 0; return mob_getWeekDays(); }
+    const days = [];
+    for (let i = 0; i < 7 && (start + i) <= total; i++) days.push(start + i);
+    return days;
+}
+
+function mob_renderWeekView() {
+    if (!sharedData || !sharedData.stores) return;
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    const days = mob_getWeekDays();
+    const today = new Date();
+    document.getElementById('mob-week-label').textContent = `${m}月 ${days[0]}-${days[days.length-1]}日`;
+    const strip = document.getElementById('mob-week-strip');
+    strip.innerHTML = '';
+    days.forEach(d => {
+        const dateKey = `${y}-${m}-${d}`;
+        const wkIdx = new Date(y, m-1, d).getDay();
+        const jobs = sch_roster[dateKey] || [];
+        const isToday = today.getFullYear()===y && today.getMonth()+1===m && today.getDate()===d;
+        let lines = '';
+        Object.values(sharedData.stores).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+            const req = parseInt(s.config?.[wkIdx]?.total) || 0;
+            if (!req) return;
+            const cnt = jobs.filter(j=>j.sId===s.id).length;
+            lines += `<div class="wdc-store ${cnt<req?'wdc-understaffed':''}">${s.shortName||s.name} ${cnt}/${req}</div>`;
+        });
+        const card = document.createElement('div');
+        card.className = 'week-day-card' + (isToday?' today':'');
+        card.innerHTML = `<div class="wdc-date">${d}</div><div class="wdc-wk">${mob_wkLabels[wkIdx]}</div>${lines||'<div class="wdc-store" style="background:#eee;color:#aaa;">無需求</div>'}`;
+        card.onclick = () => mob_showDayDetail(d);
+        strip.appendChild(card);
+    });
+    if (mob_selectedDay && days.includes(mob_selectedDay)) mob_showDayDetail(mob_selectedDay);
+    else { document.getElementById('sch-day-detail').innerHTML = ''; mob_selectedDay = null; }
+}
+
+function mob_showDayDetail(d) {
+    mob_selectedDay = d;
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    const dateKey = `${y}-${m}-${d}`;
+    const wkIdx = new Date(y, m-1, d).getDay();
+    const jobs = sch_roster[dateKey] || [];
+    let html = `<div style="font-size:15px;font-weight:bold;margin-bottom:12px;color:#333;">${m}月${d}日（週${mob_wkLabels[wkIdx]}）</div>`;
+    Object.values(sharedData.stores).sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+        const req = parseInt(s.config?.[wkIdx]?.total) || 0;
+        const storeJobs = jobs.filter(j=>j.sId===s.id);
+        if (!req && !storeJobs.length) return;
+        html += `<div class="day-detail-store"><div class="day-detail-store-name">${s.name}（${storeJobs.length}/${req}）</div>`;
+        storeJobs.forEach((j,idx) => {
+            html += `<div class="day-detail-person" onclick="sch_openEdit('${dateKey}','${s.id}',${idx},'${j.sh}')"><span><b>${j.eName}</b> <small style="color:#888">${j.sh}</small></span><span style="font-size:11px;color:#aaa">調整</span></div>`;
+        });
+        for (let k=storeJobs.length; k<req; k++) html += `<div class="day-detail-empty" onclick="sch_openEdit('${dateKey}','${s.id}',${k},'A')">+ 缺口補位</div>`;
+        html += `<div class="day-detail-empty" style="background:#e8f5e9;border-color:var(--success);color:var(--success)" onclick="sch_openEdit('${dateKey}','${s.id}',${Math.max(req,storeJobs.length)},'A')">+ 機動新增</div></div>`;
+    });
+    document.getElementById('sch-day-detail').innerHTML = html;
+}
+
+function mob_prevWeek() { if (mob_weekOffset>0){mob_weekOffset--;mob_renderWeekView();} }
+function mob_nextWeek() { mob_weekOffset++; mob_renderWeekView(); }
+
+// 月份切換時重置週視圖
+const _orig_sch_changeMonth = window.sch_changeMonth;
+window.sch_changeMonth = function(v) {
+    mob_weekOffset = 0; mob_selectedDay = null;
+    _orig_sch_changeMonth(v);
+    setTimeout(()=>{ if(window.innerWidth<=768) mob_renderWeekView(); }, 800);
+};
+
+
+// =====================================================
 //  初始化
 // =====================================================
 window.onload = function() {
     const savedKey = localStorage.getItem("scheduler_api_key");
     if (savedKey) document.getElementById("apiKey").value = savedKey;
     // 預設載入主排班
-    sch_load();
+    sch_load().then(() => {
+        if (window.innerWidth <= 768) mob_renderWeekView();
+    });
 };
 </script>
+
+<div id="mobile-tabbar">
+    <div class="mob-tab active" id="mobtab-scheduler" onclick="mob_switch('scheduler')">
+        <span class="tab-icon">🗓️</span><span>排班</span>
+    </div>
+    <div class="mob-tab" id="mobtab-employee" onclick="mob_switch('employee')">
+        <span class="tab-icon">👥</span><span>員工</span>
+    </div>
+    <div class="mob-tab" id="mobtab-store" onclick="mob_switch('store')">
+        <span class="tab-icon">🏪</span><span>門市</span>
+    </div>
+    <div class="mob-tab" id="mobtab-sub" onclick="mob_switch('sub')">
+        <span class="tab-icon">🔄</span><span>代班</span>
+    </div>
+    <div class="mob-tab" id="mobtab-member" onclick="mob_switch('member')">
+        <span class="tab-icon">📋</span><span>班表</span>
+    </div>
+</div>
 </body>
 </html>
