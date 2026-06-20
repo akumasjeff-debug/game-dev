@@ -2,10 +2,10 @@ extends CharacterBody2D
 
 # 敵人數值
 const MAX_HP = 75
-const SPEED = 120.0
+var SPEED: float = 120.0
 const DAMAGE = 20
 const FIRE_RATE = 0.5
-const VISION_RANGE = 350.0
+var VISION_RANGE: float = 350.0
 const VISION_ANGLE = deg_to_rad(120.0)
 const ATTACK_RANGE = 150.0
 const WAYPOINT_REACH_DIST = 20.0
@@ -26,6 +26,7 @@ var can_see_player: bool = false
 
 # 視覺元件（動態建立）
 var _vision_cone: Polygon2D
+var _sfx_death: AudioStreamPlayer
 
 @onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready var vision_ray: RayCast2D = $VisionRay
@@ -61,12 +62,26 @@ func _ready():
 
 	_update_hp_bar()
 
+	# 死亡音效播放器（FileAccess 直讀 WAV，繞過 import）
+	_sfx_death = AudioStreamPlayer.new()
+	add_child(_sfx_death)
+	var death_stream = _load_wav("res://assets/audio/sfx/enemy_death.wav")
+	if death_stream:
+		_sfx_death.stream = death_stream
+
 func _physics_process(delta):
 	fire_timer -= delta
 	can_see_player = _check_vision()
-	# 更新 sprite 方向
+	# 狀態感知的 sprite 更新
 	if sprite and sprite.has_method("update_direction"):
-		sprite.update_direction(rotation)
+		match state:
+			State.SHOOT:
+				sprite.play_shoot(rotation)
+			State.CHASE, State.PATROL, State.ALERT:
+				if velocity.length() > 10.0:
+					sprite.play_walk(rotation)
+				else:
+					sprite.update_direction(rotation)
 	match state:
 		State.PATROL:
 			_do_patrol(delta)
@@ -216,7 +231,31 @@ func _update_hp_bar():
 
 func _die():
 	emit_signal("died", self)
+	# 播放死亡音效（先播再 queue_free，因為 AudioStreamPlayer 屬子節點，會一起消失）
+	# 改為在父節點播放：用 SceneTree 找到全域音效播放器（若有），否則靜默
+	if _sfx_death and _sfx_death.stream:
+		# 重掛到場景根節點避免 queue_free 截斷聲音
+		var sfx = _sfx_death
+		remove_child(sfx)
+		get_tree().root.add_child(sfx)
+		sfx.play()
+		sfx.finished.connect(sfx.queue_free)
+	get_tree().call_group("main_controller", "check_win_condition")
 	queue_free()
+
+func _load_wav(path: String) -> AudioStreamWAV:
+	var f = FileAccess.open(path, FileAccess.READ)
+	if not f:
+		return null
+	f.seek(44)
+	var data = f.get_buffer(f.get_length() - 44)
+	f.close()
+	var stream = AudioStreamWAV.new()
+	stream.data = data
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.stereo = false
+	stream.mix_rate = 22050
+	return stream
 
 # 由地圖場景設定巡邏點
 func set_patrol_points(points: Array[Vector2]):

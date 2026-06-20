@@ -25,6 +25,10 @@ var _is_auto_aiming: bool = false
 @onready var vision_cone = $VisionCone
 @onready var cop_sprite = $CopSprite
 
+# 音效
+var _sfx_gunshot: AudioStreamPlayer
+var _sfx_reload: AudioStreamPlayer
+
 signal hp_changed(current_hp, max_hp)
 signal ammo_changed(current_ammo, max_ammo)
 signal reload_started()
@@ -32,8 +36,40 @@ signal reload_finished()
 signal died()
 signal auto_aim_changed(is_auto_aiming: bool)
 
+func _load_wav(path: String) -> AudioStreamWAV:
+	# 用 FileAccess 直接讀取 WAV PCM，繞過 import 系統
+	var full_path = ProjectSettings.globalize_path(path)
+	var f = FileAccess.open(path, FileAccess.READ)
+	if not f:
+		return null
+	# 跳過 WAV header（44 bytes）
+	f.seek(44)
+	var data = f.get_buffer(f.get_length() - 44)
+	f.close()
+	var stream = AudioStreamWAV.new()
+	stream.data = data
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.stereo = false
+	stream.mix_rate = 22050
+	return stream
+
 func _ready():
 	add_to_group("player")
+
+	# 建立槍聲播放器
+	_sfx_gunshot = AudioStreamPlayer.new()
+	add_child(_sfx_gunshot)
+	var gs_stream = _load_wav("res://assets/audio/sfx/gunshot.wav")
+	if gs_stream:
+		_sfx_gunshot.stream = gs_stream
+
+	# 建立換彈聲播放器
+	_sfx_reload = AudioStreamPlayer.new()
+	add_child(_sfx_reload)
+	var rl_stream = _load_wav("res://assets/audio/sfx/reload.wav")
+	if rl_stream:
+		_sfx_reload.stream = rl_stream
+
 	emit_signal("hp_changed", hp, MAX_HP)
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
 
@@ -161,6 +197,8 @@ func _fire(target):
 	fire_timer = FIRE_RATE
 	ammo -= 1
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
+	if _sfx_gunshot and _sfx_gunshot.stream:
+		_sfx_gunshot.play()
 	if target.has_method("take_damage"):
 		target.take_damage(DAMAGE)
 	if ammo <= 0:
@@ -171,6 +209,8 @@ func _start_reload():
 		return
 	reloading = true
 	reload_timer = RELOAD_TIME
+	if _sfx_reload and _sfx_reload.stream:
+		_sfx_reload.play()
 	emit_signal("reload_started")
 
 func _handle_reload(delta):

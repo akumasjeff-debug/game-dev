@@ -20,6 +20,7 @@ const NUM_DIRS = 8
 const DIR_OFFSET = 6
 
 func _ready():
+	top_level = true   # 脫離父節點 transform，sprite 不跟著父節點旋轉
 	scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
 	_build_frames()
 
@@ -81,9 +82,9 @@ func _try_load(path: String) -> Texture2D:
 	return null
 
 func _process(_delta):
-	# 位置跟著 parent（正常子節點行為），但旋轉永遠歸零
-	# 這樣槍線 / 視野錐形和角色 sprite 都以相同原點為中心
-	global_rotation = 0.0
+	# top_level = true 後節點脫離父節點 transform，需手動跟隨 parent position
+	global_position = get_parent().global_position
+	# global_rotation 保持 0（top_level 預設就是 0，不需額外設定）
 
 func update_direction(angle: float):
 	var normalized = fmod(angle + 2.0 * PI, 2.0 * PI)
