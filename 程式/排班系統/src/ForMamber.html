@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>全體員工班表 (含時間區間)</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #00c853; --danger: #ff5252; --bg: #f8f9fa; --off-bg: #ffebee; --off-text: #c62828; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        .table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; background: white; }
+        th, td { border: 1px solid #eee; padding: 6px 2px; text-align: center; min-width: 55px; vertical-align: middle; }
+        
+        thead th { background: #f1f3f4; position: sticky; top: 0; z-index: 10; height: 45px; }
+        .emp-name-col { 
+            background: #fff; 
+            font-weight: bold; 
+            position: sticky; 
+            left: 0; 
+            z-index: 5; 
+            min-width: 90px; 
+            border-right: 2px solid #ddd;
+            text-align: left;
+            padding-left: 8px;
+            font-size: 12px;
+        }
+        
+        .is-off { background: var(--off-bg); color: var(--off-text); font-weight: bold; font-size: 13px; }
+        .is-work { background: #f0f4ff; }
+        .shift-code { color: var(--primary); font-weight: bold; display: block; font-size: 12px; }
+        .store-tag { color: #555; font-size: 9px; display: block; margin-top: 1px; font-weight: 500; }
+        .time-tag { color: #888; font-size: 9px; display: block; margin-top: 1px; }
+        
+        .is-weekend { background: #f9f9f9; }
+        .group-divider { background: #e8eaed; font-weight: bold; text-align: left; padding: 8px 12px; font-size: 13px; color: #202124; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .cal-head { background: #5f6368; color: white; padding: 10px; text-align: center; border-radius: 8px; font-weight: bold; }
+        .cal-cell { background: white; min-height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; }
+        .day-label { font-weight: bold; color: #70757a; border-bottom: 1px solid #eee; margin-bottom: 5px; display: block; }
+        .store-shift-item { font-size: 12px; padding: 4px 6px; margin-bottom: 3px; background: #f1f3f4; border-radius: 4px; border-left: 3px solid var(--success); }
+
+        .btn { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; color: white; background: var(--primary); }
+        select { padding: 8px; border-radius: 8px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <div style="margin-bottom:16px;">
+        <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:#1a73e8;text-decoration:none;font-size:14px;font-weight:600;">&#8592; 返回首頁</a>
+    </div>
+
+    <div class="card">
+        <div class="header">
+            <div>
+                <h2 style="margin:0;">全體員工月班表 (含門市與時間區間)</h2>
+                <p style="font-size:12px; color:#666; margin-top:5px;">排列順序：依主要門市分組排序</p>
+            </div>
+            <div>
+                <button class="btn" onclick="changeMonth(-1)">❮</button>
+                <span id="monthDisplay" style="font-size:18px; font-weight:bold; margin:0 15px;"></span>
+                <button class="btn" onclick="changeMonth(1)">❯</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table id="allEmpTable">
+                <thead id="allEmpHead"></thead>
+                <tbody id="allEmpBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom:12px;color:#1a73e8;">當月員工工時統計</h2>
+        <div id="hoursStats" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+    </div>
+
+    <div class="card">
+        <div class="header">
+            <h2>門市現場日曆</h2>
+            <select id="storeSelector" onchange="renderStoreCalendar()"></select>
+        </div>
+        <div id="storeCalendarGrid" class="calendar-grid"></div>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M", authDomain: "roster-fadmart.firebaseapp.com", projectId: "roster-fadmart", storageBucket: "roster-fadmart.firebasestorage.app", messagingSenderId: "880597429282", appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currDate = new Date(2026, 2, 1); 
+    let dbData = { roster: {}, emps: [], stores: {}, shifts: [] };
+
+    const forceISO = (d) => {
+        if (!d) return "NONE";
+        let s = String(d).trim();
+        const p = s.split('-');
+        return p.length !== 3 ? s : `${p[0]}-${String(p[1]).padStart(2, '0')}-${String(p[2]).padStart(2, '0')}`;
+    };
+
+    async function fetchData() {
+        const y = currDate.getFullYear(), m = currDate.getMonth() + 1;
+        const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+        document.getElementById('monthDisplay').innerText = `${y} 年 ${m} 月`;
+
+        const [eSnap, sSnap, shSnap, rSnap] = await Promise.all([
+            db.collection("Employees").get(),
+            db.collection("Stores").get(),
+            db.collection("ShiftTypes").get(),
+            db.collection("Rosters").where("month", "==", monthKey).get()
+        ]);
+
+        dbData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        dbData.stores = {}; sSnap.forEach(d => dbData.stores[d.id] = { id: d.id, ...d.data() });
+        dbData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
+        
+        if (!rSnap.empty) {
+            const latest = rSnap.docs.sort((a,b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))[0];
+            dbData.roster = latest.data().data;
+        } else { dbData.roster = {}; }
+
+        updateStoreSelector();
+        renderAllEmpTable();
+        renderHoursStats();
+        renderStoreCalendar();
+    }
+
+    function updateStoreSelector() {
+        const sel = document.getElementById('storeSelector');
+        sel.innerHTML = Object.values(dbData.stores).sort((a,b)=>a.name.localeCompare(b.name)).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    function renderAllEmpTable() {
+        const y = currDate.getFullYear(), m = currDate.getMonth() + 1;
+        const days = new Date(y, m, 0).getDate();
+        const head = document.getElementById('allEmpHead');
+        const body = document.getElementById('allEmpBody');
+
+        // 表頭
+        let headHtml = `<tr><th class="emp-name-col">員工 \\ 日期</th>`;
+        for (let d = 1; d <= days; d++) {
+            const wk = new Date(y, m-1, d).getDay();
+            headHtml += `<th class="${(wk===0||wk===6)?'is-weekend':''}">${d}<br><small>${['日','一','二','三','四','五','六'][wk]}</small></th>`;
+        }
+        head.innerHTML = headHtml + `</tr>`;
+
+        // 依門市分組排序邏輯
+        const empSortList = dbData.emps.map(e => {
+            const storeCounts = {};
+            Object.values(dbData.roster).forEach(dayJobs => {
+                dayJobs.filter(j => j.eId === e.id).forEach(j => { storeCounts[j.sId] = (storeCounts[j.sId] || 0) + 1; });
+            });
+            const mainStoreId = Object.keys(storeCounts).reduce((a, b) => storeCounts[a] > storeCounts[b] ? a : b, "ZZZ");
+            const mainStoreName = dbData.stores[mainStoreId]?.name || "未分派";
+            return { ...e, mainStoreId, mainStoreName };
+        }).sort((a, b) => a.mainStoreName.localeCompare(b.mainStoreName) || a.name.localeCompare(b.name));
+
+        let bodyHtml = "";
+        let currentGroup = "";
+        empSortList.forEach(e => {
+            if (e.mainStoreName !== currentGroup) {
+                currentGroup = e.mainStoreName;
+                bodyHtml += `<tr><td colspan="${days + 1}" class="group-divider">📍 門市：${currentGroup}</td></tr>`;
+            }
+
+            bodyHtml += `<tr><td class="emp-name-col">${e.name}</td>`;
+            for (let d = 1; d <= days; d++) {
+                const dateKey = `${y}-${m}-${d}`;
+                const wkIndex = new Date(y, m-1, d).getDay();
+                const job = (dbData.roster[dateKey] || []).find(j => j.eId === e.id);
+                const wl = typeof e.wishLeaves === 'string' ? e.wishLeaves.split(',').map(x=>x.trim()) : (Array.isArray(e.wishLeaves)?e.wishLeaves:[]);
+                const isOff = wl.some(x => forceISO(x) === forceISO(dateKey)) || (e.unavailableDays && e.unavailableDays.includes(['日','一','二','三','四','五','六'][wkIndex]));
+
+                if (job) {
+                    const storeName = dbData.stores[job.sId]?.shortName || dbData.stores[job.sId]?.name || "";
+                    const shDef = dbData.shifts.find(s => s.code === String(job.sh).trim().toUpperCase());
+                    const timeRange = shDef ? `${shDef.startTime}-${shDef.endTime}` : "";
+                    
+                    bodyHtml += `<td class="is-work">
+                        <span class="shift-code">${job.sh}</span>
+                        <span class="store-tag">${storeName}</span>
+                        <span class="time-tag">${timeRange}</span>
+                    </td>`;
+                } else if (isOff) {
+                    bodyHtml += `<td class="is-off">休</td>`;
+                } else {
+                    bodyHtml += `<td>-</td>`;
+                }
+            }
+            bodyHtml += `</tr>`;
+        });
+        body.innerHTML = bodyHtml;
+    }
+
+    function getShiftHours(shCode) {
+        const sh = dbData.shifts.find(s => s.code === String(shCode).trim().toUpperCase());
+        if (!sh) return 8;
+        const s = sh.startTime.split(':'), e = sh.endTime.split(':');
+        let h = (parseInt(e[0])*60 + parseInt(e[1]) - (parseInt(s[0])*60 + parseInt(s[1]))) / 60;
+        return h > 6 ? h - 1 : h; // 扣除用餐時間
+    }
+
+    function renderHoursStats() {
+        const y = currDate.getFullYear(), m = currDate.getMonth() + 1;
+        const days = new Date(y, m, 0).getDate();
+        const container = document.getElementById('hoursStats');
+        let html = '';
+        dbData.emps.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(e => {
+            let total = 0;
+            for (let d = 1; d <= days; d++) {
+                const job = (dbData.roster[`${y}-${m}-${d}`] || []).find(j => j.eId === e.id);
+                if (job) total += getShiftHours(job.sh);
+            }
+            const min = e.minHours || 60, max = e.maxHours || 80;
+            const overColor = total > max ? '#c62828' : total < min ? '#e65100' : '#137333';
+            html += `<div style="background:#f8f9fa;border-radius:10px;padding:10px 14px;min-width:120px;border-left:4px solid ${overColor};">
+                <div style="font-weight:700;font-size:13px;">${e.name}</div>
+                <div style="font-size:20px;font-weight:bold;color:${overColor};">${total.toFixed(1)}<small style="font-size:12px;font-weight:normal;">H</small></div>
+                <div style="font-size:11px;color:#888;">目標 ${min}~${max}H</div>
+            </div>`;
+        });
+        container.innerHTML = html || '<span style="color:#aaa;font-size:14px;">尚無班表資料</span>';
+    }
+
+    function renderStoreCalendar() {
+        const storeId = document.getElementById('storeSelector').value;
+        const grid = document.getElementById('storeCalendarGrid');
+        const y = currDate.getFullYear(), m = currDate.getMonth() + 1;
+        const days = new Date(y, m, 0).getDate();
+        const offset = (new Date(y, m-1, 1).getDay() || 7) - 1;
+
+        grid.innerHTML = ['一','二','三','四','五','六','日'].map(d => `<div class="cal-head">${d}</div>`).join('');
+        for (let i = 0; i < offset; i++) grid.innerHTML += `<div></div>`;
+
+        for (let d = 1; d <= days; d++) {
+            const dateKey = `${y}-${m}-${d}`;
+            const jobsInStore = (dbData.roster[dateKey] || []).filter(j => j.sId === storeId);
+            let html = `<div class="cal-cell"><span class="day-label">${d}</span>`;
+            jobsInStore.forEach(j => { html += `<div class="store-shift-item"><b>${j.sh}</b> | ${j.eName}</div>`; });
+            grid.innerHTML += html + `</div>`;
+        }
+    }
+
+    window.changeMonth = (v) => { currDate.setMonth(currDate.getMonth() + v); fetchData(); };
+    fetchData();
+</script>
+</body>
+</html>

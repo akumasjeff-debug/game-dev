@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>門市管理系統 - 全功能自動同步版</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #00c853; --danger: #ff5252; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        
+        .form-section { background: #f1f3f4; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .form-grid { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; flex: 1; }
+        label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+
+        .shift-selector { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; }
+        .shift-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .shift-check { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; background: #eee; padding: 8px 14px; border-radius: 8px; border: 2px solid transparent; transition: 0.2s; }
+        .shift-check.is-checked { background: #e8f0fe; border-color: var(--primary); color: var(--primary); font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #5f6368; color: white; font-size: 14px; }
+        .demand-tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 3px; border: 1px solid #d2e3fc; font-weight: bold; }
+
+        .btn { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-config { background: #e8f0fe; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-edit { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sync { background: #e6fffa; color: #2c7a7b; border: 1px solid #81e6d9; margin-left: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 95%; max-width: 1200px; max-height: 95vh; border-radius: 20px; padding: 30px; overflow-y: auto; }
+        
+        .weekly-demand-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        .weekly-demand-table th { background: #fff9c4; color: #827717; padding: 10px; border: 1px solid #ffe57f; transition: 0.3s; }
+        .weekly-demand-table td { padding: 10px; border: 1px solid #ffe57f; background: #fffde7; }
+        .weekly-demand-table input { width: 55px; text-align: center; padding: 8px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; font-size: 16px; }
+
+        .config-layout { display: grid; grid-template-columns: 240px 1fr 1fr; gap: 20px; }
+        .zone { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 380px; border: 2px dashed #cbd5e0; }
+        .shift-item { background: white; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 10px; cursor: grab; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .remove-btn { color: var(--danger); cursor: pointer; font-size: 18px; font-weight: bold; }
+        #saveMsg { color: var(--success); font-weight: bold; opacity: 0; transition: 0.3s; margin-right: 15px; }
+    </style>
+</head>
+<body>
+<div style="margin-bottom:16px;"><a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:#1a73e8;text-decoration:none;font-size:14px;font-weight:600;">&#8592; 返回首頁</a></div>
+
+    <div class="card">
+        <h2>🏪 門市管理中心</h2>
+        <div class="form-section">
+            <div class="form-grid">
+                <div class="form-group"><label>門市名稱</label><input type="text" id="storeName" placeholder="例如: 大直店"></div>
+                <div class="form-group"><label>門市簡稱</label><input type="text" id="storeShort" placeholder="例如: 大直"></div>
+                <button class="btn btn-save" onclick="saveBasicStore()">💾 儲存基本資料</button>
+            </div>
+            <div class="shift-selector">
+                <label>📍 勾選此門市可用的班別：</label>
+                <div class="shift-grid" id="mainShiftCheckboxes">載入中...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>門市總覽</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 150px;">門市名稱</th>
+                    <th style="width: 100px;">簡稱</th>
+                    <th>可用班別</th>
+                    <th>一週人力編制 (一 ~ 日)</th>
+                    <th style="width: 250px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="storeTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 id="modalStoreTitle" style="color:var(--primary); margin:0;">人力需求配置</h3>
+                <div style="display:flex; align-items:center;">
+                    <span id="saveMsg">已完成儲存與同步！</span>
+                    <button class="btn btn-save" id="configSaveBtn" onclick="saveFullConfig()">💾 儲存並同步</button>
+                    <button class="btn" style="background:#666; color:white; margin-left:10px;" onclick="closeConfig()">關閉</button>
+                </div>
+            </div>
+
+            <table class="weekly-demand-table">
+                <thead>
+                    <tr><th id="th-1">週一</th><th id="th-2">週二</th><th id="th-3">週三</th><th id="th-4">週四</th><th id="th-5">週五</th><th id="th-6">週六</th><th id="th-0">週日</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="number" id="week-1" onfocus="focusDay('1')" onchange="updateWeeklyTotal('1', this.value)"></td>
+                        <td><input type="number" id="week-2" onfocus="focusDay('2')" onchange="updateWeeklyTotal('2', this.value)"></td>
+                        <td><input type="number" id="week-3" onfocus="focusDay('3')" onchange="updateWeeklyTotal('3', this.value)"></td>
+                        <td><input type="number" id="week-4" onfocus="focusDay('4')" onchange="updateWeeklyTotal('4', this.value)"></td>
+                        <td><input type="number" id="week-5" onfocus="focusDay('5')" onchange="updateWeeklyTotal('5', this.value)"></td>
+                        <td><input type="number" id="week-6" onfocus="focusDay('6')" onchange="updateWeeklyTotal('6', this.value)"></td>
+                        <td><input type="number" id="week-0" onfocus="focusDay('0')" onchange="updateWeeklyTotal('0', this.value)"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                <label>📌 正在設定：<b id="displayDayName" style="color:var(--danger); font-size: 18px;">週一</b> 的優先順序</label>
+                <button class="btn btn-sync" onclick="syncCurrentToAllWeek()">🔄 複製此設定至全週並儲存</button>
+            </div>
+
+            <div class="config-layout">
+                <div class="zone pool"><div style="font-weight:bold; margin-bottom:10px;">可用池 (可拖拽)</div><div id="shiftPool"></div></div>
+                <div class="zone must-zone" ondrop="drop(event, 'must')" ondragover="allowDrop(event)"><div style="font-weight:bold; margin-bottom:10px; color:var(--danger);">🚩 必須 (Must)</div><div id="mustContent"></div></div>
+                <div class="zone prio-zone" ondrop="drop(event, 'prio')" ondragover="allowDrop(event)"><div style="font-weight:bold; margin-bottom:10px; color:var(--primary);">🔝 優先 (Prio)</div><div id="prioContent"></div></div>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M", authDomain: "roster-fadmart.firebaseapp.com", projectId: "roster-fadmart", storageBucket: "roster-fadmart.firebasestorage.app", messagingSenderId: "880597429282", appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allShifts = [];
+    let currentStoreName = null;
+    let currentDay = "1";
+    let tempConfig = {}; 
+    let allStoresData = {};
+
+    async function init() {
+        const shSnap = await getDocs(collection(db, "ShiftTypes"));
+        const checkboxArea = document.getElementById('mainShiftCheckboxes');
+        checkboxArea.innerHTML = "";
+        allShifts = [];
+        shSnap.forEach(d => {
+            const s = d.data();
+            allShifts.push(s);
+            checkboxArea.innerHTML += `<label class="shift-check" id="label_${s.code}"><input type="checkbox" class="store-sh-cb" value="${s.code}" onchange="this.parentElement.classList.toggle('is-checked', this.checked)"> ${s.code}</label>`;
+        });
+        await loadStores();
+    }
+
+    window.saveBasicStore = async () => {
+        const name = document.getElementById('storeName').value.trim();
+        const short = document.getElementById('storeShort').value.trim();
+        const selShifts = Array.from(document.querySelectorAll('.store-sh-cb:checked')).map(cb => cb.value);
+        if(!name) return alert("請輸入門市名稱");
+        const snap = await getDoc(doc(db, "Stores", name));
+        let existing = snap.exists() ? snap.data() : { config: createDefaultConfig() };
+        await setDoc(doc(db, "Stores", name), { ...existing, name, shortName: short, applicableShifts: selShifts });
+        location.reload();
+    };
+
+    function createDefaultConfig() {
+        let conf = {};
+        for(let i=0; i<=6; i++) conf[i] = { total: 0, must: [], prio: [] };
+        return conf;
+    }
+
+    async function loadStores() {
+        const snap = await getDocs(collection(db, "Stores"));
+        const body = document.getElementById('storeTableBody');
+        body.innerHTML = "";
+        allStoresData = {};
+        snap.forEach(d => {
+            const s = d.data();
+            if(!s.name) return;
+            allStoresData[s.name] = s;
+            let demandHtml = "";
+            const daysArr = [1, 2, 3, 4, 5, 6, 0];
+            const namesArr = ["日", "一", "二", "三", "四", "五", "六"];
+            daysArr.forEach(dNum => {
+                let val = 0;
+                if(s.config && s.config[dNum]) val = s.config[dNum].total || 0;
+                demandHtml += `<span class="demand-tag">${namesArr[dNum]}:${val}</span>`;
+            });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><b>${s.name}</b></td><td>${s.shortName||''}</td><td><small>${(s.applicableShifts||[]).join(', ')}</small></td><td>${demandHtml}</td><td><button class="btn btn-config" data-name="${s.name}">⚙️ 配置</button><button class="btn btn-edit" data-name="${s.name}" style="margin-left:5px;">✏️ 編輯</button><button class="btn btn-danger" data-name="${s.name}" style="margin-left:5px;">🗑️</button></td>`;
+            body.appendChild(tr);
+        });
+        document.querySelectorAll('.btn-config').forEach(btn => btn.onclick = () => openConfig(btn.dataset.name));
+        document.querySelectorAll('.btn-edit').forEach(btn => btn.onclick = () => editStore(btn.dataset.name));
+        document.querySelectorAll('.btn-danger').forEach(btn => btn.onclick = () => deleteStore(btn.dataset.name));
+    }
+
+    window.editStore = (name) => {
+        const s = allStoresData[name];
+        if(!s) return;
+        document.getElementById('storeName').value = s.name;
+        document.getElementById('storeShort').value = s.shortName || "";
+        const sel = s.applicableShifts || [];
+        document.querySelectorAll('.store-sh-cb').forEach(cb => {
+            cb.checked = sel.includes(cb.value);
+            cb.parentElement.classList.toggle('is-checked', cb.checked);
+        });
+        window.scrollTo(0,0);
+    };
+
+    window.openConfig = (name) => {
+        currentStoreName = name;
+        const s = allStoresData[name];
+        tempConfig = JSON.parse(JSON.stringify(s.config || createDefaultConfig()));
+        for(let i=0; i<=6; i++) { document.getElementById(`week-${i}`).value = tempConfig[i].total || 0; }
+        const pool = document.getElementById('shiftPool');
+        pool.innerHTML = "";
+        const appShifts = s.applicableShifts || [];
+        allShifts.filter(sh => appShifts.includes(sh.code)).forEach(sh => {
+            pool.innerHTML += `<div class="shift-item" draggable="true" ondragstart="drag(event)" id="p_${sh.code}" data-code="${sh.code}"><span><b>${sh.code}</b> <small style="display:block;color:#888;">${sh.startTime}-${sh.endTime}</small></span></div>`;
+        });
+        document.getElementById('modalStoreTitle').innerText = name + " 人力配置";
+        document.getElementById('configModal').style.display = 'flex';
+        focusDay("1");
+    };
+
+    window.focusDay = (day) => {
+        currentDay = day;
+        const dayNames = {"1":"週一","2":"週二","3":"週三","4":"週四","5":"週五","6":"週六","0":"週日"};
+        document.getElementById('displayDayName').innerText = dayNames[day];
+        for(let i=0; i<=6; i++) document.getElementById(`th-${i}`).style.background = "#fff9c4";
+        document.getElementById(`th-${day}`).style.background = "#ffeb3b";
+        renderDay();
+    };
+
+    window.updateWeeklyTotal = (day, val) => {
+        if(!tempConfig[day]) tempConfig[day] = { total: 0, must: [], prio: [] };
+        tempConfig[day].total = parseInt(val, 10) || 0;
+    };
+
+    function renderDay() {
+        const d = tempConfig[currentDay] || { total: 0, must: [], prio: [] };
+        const mustBox = document.getElementById('mustContent');
+        const prioBox = document.getElementById('prioContent');
+        mustBox.innerHTML = ""; prioBox.innerHTML = "";
+        (d.must || []).forEach(c => mustBox.innerHTML += createShiftBlock(c, 'must'));
+        (d.prio || []).forEach(c => prioBox.innerHTML += createShiftBlock(c, 'prio'));
+    }
+
+    function createShiftBlock(code, zone) {
+        const s = allShifts.find(x => x.code === code);
+        return `<div class="shift-item"><span><b>${code}</b> <small style="display:block;color:#666;">${s?s.startTime+'-'+s.endTime:''}</small></span><span class="remove-btn" onclick="removeShift('${code}', '${zone}')">×</span></div>`;
+    }
+
+    window.allowDrop = (ev) => ev.preventDefault();
+    window.drag = (ev) => ev.dataTransfer.setData("code", ev.target.dataset.code);
+    window.drop = (ev, zone) => {
+        ev.preventDefault();
+        const code = ev.dataTransfer.getData("code");
+        if (!tempConfig[currentDay][zone].includes(code)) {
+            tempConfig[currentDay][zone].push(code);
+            renderDay();
+        }
+    };
+
+    window.removeShift = (code, zone) => {
+        tempConfig[currentDay][zone] = tempConfig[currentDay][zone].filter(c => c !== code);
+        renderDay();
+    };
+
+    // --- 一鍵複製並自動儲存 ---
+    window.syncCurrentToAllWeek = async () => {
+        const sourceData = tempConfig[currentDay];
+        if (!sourceData) return;
+        const dayNames = {"1":"週一","2":"週二","3":"週三","4":"週四","5":"週五","6":"週六","0":"週日"};
+        if (!confirm(`確定要將【${dayNames[currentDay]}】的設定直接同步到「全週」並寫入資料庫嗎？`)) return;
+
+        for (let i = 0; i <= 6; i++) {
+            tempConfig[i] = {
+                total: parseInt(sourceData.total) || 0,
+                must: [...(sourceData.must || [])],
+                prio: [...(sourceData.prio || [])]
+            };
+            const inputEl = document.getElementById(`week-${i}`);
+            if(inputEl) inputEl.value = sourceData.total;
+        }
+
+        await window.saveFullConfig(); 
+        renderDay();
+        alert("已完成全週同步！");
+    };
+
+    window.saveFullConfig = async () => {
+        const msg = document.getElementById('saveMsg');
+        const btn = document.getElementById('configSaveBtn');
+        try {
+            btn.disabled = true;
+            btn.innerText = "同步中...";
+            for(let i=0; i<=6; i++) {
+                const val = document.getElementById(`week-${i}`).value;
+                tempConfig[i].total = parseInt(val, 10) || 0;
+            }
+            await setDoc(doc(db, "Stores", currentStoreName), { config: tempConfig }, { merge: true });
+            if(allStoresData[currentStoreName]) {
+                allStoresData[currentStoreName].config = JSON.parse(JSON.stringify(tempConfig));
+            }
+            msg.style.opacity = "1";
+            await loadStores(); 
+            setTimeout(() => {
+                msg.style.opacity = "0";
+                btn.disabled = false;
+                btn.innerText = "💾 儲存並同步";
+            }, 1000);
+        } catch (e) {
+            alert("儲存失敗");
+            btn.disabled = false;
+            btn.innerText = "💾 儲存並同步";
+        }
+    };
+
+    window.closeConfig = () => document.getElementById('configModal').style.display = 'none';
+    window.deleteStore = async (name) => { if(confirm(`確定刪除 ${name}?`)) { await deleteDoc(doc(db, "Stores", name)); location.reload(); } };
+
+    init();
+</script>
+</body>
+</html>

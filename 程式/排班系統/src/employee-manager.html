@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>員工管理系統 - 快速許願版</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root { --primary: #1a73e8; --success: #00c853; --danger: #ff5252; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        
+        .tool-bar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .role-manager { background: #e8f0fe; padding: 15px; border-radius: 12px; flex: 2; border: 1px solid #c2d7ff; }
+        .global-actions { background: #fff0f0; padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #ffcdd2; text-align: center; }
+
+        .form-section { background: #f1f3f4; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+
+        .check-section { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 15px; }
+        .check-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .check-item { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; background: #eee; padding: 6px 12px; border-radius: 6px; }
+        .check-item:has(input:checked) { background: #e8f0fe; color: var(--primary); border-color: var(--primary); font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #5f6368; color: white; font-size: 14px; }
+
+        /* 按鈕樣式 */
+        .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        .btn-save { background: var(--primary); color: white; width: 100%; margin-top: 15px; padding: 12px; }
+        .btn-wish { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .btn-edit { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        /* 許願彈窗 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+<div style="margin-bottom:16px;"><a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:#1a73e8;text-decoration:none;font-size:14px;font-weight:600;">&#8592; 返回首頁</a></div>
+
+    <div class="tool-bar">
+        <div class="card role-manager">
+            <h3>🛠️ 職位管理</h3>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="newRoleName" placeholder="輸入職稱">
+                <button class="btn" style="background:var(--success); color:white;" onclick="addNewRole()">＋ 新增</button>
+            </div>
+            <div id="roleTagsContainer" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="card global-actions">
+            <h3>🧹 全域操作</h3>
+            <button class="btn" style="background:var(--danger); color:white; width:100%;" onclick="clearAllWishLeaves()">清空全體許願日期</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>👥 員工資料管理</h2>
+        <div class="form-section">
+            <input type="hidden" id="oldEmpId"> 
+            <div class="form-grid">
+                <div class="form-group"><label>員工姓名</label><input type="text" id="empName"></div>
+                <div class="form-group"><label>員工代碼 (ID)</label><input type="text" id="empId"></div>
+                <div class="form-group"><label>職位/類別</label><select id="empRoleSelect"></select></div>
+            </div>
+
+            <div class="check-section">
+                <label>📍 可支援門市：</label>
+                <div class="check-grid" id="storeContainer"></div>
+            </div>
+
+            <div class="check-section">
+                <label>📅 固定公休日 (每週)：</label>
+                <div class="check-grid">
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="一"> 一</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="二"> 二</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="三"> 三</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="四"> 四</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="五"> 五</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="六"> 六</label>
+                    <label class="check-item"><input type="checkbox" class="off-cb" value="日"> 日</label>
+                </div>
+            </div>
+
+            <button class="btn btn-save" id="btnMainSave" onclick="saveEmployee()">💾 儲存員工基本資料</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>姓名 (ID)</th>
+                    <th>職位</th>
+                    <th>門市 / 固定公休</th>
+                    <th>許願休假日期</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="empTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="wishModal" class="modal">
+        <div class="modal-content">
+            <h3 id="wishTargetName">員工許願</h3>
+            <input type="text" id="wishDatePicker" style="width: 100%; margin-bottom: 20px;" placeholder="選擇日期...">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-save" style="margin:0;" onclick="saveWishData()">儲存許願</button>
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M", authDomain: "roster-fadmart.firebaseapp.com", projectId: "roster-fadmart", storageBucket: "roster-fadmart.firebasestorage.app", messagingSenderId: "880597429282", appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b" };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allEmployees = {};
+    let currentWishId = null;
+    let fpWish;
+
+    async function init() {
+        fpWish = flatpickr("#wishDatePicker", { mode: "multiple", dateFormat: "Y-m-d", conjunction: ", " });
+        await loadRoles();
+        await loadStoreOptions();
+        await loadEmployees();
+    }
+
+    // --- 職位 & 門市 ---
+    async function loadRoles() {
+        const snap = await getDocs(collection(db, "EmployeeRoles"));
+        const tagContainer = document.getElementById('roleTagsContainer');
+        const select = document.getElementById('empRoleSelect');
+        tagContainer.innerHTML = ""; select.innerHTML = '<option value="">請選擇</option>';
+        snap.forEach(d => {
+            const role = d.id;
+            tagContainer.innerHTML += `<span class="role-tag">${role} <span onclick="deleteRole('${role}')">×</span></span>`;
+            select.innerHTML += `<option value="${role}">${role}</option>`;
+        });
+    }
+    window.addNewRole = async () => {
+        const name = document.getElementById('newRoleName').value.trim();
+        if(name) { await setDoc(doc(db, "EmployeeRoles", name), { name }); document.getElementById('newRoleName').value = ""; loadRoles(); }
+    };
+    window.deleteRole = async (n) => { if(confirm(`刪除 ${n}?`)) { await deleteDoc(doc(db, "EmployeeRoles", n)); loadRoles(); } };
+
+    async function loadStoreOptions() {
+        const snap = await getDocs(collection(db, "Stores"));
+        const container = document.getElementById('storeContainer');
+        container.innerHTML = "";
+        snap.forEach(d => {
+            const s = d.data();
+            if(s.name) container.innerHTML += `<label class="check-item"><input type="checkbox" class="store-cb" value="${s.name}"> ${s.name}</label>`;
+        });
+    }
+
+    // --- 員工管理 ---
+    window.saveEmployee = async () => {
+        const name = document.getElementById('empName').value.trim();
+        const id = document.getElementById('empId').value.trim();
+        const oldId = document.getElementById('oldEmpId').value;
+        const role = document.getElementById('empRoleSelect').value;
+        const stores = Array.from(document.querySelectorAll('.store-cb:checked')).map(cb => cb.value);
+        const offs = Array.from(document.querySelectorAll('.off-cb:checked')).map(cb => cb.value);
+
+        if(!name || !id || !role) return alert("請填寫姓名、ID與職位");
+        
+        // 儲存基本資料，保留 wishLeaves
+        let wishData = "";
+        if(oldId && allEmployees[oldId]) wishData = allEmployees[oldId].wishLeaves || "";
+
+        await setDoc(doc(db, "Employees", id), { id, name, role, canWorkStores: stores, unavailableDays: offs, wishLeaves: wishData }, { merge: true });
+        if(oldId && oldId !== id) await deleteDoc(doc(db, "Employees", oldId));
+        location.reload();
+    };
+
+    async function loadEmployees() {
+        const snap = await getDocs(collection(db, "Employees"));
+        const body = document.getElementById('empTableBody');
+        body.innerHTML = "";
+        snap.forEach(d => {
+            const e = d.data(); allEmployees[d.id] = e;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${e.name}</b> <br><small>${d.id}</small></td>
+                <td>${e.role}</td>
+                <td>
+                    <div style="font-size:11px; color:#666;">門市: ${(e.canWorkStores || []).join(', ')}</div>
+                    <div style="font-size:11px; color:#999;">公休: ${(e.unavailableDays || []).join(', ')}</div>
+                </td>
+                <td style="font-size:11px; color:var(--success); max-width:150px; word-break:break-all;">${e.wishLeaves || '--'}</td>
+                <td>
+                    <button class="btn btn-wish" onclick="openWishModal('${d.id}')">📅 許願</button>
+                    <button class="btn btn-edit" onclick="editEmp('${d.id}')">✏️</button>
+                    <button class="btn btn-danger" onclick="deleteEmp('${d.id}')">🗑️</button>
+                </td>`;
+            body.appendChild(tr);
+        });
+    }
+
+    // --- 快速許願功能 ---
+    window.openWishModal = (id) => {
+        currentWishId = id;
+        const e = allEmployees[id];
+        document.getElementById('wishTargetName').innerText = `${e.name} 的休假許願`;
+        fpWish.setDate(e.wishLeaves || "");
+        document.getElementById('wishModal').style.display = 'flex';
+    };
+
+    window.saveWishData = async () => {
+        const dates = document.getElementById('wishDatePicker').value;
+        await updateDoc(doc(db, "Employees", currentWishId), { wishLeaves: dates });
+        alert("許願成功！");
+        location.reload();
+    };
+
+    window.clearAllWishLeaves = async () => {
+        if(!confirm("確定清空全體許願日期？")) return;
+        const snap = await getDocs(collection(db, "Employees"));
+        const ps = []; snap.forEach(d => ps.push(updateDoc(doc(db, "Employees", d.id), { wishLeaves: "" })));
+        await Promise.all(ps); location.reload();
+    };
+
+    window.editEmp = (id) => {
+        const e = allEmployees[id];
+        document.getElementById('empName').value = e.name;
+        document.getElementById('empId').value = id;
+        document.getElementById('oldEmpId').value = id;
+        document.getElementById('empRoleSelect').value = e.role;
+        document.querySelectorAll('.store-cb').forEach(cb => cb.checked = e.canWorkStores.includes(cb.value));
+        document.querySelectorAll('.off-cb').forEach(cb => cb.checked = e.unavailableDays.includes(cb.value));
+        window.scrollTo(0,0);
+    };
+
+    window.deleteEmp = async (id) => { if(confirm(`刪除 ${id}?`)) { await deleteDoc(doc(db, "Employees", id)); location.reload(); } };
+    window.closeModal = () => document.getElementById('wishModal').style.display = 'none';
+
+    init();
+</script>
+</body>
+</html>

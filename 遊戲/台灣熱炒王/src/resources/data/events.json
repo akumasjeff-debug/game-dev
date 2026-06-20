@@ -1,0 +1,619 @@
+{
+	"events": [
+		{
+			"id": "event_001",
+			"name": "蛤蜊沒了！",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.15,
+				"min_year": 2,
+				"notes": "炒蛤蜊列為菜單後、食材庫存低於安全值時觸發"
+			},
+			"dialog": "大明伯打電話來，說今天魚市場的蛤蜊全被隔壁海鮮餐廳掃光了！你的蛤蜊一顆都不剩。客人已經開始陸續進場，有兩桌今天特地來點炒蛤蜊的。阿龍師傅在廚房等你決定。",
+			"options": [
+				{
+					"text": "緊急叫車去遠一點的市場補貨",
+					"effects": {
+						"money": -1500,
+						"reputation": 5,
+						"staff_morale": 0,
+						"custom": "炒蛤蜊今日正常供應；部分客人因延誤有機率流失"
+					}
+				},
+				{
+					"text": "今天先賣炒海瓜子代替，誠實告知客人原因",
+					"effects": {
+						"money": -200,
+						"reputation": 8,
+						"staff_morale": 0,
+						"custom": "部分客人離場（流失率 15%）；誠實口碑微幅上升"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_002",
+			"name": "豬肉漲價了",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.3,
+				"min_year": 1,
+				"notes": "每季末有機率觸發，模擬台灣物價波動"
+			},
+			"dialog": "大明伯一大早臭著一張臉回來：「豬肉漲了，每斤多十五塊，下個月可能還要漲。」他說是因為颱風影響飼料運輸，整個台灣都在漲。三杯雞、炒米粉、烤五花肉串的成本全都被影響到了。",
+			"options": [
+				{
+					"text": "調漲售價，每道豬肉料理 +10 元",
+					"effects": {
+						"money": 0,
+						"reputation": -5,
+						"staff_morale": 0,
+						"custom": "短期客人抱怨值上升；一週後習慣新價格，財務穩定"
+					}
+				},
+				{
+					"text": "硬撐不漲價，自己吸收成本",
+					"effects": {
+						"money": -2000,
+						"reputation": 15,
+						"staff_morale": 5,
+						"custom": "本週豬肉料理利潤減損；老客人忠誠度提升；口碑：這家店夠義氣"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_003",
+			"name": "食材腐壞！廚房的噩夢",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.2,
+				"min_year": 1,
+				"notes": "冰箱設備老舊（Lv1 超過 30 天未升級）時觸發；夏天機率 x2"
+			},
+			"dialog": "阿嬤打開冷藏庫聞了一下，沉默三秒，轉過頭說「師傅，這些魚不對了」。今天備的食材有一批壞掉，損失了一批庫存。阿龍師傅臉色鐵青，說那個冰箱早就該換了。",
+			"options": [
+				{
+					"text": "立即決定升級冰箱",
+					"effects": {
+						"money": -8000,
+						"reputation": 0,
+						"staff_morale": 10,
+						"custom": "今日菜色受限（無新鮮海鮮）；未來腐壞事件觸發率大幅下降；阿龍師傅點頭稱讚"
+					}
+				},
+				{
+					"text": "今天用其他食材湊，先不換冰箱",
+					"effects": {
+						"money": -500,
+						"reputation": 0,
+						"staff_morale": -5,
+						"custom": "腐壞事件觸發率維持高風險；若本週再觸發，名聲受損（食材不新鮮謠言）"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_004",
+			"name": "颱風前夕進貨大作戰",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.18,
+				"min_year": 1,
+				"notes": "模擬台灣颱風季；夏秋季機率 x2"
+			},
+			"dialog": "氣象局說今晚颱風要來，預計明後天市場不開。大明伯說你有兩個選擇：現在多備兩天份的食材（但加急費貴），或者賭颱風轉向繞過去。隔壁攤主阿義已經開始搬東西準備收攤了。",
+			"options": [
+				{
+					"text": "加急進貨，備足兩天庫存",
+					"effects": {
+						"money": -3000,
+						"reputation": 10,
+						"staff_morale": 0,
+						"custom": "若颱風來：颱風後首日食材齊全、競爭者多半無食材、名聲加成；若颱風繞過：多餘食材部分浪費"
+					}
+				},
+				{
+					"text": "賭颱風不來，維持正常庫存",
+					"effects": {
+						"money": 0,
+						"reputation": 0,
+						"staff_morale": 0,
+						"custom": "若颱風沒來：節省加急費；若颱風來了：停業兩天損失營業額"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_005",
+			"name": "阿弟請假——他媽媽病了",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.08,
+				"min_year": 1,
+				"notes": "阿弟在職後隨機觸發；情感事件，觸發率較低"
+			},
+			"dialog": "阿弟今早發了一則訊息說他媽媽突然進醫院，要請幾天假，訊息最後加了一句「對不起老闆，我知道最近很忙」。今天是週六，是你最需要人手的時候。阿龍師傅說「人的事比店大，讓他去」，但今晚你真的很缺人。",
+			"options": [
+				{
+					"text": "讓阿弟安心請假，自己或其他員工補位",
+					"effects": {
+						"money": -500,
+						"reputation": 0,
+						"staff_morale": 15,
+						"custom": "今日人力吃緊效率下降；阿弟忠誠度大幅提升；後續觸發「阿弟回來了，更拼了」劇情"
+					}
+				},
+				{
+					"text": "婉轉請阿弟今晚來上完再請假",
+					"effects": {
+						"money": 0,
+						"reputation": 0,
+						"staff_morale": -10,
+						"custom": "今晚效率正常；阿弟忠誠度下降；未來若有人挖角，跳槽機率提升"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_006",
+			"name": "小玉要求加薪",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.2,
+				"min_year": 3,
+				"notes": "小玉在職滿 90 天後觸發；員工成長事件"
+			},
+			"dialog": "小玉下班後留下來，說她在別家熱炒店接到了挖角，月薪多兩千，問你這裡有沒有辦法調整。她說她還是喜歡這裡，但她也需要多點錢。阿龍師傅在旁邊假裝沒在聽。",
+			"options": [
+				{
+					"text": "同意加薪，日薪 +100 元",
+					"effects": {
+						"money": -3000,
+						"reputation": 0,
+						"staff_morale": 20,
+						"custom": "小玉留下；工作積極性提升；觸發隱藏加成「師徒情」（與阿龍師傅搭檔出餐品質+）"
+					}
+				},
+				{
+					"text": "無法加薪，但承諾年終獎金",
+					"effects": {
+						"money": 0,
+						"reputation": 0,
+						"staff_morale": 5,
+						"custom": "小玉暫時留下；若 60 天內未兌現承諾，觸發「小玉辭職」事件"
+					}
+				},
+				{
+					"text": "讓她走",
+					"effects": {
+						"money": -5000,
+						"reputation": -5,
+						"staff_morale": -15,
+						"custom": "小玉離職；需重新招募（費用 + 空窗期）；其他員工觀感下降"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_007",
+			"name": "醉客罵員工——秀蘭姐快發飆了",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.15,
+				"min_year": 1,
+				"notes": "週五/六夜晚、客滿時觸發"
+			},
+			"dialog": "有個喝多的客人因為等菜等太久，開始大聲嗆秀蘭姐說「你們店這麼爛，我再也不來了！」秀蘭姐臉色已經鐵青，你看到她右手握著托盤的力道越來越緊。旁邊的客人都轉頭看過來。",
+			"options": [
+				{
+					"text": "老闆親自出面道歉，並請這桌免費加一道菜",
+					"effects": {
+						"money": -300,
+						"reputation": 10,
+						"staff_morale": 0,
+						"custom": "客人怒氣消散；旁邊客人好感上升（老闆夠誠意）；有機率醉客留下小費"
+					}
+				},
+				{
+					"text": "請醉客結帳離場",
+					"effects": {
+						"money": -200,
+						"reputation": -3,
+						"staff_morale": 15,
+						"custom": "場面稍微尷尬；周邊客人有機率提早離場；秀蘭姐士氣大升（老闆護員工）；秀蘭姐忠誠度永久提升"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_008",
+			"name": "美食節目來採訪！",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "reputation_above",
+				"value": 400,
+				"min_year": 3,
+				"notes": "名聲 Lv3（400+）以上、Year 3 後隨機觸發；觸發率較低"
+			},
+			"dialog": "一個自稱電視台美食節目製作人的人走進來，說他們在拍「台灣隱藏版熱炒名店」，問你願不願意讓攝影機進來拍一集。阿龍師傅馬上說「不要，我不上電視」，但你覺得這是個大機會。",
+			"options": [
+				{
+					"text": "接受採訪，配合攝影",
+					"effects": {
+						"money": -1000,
+						"reputation": 80,
+						"staff_morale": 5,
+						"custom": "拍攝當天客人較少；節目播出後一週新客大量湧入；觸發「阿龍師傅的特寫」彩蛋對話"
+					}
+				},
+				{
+					"text": "婉拒，說現在還沒準備好",
+					"effects": {
+						"money": 0,
+						"reputation": 0,
+						"staff_morale": 0,
+						"custom": "名聲不變；製作人留下名片；Year 5 後可主動觸發再次接觸"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_009",
+			"name": "美食網紅來打卡",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "reputation_above",
+				"value": 200,
+				"min_year": 2,
+				"notes": "名聲 Lv2（200+）以上、週末觸發；偶爾"
+			},
+			"dialog": "一個有十萬追蹤數的美食網紅帶著手機腳架坐下來，開始拍影片。他問你可不可以讓他直播，說這樣粉絲馬上就會來。阿財在旁邊悄悄說「老闆，那個人我認識，他評價很準的」。",
+			"options": [
+				{
+					"text": "歡迎直播，請他坐最好的位置並送一道招牌菜",
+					"effects": {
+						"money": -400,
+						"reputation": 30,
+						"staff_morale": 0,
+						"custom": "直播後當週新客大增；社群名聲加成；若評價正面，下月觸發機率提升（帶動其他網紅跟進）"
+					}
+				},
+				{
+					"text": "讓他自己拍，不特別招待",
+					"effects": {
+						"money": 0,
+						"reputation": 12,
+						"staff_morale": 0,
+						"custom": "名聲小幅上升；不花費額外成本；有 30% 機率他評語「服務普通」，名聲效果縮減"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_010",
+			"name": "老客人介紹大桌來",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.25,
+				"min_year": 2,
+				"notes": "忠實老客人數量達 10 人後常見觸發"
+			},
+			"dialog": "秀蘭姐說老林仔打電話來訂位，說他公司要辦尾牙，想包三桌，問你能不能準備一桌好料。這是你接到的最大桌訂位，老林仔說「我跟我老闆說你們這裡最好，不要讓我丟臉喔」。",
+			"options": [
+				{
+					"text": "接下來，備特別菜單（加入一道時令特殊菜）",
+					"effects": {
+						"money": 8000,
+						"reputation": 25,
+						"staff_morale": 5,
+						"custom": "需提前備料額外花費；當晚營業額大增；所有來客成為新潛在回頭客"
+					}
+				},
+				{
+					"text": "接下來，維持正常菜單即可",
+					"effects": {
+						"money": 4500,
+						"reputation": 5,
+						"staff_morale": 0,
+						"custom": "正常收入；風險較低；新客人印象普通，轉化為回頭客機率較低"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_011",
+			"name": "中秋烤肉大戰",
+			"trigger_type": "year_start",
+			"trigger_condition": {
+				"type": "day_equals",
+				"value": 255,
+				"notes": "每年中秋節固定觸發（約每年第 255 天，即農曆 8 月 15 日附近）"
+			},
+			"dialog": "快中秋了，隔壁老王家今晚要辦大型烤肉，香氣飄過來搶走了你不少客人。阿龍師傅建議乾脆也來個限定烤肉套餐反將一軍；但你的烤台現在只有基礎款，怕搞砸了反而丟臉。中秋節是全年客流量最大的晚上之一。",
+			"options": [
+				{
+					"text": "推出「中秋限定烤肉套餐」（含烤玉米＋烤五花肉串）",
+					"effects": {
+						"money": 5000,
+						"reputation": 15,
+						"staff_morale": 5,
+						"custom": "若烤台已升級：套餐加成顯著、名聲大增；若使用基礎烤台：有 30% 機率出現「烤焦事件」，名聲受損"
+					}
+				},
+				{
+					"text": "不跟進，專注正常熱炒菜色",
+					"effects": {
+						"money": 2000,
+						"reputation": 5,
+						"staff_morale": 0,
+						"custom": "流失部分輕度客人；留住愛吃熱炒的忠實客；熱炒銷售量因競爭者分流而略增"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_012",
+			"name": "尾牙旺季來了",
+			"trigger_type": "year_start",
+			"trigger_condition": {
+				"type": "day_equals",
+				"value": 350,
+				"notes": "每年 12 月底固定觸發（約每年第 350 天）"
+			},
+			"dialog": "十二月到了，附近公司行號紛紛訂位辦尾牙，你的電話響個不停。大明伯說海鮮食材要早點訂，不然到時候搶不到；老闆娘則說這時候要漲一點尾牙特別套餐的價格，年底大家都捨得花。",
+			"options": [
+				{
+					"text": "推出尾牙套餐（固定菜色合菜模式），價格 x1.3",
+					"effects": {
+						"money": 12000,
+						"reputation": 20,
+						"staff_morale": 0,
+						"custom": "接到大量尾牙訂位；套餐利潤率提升；備料壓力大，若未提前採購有食材短缺風險"
+					}
+				},
+				{
+					"text": "維持單點菜單，不推套餐",
+					"effects": {
+						"money": 5000,
+						"reputation": 0,
+						"staff_morale": 5,
+						"custom": "尾牙客人少一些；管理壓力低；老客人滿意度不受影響"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_013",
+			"name": "媽祖遶境——整條街都在拜",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.06,
+				"min_year": 1,
+				"notes": "罕見觸發；模擬台灣媽祖遶境；年度特殊事件"
+			},
+			"dialog": "今天附近的宮廟要辦媽祖遶境，信眾從你店門口走過，炮竹聲震天響，客人進不來、油煙飄不散。但是！一批肚子餓的信眾看到你的招牌停下腳步，問說「老闆，今天有沒有拜拜限定菜色？」",
+			"options": [
+				{
+					"text": "臨時加入「平安素食套餐」搭上遶境人潮",
+					"effects": {
+						"money": 4000,
+						"reputation": 20,
+						"staff_morale": -5,
+						"custom": "多出素食客人；出餐壓力上升；營業額提升；在地社群名聲加成（有人情味）"
+					}
+				},
+				{
+					"text": "維持正常菜色，讓遶境人潮自然進來",
+					"effects": {
+						"money": 1500,
+						"reputation": 3,
+						"staff_morale": 0,
+						"custom": "部分信眾進來點一般菜色；翻桌速度慢；無額外備料壓力"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_014",
+			"name": "衛生局來稽查了",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.15,
+				"min_year": 1,
+				"notes": "清潔度低於標準值時機率 x3；否則為偶爾觸發"
+			},
+			"dialog": "下午三點，一個穿制服的人站在你門口說「衛生局例行稽查，請配合」。阿嬤站出來說「隨便查，我們乾淨得很」，但你注意到廚房角落昨天沒清的油漬還在。",
+			"options": [
+				{
+					"text": "阿嬤帶隊，強調店面清潔（清潔度 Lv2 以上）",
+					"effects": {
+						"money": 0,
+						"reputation": 15,
+						"staff_morale": 5,
+						"custom": "清潔度足夠時順利通過，獲得衛生良好標章效果，下次稽查間隔延長；清潔度不足時罰款"
+					}
+				},
+				{
+					"text": "偷偷快速整理，希望稽查員沒注意到",
+					"effects": {
+						"money": -2000,
+						"reputation": -10,
+						"staff_morale": -5,
+						"custom": "40% 機率被察覺（罰款 + 不良紀錄）；60% 機率矇混過關"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_015",
+			"name": "突然停電！廚房陷入混亂",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.1,
+				"min_year": 1,
+				"notes": "夏天機率 x2；模擬台灣夏季限電事件"
+			},
+			"dialog": "晚上七點，正是最忙的時候，整個區域突然停電了。廚房一片黑、冰箱停機、電磁爐失效，只有瓦斯爐還能用。桌上有幾桌客人正在用餐，阿龍師傅冷靜地說「瓦斯爐的菜我繼續炒，其他的你決定」。",
+			"options": [
+				{
+					"text": "打開備用蠟燭營造燭光氣氛，繼續營業",
+					"effects": {
+						"money": -200,
+						"reputation": 10,
+						"staff_morale": 5,
+						"custom": "部分客人覺得有趣留下；名聲加成（台灣人的彈性！）；冰箱停機超過 30 分鐘後食材有腐壞風險"
+					}
+				},
+				{
+					"text": "通知客人暫停服務，今晚提早打烊",
+					"effects": {
+						"money": -3000,
+						"reputation": -3,
+						"staff_morale": 0,
+						"custom": "損失當晚營業額；無食材腐壞風險；客人退款；隔天正常開業，名聲不受長期影響"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_016",
+			"name": "隔壁攤主找麻煩",
+			"trigger_type": "reputation",
+			"trigger_condition": {
+				"type": "reputation_above",
+				"value": 200,
+				"min_year": 2,
+				"notes": "名聲成長較快時觸發；罕見事件"
+			},
+			"dialog": "隔壁那家也是賣熱炒的「阿義嫂」店，老闆娘阿義嫂突然衝過來說你的排煙管道影響她的用餐環境，大聲嚷嚷說要去告你。你知道這可能是因為你最近客人越來越多讓她眼紅。",
+			"options": [
+				{
+					"text": "主動和解，邀請阿義嫂吃一頓飯談清楚",
+					"effects": {
+						"money": -800,
+						"reputation": 5,
+						"staff_morale": 3,
+						"custom": "關係轉為鄰里和平；未來同區競爭事件觸發率下降；長期有機率觸發「競爭對手轉成合作夥伴」特殊事件"
+					}
+				},
+				{
+					"text": "不理她，繼續做自己的",
+					"effects": {
+						"money": 0,
+						"reputation": -8,
+						"staff_morale": 0,
+						"custom": "阿義嫂持續找麻煩；每週有機率觸發小糾紛事件；若名聲夠高，三個月後自然沉默"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_017",
+			"name": "老饕提意見",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.12,
+				"min_year": 2,
+				"notes": "三杯雞或炒蛤蜊列為菜單後觸發；偶爾"
+			},
+			"dialog": "一個頭髮全白、穿著樸素的老先生用完餐後叫住你，說「老闆，你的三杯雞不錯，但醬油放錯了，你用醬油膏不對，要用壺底油才有那個味」。說完放下名片，名片上印著「陳益明 美食評論家」。",
+			"options": [
+				{
+					"text": "虛心接受，調整食譜",
+					"effects": {
+						"money": -500,
+						"reputation": 20,
+						"staff_morale": 5,
+						"custom": "三杯雞食材成本微增（壺底油較貴）；品質評分提升；觸發「三杯雞升級版」隱藏加成；口碑：這老闆肯學"
+					}
+				},
+				{
+					"text": "禮貌感謝但維持原本做法",
+					"effects": {
+						"money": 0,
+						"reputation": 0,
+						"staff_morale": 0,
+						"custom": "不額外花費；三杯雞維持現有品質；陳評論家不再回頭；錯失「老饕認證」成就觸發條件"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_018",
+			"name": "神秘客暗評——今晚決定你的未來",
+			"trigger_type": "reputation",
+			"trigger_condition": {
+				"type": "reputation_above",
+				"value": 700,
+				"min_year": 5,
+				"notes": "名聲 Lv5（700+）以上、Year 5 後觸發；主線劇情關鍵事件；罕見"
+			},
+			"dialog": "今晚店裡有一個客人，穿著普通、點菜不多，但每道菜都仔細研究。秀蘭姐悄悄說「那個人，我見過，是美食評鑑的人」。你不動聲色，但廚房裡今晚每道菜都要完美。",
+			"options": [
+				{
+					"text": "讓今晚的服務和出餐維持最高標準（消耗員工體力值）",
+					"effects": {
+						"money": 0,
+						"reputation": 50,
+						"staff_morale": -10,
+						"custom": "員工體力消耗；所有指標達標時觸發台灣美食評鑑解鎖前置條件；有失誤則評鑑可能降等"
+					}
+				},
+				{
+					"text": "照常營業，不刻意準備",
+					"effects": {
+						"money": 0,
+						"reputation": 10,
+						"staff_morale": 0,
+						"custom": "日常品質夠高時仍有機率通過；品質普通則神秘客默默離開，評鑑推遲觸發"
+					}
+				}
+			]
+		},
+		{
+			"id": "event_019",
+			"name": "難搞醉客，鬧翻了",
+			"trigger_type": "random",
+			"trigger_condition": {
+				"type": "random_chance",
+				"value": 0.12,
+				"min_year": 1,
+				"notes": "週五/六夜晚深夜時段觸發；偶爾"
+			},
+			"dialog": "一個喝到快不省人事的中年男子開始對著服務生唱歌，之後把杯子打翻，站起來說要再點一瓶高粱。他的朋友已經先走了，他一個人坐著不肯走，旁邊的客人開始側目，金鳳和秀蘭姐都來問你怎麼辦。",
+			"options": [
+				{
+					"text": "幫他叫計程車，請他喝杯水醒腦後送走",
+					"effects": {
+						"money": -200,
+						"reputation": 8,
+						"staff_morale": 5,
+						"custom": "花費時間處理；該桌後續無法再翻桌；醉客隔天醒來感謝、成為回頭客機率 40%；旁邊客人好感提升"
+					}
+				},
+				{
+					"text": "不管他，繼續讓他坐著",
+					"effects": {
+						"money": -2000,
+						"reputation": -12,
+						"staff_morale": -8,
+						"custom": "旁邊多桌客人提早離場；若醉客鬧到打架，觸發「警察來了」意外事件並罰款"
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>門市排班管理系統</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f0f4ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            color: #333;
+        }
+        .logo-area {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo-area h1 {
+            font-size: 28px;
+            color: #1a73e8;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .logo-area p {
+            color: #5f6368;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .menu-card {
+            background: white;
+            border-radius: 16px;
+            padding: 28px 24px;
+            box-shadow: 0 2px 12px rgba(26, 115, 232, 0.08);
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border: 1px solid #e8eaed;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .menu-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 24px rgba(26, 115, 232, 0.18);
+            border-color: #1a73e8;
+        }
+        .menu-card .icon {
+            font-size: 36px;
+            line-height: 1;
+        }
+        .menu-card .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .menu-card .desc {
+            font-size: 13px;
+            color: #5f6368;
+            line-height: 1.5;
+        }
+        .menu-card .tag {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            width: fit-content;
+        }
+        footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-area">
+        <h1>門市排班管理系統</h1>
+        <p>Fadmart Roster Management &nbsp;|&nbsp; Firebase Firestore</p>
+    </div>
+
+    <div class="menu-grid">
+        <a href="main-scheduler.html" class="menu-card">
+            <div class="icon">&#128197;</div>
+            <div class="title">主排班</div>
+            <div class="desc">月曆檢視、手動排班、AI 智慧排班、儲存班表。</div>
+            <span class="tag">核心功能</span>
+        </a>
+
+        <a href="employee-manager.html" class="menu-card">
+            <div class="icon">&#128100;</div>
+            <div class="title">員工管理</div>
+            <div class="desc">新增/編輯員工、設定可支援門市、許願假、固定公休、工時區間。</div>
+            <span class="tag">人員設定</span>
+        </a>
+
+        <a href="store-manager.html" class="menu-card">
+            <div class="icon">&#127978;</div>
+            <div class="title">門市管理</div>
+            <div class="desc">設定門市人力需求（每週各天人數）與班別優先順序。</div>
+            <span class="tag">門市設定</span>
+        </a>
+
+        <a href="shift-manager.html" class="menu-card">
+            <div class="icon">&#9201;</div>
+            <div class="title">班別管理</div>
+            <div class="desc">定義班次代碼、上下班時間與每班工時。</div>
+            <span class="tag">班別設定</span>
+        </a>
+
+        <a href="schedule-view.html" class="menu-card">
+            <div class="icon">&#128260;</div>
+            <div class="title">代班推薦</div>
+            <div class="desc">查看指定日期各門市排班，自動計算符合 6休1 的可代班人選。</div>
+            <span class="tag">代班工具</span>
+        </a>
+
+        <a href="ForMamber.html" class="menu-card">
+            <div class="icon">&#128203;</div>
+            <div class="title">員工班表</div>
+            <div class="desc">以員工為列、日期為欄的月班表矩陣，含工時統計與門市日曆。</div>
+            <span class="tag">班表檢視</span>
+        </a>
+    </div>
+
+    <footer>roster-fadmart &copy; 2026 &nbsp;|&nbsp; 純 HTML / Firebase 版本</footer>
+</body>
+</html>

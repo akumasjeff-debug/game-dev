@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代班推薦 - 排班系統</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #00c853; --danger: #ff5252; --warning: #fb8c00; --bg: #f0f4ff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 20px; color: #333; }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .card {
+            background: white; border-radius: 16px; padding: 24px;
+            box-shadow: 0 2px 12px rgba(26,115,232,0.08);
+            border: 1px solid #e8eaed; margin-bottom: 20px;
+        }
+        h2 { color: var(--primary); font-size: 22px; margin-bottom: 4px; }
+        .sub-title { color: #5f6368; font-size: 13px; margin-bottom: 20px; }
+
+        .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .controls label { font-weight: 600; font-size: 14px; color: #444; }
+        .controls input[type="date"] {
+            padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; outline: none;
+        }
+        .controls input[type="date"]:focus { border-color: var(--primary); }
+        .btn {
+            padding: 9px 20px; border-radius: 8px; border: none;
+            font-weight: 700; cursor: pointer; font-size: 14px; color: white;
+            background: var(--primary); transition: background 0.15s;
+        }
+        .btn:hover { background: #1557b0; }
+        .btn:disabled { background: #a0c3ff; cursor: not-allowed; }
+
+        #status-msg {
+            padding: 10px 14px; border-radius: 8px; font-size: 14px;
+            background: #e8f0fe; color: #1967d2; display: none; margin-top: 14px;
+        }
+
+        .section-title {
+            font-size: 16px; font-weight: 700; color: #444;
+            margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e8eaed;
+        }
+
+        .store-group { margin-bottom: 24px; }
+        .store-name-badge {
+            display: inline-block; background: #e8f0fe; color: var(--primary);
+            font-size: 13px; font-weight: 700; padding: 4px 14px;
+            border-radius: 20px; margin-bottom: 10px;
+        }
+
+        .shift-row {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+            background: #f8f9fa; border-radius: 10px; padding: 12px 16px;
+            margin-bottom: 8px; border: 1px solid #eee;
+        }
+        .shift-code-badge {
+            background: var(--primary); color: white;
+            font-size: 13px; font-weight: 700; padding: 4px 12px;
+            border-radius: 20px; min-width: 40px; text-align: center;
+        }
+        .shift-time { font-size: 13px; color: #5f6368; min-width: 110px; }
+        .shift-emp { font-size: 14px; font-weight: 600; color: #1a1a1a; flex: 1; }
+        .find-sub-btn {
+            padding: 6px 14px; border-radius: 8px; border: none;
+            background: var(--warning); color: white;
+            font-weight: 700; font-size: 12px; cursor: pointer;
+            transition: background 0.15s; white-space: nowrap;
+        }
+        .find-sub-btn:hover { background: #e65100; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: white; border-radius: 16px; padding: 28px;
+            width: 90%; max-width: 520px; max-height: 80vh;
+            overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 12px;
+        }
+        .modal-header h3 { font-size: 17px; color: var(--primary); }
+        .close-btn {
+            background: none; border: none; font-size: 20px;
+            cursor: pointer; color: #888; line-height: 1; padding: 0;
+        }
+        .close-btn:hover { color: #333; }
+        .modal-context { font-size: 13px; color: #5f6368; margin-bottom: 16px; }
+
+        .sub-card {
+            background: #f0fdf4; border-left: 4px solid var(--success);
+            border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;
+        }
+        .sub-card .sub-name { font-weight: 700; font-size: 15px; color: #137333; margin-bottom: 4px; }
+        .sub-card .sub-reason { font-size: 13px; color: #444; }
+        .sub-card .sub-tag { font-size: 11px; color: #5f6368; margin-top: 6px; }
+
+        .no-sub { color: var(--danger); font-size: 14px; font-weight: 600; padding: 12px 0; }
+        .empty-state { text-align: center; padding: 40px; color: #aaa; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">&#8592; 返回首頁</a>
+
+<div class="card">
+    <h2>代班推薦</h2>
+    <p class="sub-title">選擇日期後查看當天排班，點「找代班」自動計算符合條件的備援人選（純邏輯，無需 AI）。</p>
+    <div class="controls">
+        <label for="datePicker">選擇日期：</label>
+        <input type="date" id="datePicker">
+        <button class="btn" id="loadBtn" onclick="loadSchedule()">載入排班</button>
+    </div>
+    <div id="status-msg"></div>
+</div>
+
+<div class="card" id="resultCard" style="display:none;">
+    <div class="section-title" id="resultTitle"></div>
+    <div id="scheduleList"></div>
+</div>
+
+<div class="modal-overlay" id="subModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>代班人選推薦</h3>
+            <button class="close-btn" onclick="closeModal()">&#10006;</button>
+        </div>
+        <div class="modal-context" id="modalContext"></div>
+        <div id="modalList"></div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M",
+        authDomain: "roster-fadmart.firebaseapp.com",
+        projectId: "roster-fadmart",
+        storageBucket: "roster-fadmart.firebasestorage.app",
+        messagingSenderId: "880597429282",
+        appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    var dbData = { roster: {}, emps: [], stores: {}, shifts: [] };
+
+    window.onload = function() {
+        var today = new Date();
+        var y = today.getFullYear();
+        var mo = String(today.getMonth() + 1).padStart(2, '0');
+        var d = String(today.getDate()).padStart(2, '0');
+        document.getElementById('datePicker').value = y + '-' + mo + '-' + d;
+    };
+
+    function showStatus(msg, isError) {
+        var el = document.getElementById('status-msg');
+        el.style.display = 'block';
+        el.style.background = isError ? '#fce8e6' : '#e8f0fe';
+        el.style.color = isError ? '#c5221f' : '#1967d2';
+        el.innerText = msg;
+    }
+
+    window.loadSchedule = function() {
+        var dateVal = document.getElementById('datePicker').value;
+        if (!dateVal) { showStatus('請先選擇日期', true); return; }
+
+        var btn = document.getElementById('loadBtn');
+        btn.disabled = true;
+        btn.innerText = '載入中...';
+        showStatus('正在讀取資料庫...');
+
+        var parts = dateVal.split('-');
+        var y = parseInt(parts[0]);
+        var mo = parseInt(parts[1]);
+        var d = parseInt(parts[2]);
+        var monthKey = y + '-' + String(mo).padStart(2, '0');
+        var dateKey = y + '-' + mo + '-' + d;
+
+        Promise.all([
+            db.collection('Employees').get(),
+            db.collection('Stores').get(),
+            db.collection('ShiftTypes').get(),
+            db.collection('Rosters').where('month', '==', monthKey).get()
+        ]).then(function(results) {
+            var eSnap = results[0], sSnap = results[1], shSnap = results[2], rSnap = results[3];
+
+            dbData.emps = eSnap.docs.map(function(doc) {
+                var o = doc.data(); o.id = doc.id; return o;
+            });
+            dbData.stores = {};
+            sSnap.forEach(function(doc) {
+                var o = doc.data(); o.id = doc.id; dbData.stores[doc.id] = o;
+            });
+            dbData.shifts = shSnap.docs.map(function(doc) {
+                var o = doc.data(); o.code = String(o.code).trim().toUpperCase(); return o;
+            });
+
+            if (!rSnap.empty) {
+                var sorted = rSnap.docs.sort(function(a, b) {
+                    var ta = (a.data().createdAt || {}).seconds || 0;
+                    var tb = (b.data().createdAt || {}).seconds || 0;
+                    return tb - ta;
+                });
+                dbData.roster = sorted[0].data().data || {};
+            } else {
+                dbData.roster = {};
+            }
+
+            renderSchedule(y, mo, d, dateKey);
+            showStatus(y + ' 年 ' + mo + ' 月 ' + d + ' 日排班資料已載入。');
+        }).catch(function(err) {
+            showStatus('讀取失敗：' + err.message, true);
+            console.error(err);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.innerText = '載入排班';
+        });
+    };
+
+    function renderSchedule(y, mo, d, dateKey) {
+        var wkNames = ['日','一','二','三','四','五','六'];
+        var wk = new Date(y, mo - 1, d).getDay();
+        document.getElementById('resultTitle').innerText =
+            y + ' 年 ' + mo + ' 月 ' + d + ' 日（週' + wkNames[wk] + '）排班';
+        document.getElementById('resultCard').style.display = 'block';
+
+        var dayJobs = dbData.roster[dateKey] || [];
+        var storeIds = Object.keys(dbData.stores).sort(function(a, b) {
+            return (dbData.stores[a].name || '').localeCompare(dbData.stores[b].name || '');
+        });
+
+        var html = '';
+        storeIds.forEach(function(sId) {
+            var store = dbData.stores[sId];
+            var storeJobs = dayJobs.filter(function(j) { return j.sId === sId; });
+            if (storeJobs.length === 0) return;
+
+            html += '<div class="store-group">';
+            html += '<div class="store-name-badge">' + (store.name || sId) + '</div>';
+
+            storeJobs.forEach(function(job) {
+                var shDef = null;
+                for (var i = 0; i < dbData.shifts.length; i++) {
+                    if (dbData.shifts[i].code === String(job.sh).trim().toUpperCase()) { shDef = dbData.shifts[i]; break; }
+                }
+                var timeStr = shDef ? shDef.startTime + ' - ' + shDef.endTime : '';
+                var empNameEsc = String(job.eName).replace(/'/g, "\\'");
+                html += '<div class="shift-row">' +
+                    '<span class="shift-code-badge">' + job.sh + '</span>' +
+                    '<span class="shift-time">' + timeStr + '</span>' +
+                    '<span class="shift-emp">' + job.eName + '</span>' +
+                    '<button class="find-sub-btn" onclick="openSubModal(\'' + dateKey + '\',\'' + sId + '\',\'' + job.sh + '\',\'' + job.eId + '\',\'' + empNameEsc + '\',' + y + ',' + mo + ',' + d + ')">找代班</button>' +
+                    '</div>';
+            });
+            html += '</div>';
+        });
+
+        if (!html) html = '<div class="empty-state">這天沒有任何排班記錄</div>';
+        document.getElementById('scheduleList').innerHTML = html;
+    }
+
+    window.openSubModal = function(dateKey, sId, shCode, empId, empName, y, mo, d) {
+        var storeName = (dbData.stores[sId] || {}).name || sId;
+        document.getElementById('modalContext').innerText =
+            '原班：' + empName + ' / ' + storeName + ' / ' + shCode + ' 班';
+
+        var candidates = findCandidates(dateKey, sId, empId, y, mo, d);
+        var list = document.getElementById('modalList');
+
+        if (candidates.length === 0) {
+            list.innerHTML = '<div class="no-sub">找不到符合條件的代班人選（當天皆有班或違反 6休1）。</div>';
+        } else {
+            list.innerHTML = candidates.map(function(c) {
+                return '<div class="sub-card">' +
+                    '<div class="sub-name">' + c.name + '</div>' +
+                    '<div class="sub-reason">' + c.reason + '</div>' +
+                    '<div class="sub-tag">' + c.detail + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+        document.getElementById('subModal').classList.add('open');
+    };
+
+    window.closeModal = function() {
+        document.getElementById('subModal').classList.remove('open');
+    };
+
+    /**
+     * 找代班人選
+     * 條件 1：排除原員工
+     * 條件 2：當天已有班 → 排除
+     * 條件 3：固定公休 → 排除
+     * 條件 4：不支援該門市 → 排除
+     * 條件 5：排入後連班達 7 天 → 排除
+     */
+    function findCandidates(dateKey, sId, excludeEmpId, y, mo, d) {
+        var storeName = (dbData.stores[sId] || {}).name || '';
+        var wkNames = ['日','一','二','三','四','五','六'];
+        var dayStr = wkNames[new Date(y, mo - 1, d).getDay()];
+
+        var dayJobs = dbData.roster[dateKey] || [];
+        var workingToday = {};
+        dayJobs.forEach(function(j) { workingToday[j.eId] = true; });
+
+        var candidates = [];
+        dbData.emps.forEach(function(emp) {
+            if (emp.id === excludeEmpId) return;
+            if (workingToday[emp.id]) return;
+            if (emp.unavailableDays && emp.unavailableDays.indexOf(dayStr) !== -1) return;
+
+            var canSupport = !emp.canWorkStores || emp.canWorkStores.length === 0 ||
+                emp.canWorkStores.indexOf(sId) !== -1 ||
+                emp.canWorkStores.indexOf(storeName) !== -1;
+            if (!canSupport) return;
+
+            var conseq = calcConsecutive(emp.id, y, mo, d);
+            if (conseq.total >= 7) return;
+
+            candidates.push({
+                name: emp.name,
+                reason: '可支援 ' + storeName,
+                detail: conseq.total > 1
+                    ? '排入後連續上班 ' + conseq.total + ' 天（上限 6 天）'
+                    : '排入後為第 1 天，無連班疑慮'
+            });
+        });
+        return candidates;
+    }
+
+    function calcConsecutive(empId, y, mo, targetDay) {
+        var before = 0;
+        for (var i = 1; i <= 30; i++) {
+            var dt = new Date(y, mo - 1, targetDay - i);
+            var key = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate();
+            var jobs = dbData.roster[key] || [];
+            var found = false;
+            for (var k = 0; k < jobs.length; k++) { if (jobs[k].eId === empId) { found = true; break; } }
+            if (found) before++; else break;
+        }
+        var after = 0;
+        for (var i = 1; i <= 30; i++) {
+            var dt = new Date(y, mo - 1, targetDay + i);
+            var key = dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate();
+            var jobs = dbData.roster[key] || [];
+            var found = false;
+            for (var k = 0; k < jobs.length; k++) { if (jobs[k].eId === empId) { found = true; break; } }
+            if (found) after++; else break;
+        }
+        return { before: before, after: after, total: before + 1 + after };
+    }
+</script>
+</body>
+</html>

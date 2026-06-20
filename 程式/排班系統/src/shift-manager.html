@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>班別管理系統 - 穩定修正版</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #1a73e8; margin-top: 0; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 5px rgba(26,115,232,0.2); }
+        input:disabled { background: #e9ecef; cursor: not-allowed; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #1a73e8; color: white; font-size: 14px; }
+        tr:hover { background: #f8faff; }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: #00c853; color: white; width: 100%; margin-top: 10px; }
+        .btn-edit { background: #1a73e8; color: white; font-size: 12px; }
+        .btn-delete { background: #ff5252; color: white; font-size: 12px; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        #status { font-size: 14px; margin-top: 15px; font-weight: bold; min-height: 1.2em; }
+    </style>
+</head>
+<body>
+<div style="margin-bottom:16px;"><a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:#1a73e8;text-decoration:none;font-size:14px;font-weight:600;">&#8592; 返回首頁</a></div>
+
+    <div class="card">
+        <h2>✨ 班別資料管理</h2>
+        <p style="font-size: 13px; color: #888;">設定門市可使用的班次（例如 A1, PT8），請務必填寫實際工時以利 AI 計算。</p>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>班別代碼 (例如: A1)</label>
+                <input type="text" id="shiftCode">
+            </div>
+            <div class="form-group">
+                <label>班別名稱</label>
+                <input type="text" id="shiftName">
+            </div>
+            <div class="form-group">
+                <label>上班時間</label>
+                <input type="time" id="startTime">
+            </div>
+            <div class="form-group">
+                <label>下班時間</label>
+                <input type="time" id="endTime">
+            </div>
+            <div class="form-group">
+                <label>實際工時 (h)</label>
+                <input type="number" id="workHours" step="0.5" placeholder="請輸入數字">
+            </div>
+        </div>
+        <button class="btn btn-add" id="saveBtn" onclick="saveShift()">💾 儲存班別資料</button>
+        <div id="status"></div>
+    </div>
+
+    <div class="card">
+        <h3>目前班別清單</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>代碼</th>
+                    <th>名稱</th>
+                    <th>時間範圍</th>
+                    <th>工時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="shiftBody">
+                <tr><td colspan="5" style="text-align:center;">讀取中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M", 
+        authDomain: "roster-fadmart.firebaseapp.com", 
+        projectId: "roster-fadmart", 
+        storageBucket: "roster-fadmart.firebasestorage.app", 
+        messagingSenderId: "880597429282", 
+        appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let isEditMode = false;
+
+    // 1. 讀取清單
+    async function fetchShifts() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "ShiftTypes"));
+            const tbody = document.getElementById('shiftBody');
+            tbody.innerHTML = "";
+            
+            if (querySnapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">目前無班別資料</td></tr>';
+                return;
+            }
+
+            querySnapshot.forEach((d) => {
+                const s = d.data();
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${s.code}</b></td>
+                        <td>${s.name}</td>
+                        <td>${s.startTime} ~ ${s.endTime}</td>
+                        <td>${s.workHours} h</td>
+                        <td>
+                            <button class="btn btn-edit" onclick="editShift('${s.code}')">編輯</button>
+                            <button class="btn btn-delete" onclick="deleteShift('${s.code}')" style="margin-left:5px;">刪除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error("讀取失敗:", e);
+        }
+    }
+
+    // 2. 儲存班別
+    window.saveShift = async () => {
+        const codeInput = document.getElementById('shiftCode');
+        const nameInput = document.getElementById('shiftName');
+        const startInput = document.getElementById('startTime');
+        const endInput = document.getElementById('endTime');
+        const hoursInput = document.getElementById('workHours');
+        const status = document.getElementById('status');
+
+        const code = codeInput.value.trim().toUpperCase();
+        const name = nameInput.value.trim();
+        const startTime = startInput.value;
+        const endTime = endInput.value;
+        const workHours = hoursInput.value; // 直接抓字串值來判斷
+
+        // 強化判斷：檢查是否真的有填寫
+        if (!code || !name || !startTime || !endTime || workHours === "") {
+            status.style.color = "red";
+            status.innerText = "❌ 請填寫完整資訊（所有欄位均為必填）";
+            return;
+        }
+
+        // 檢查代碼重複（僅在非編輯模式下）
+        if (!isEditMode) {
+            const docRef = doc(db, "ShiftTypes", code);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                status.style.color = "red";
+                status.innerText = `⚠️ 代碼 「${code}」 已經存在，請勿重複建立。`;
+                return;
+            }
+        }
+
+        try {
+            status.style.color = "#1a73e8";
+            status.innerText = "⏳ 正在儲存...";
+            
+            await setDoc(doc(db, "ShiftTypes", code), {
+                code, 
+                name, 
+                startTime, 
+                endTime, 
+                workHours: parseFloat(workHours)
+            });
+
+            status.style.color = "green";
+            status.innerText = "✅ 班別已成功儲存！";
+            resetForm();
+            fetchShifts();
+        } catch (e) {
+            console.error(e);
+            status.style.color = "red";
+            status.innerText = "❌ 儲存失敗，請檢查網路連線。";
+        }
+    };
+
+    // 3. 編輯
+    window.editShift = async (code) => {
+        const docRef = doc(db, "ShiftTypes", code);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const s = docSnap.data();
+            document.getElementById('shiftCode').value = s.code;
+            document.getElementById('shiftCode').disabled = true; 
+            document.getElementById('shiftName').value = s.name;
+            document.getElementById('startTime').value = s.startTime;
+            document.getElementById('endTime').value = s.endTime;
+            document.getElementById('workHours').value = s.workHours;
+            
+            isEditMode = true;
+            document.getElementById('saveBtn').innerText = "🆙 更新班別資料";
+            document.getElementById('status').innerText = `正在編輯班別：${code}`;
+            document.getElementById('status').style.color = "#e65100";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    // 4. 刪除
+    window.deleteShift = async (code) => {
+        if (confirm(`確定要永久刪除班別 「${code}」 嗎？\n這將影響未來 AI 排班的選擇。`)) {
+            try {
+                await deleteDoc(doc(db, "ShiftTypes", code));
+                fetchShifts();
+            } catch (e) {
+                alert("刪除失敗。");
+            }
+        }
+    };
+
+    function resetForm() {
+        document.getElementById('shiftCode').value = "";
+        document.getElementById('shiftCode').disabled = false;
+        document.getElementById('shiftName').value = "";
+        document.getElementById('startTime').value = "";
+        document.getElementById('endTime').value = "";
+        document.getElementById('workHours').value = "";
+        document.getElementById('saveBtn').innerText = "💾 儲存班別資料";
+        isEditMode = false;
+    }
+
+    // 初始化執行
+    fetchShifts();
+</script>
+</body>
+</html>
