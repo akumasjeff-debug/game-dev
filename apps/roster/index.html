@@ -203,7 +203,7 @@
         .roster-item { background: white; border: 1px solid #e0e0e0; padding: 8px; margin-top: 5px; border-radius: 6px; font-size: 11px; cursor: pointer; }
         .empty-slot { border: 1px dashed var(--danger); color: var(--danger); text-align: center; padding: 8px; margin-top: 5px; font-size: 11px; font-weight: bold; background: #fff5f5; border-radius: 6px; cursor: pointer; }
         .conflict-item { background: #fff3e0 !important; border: 1px solid var(--warning) !important; color: #e65100 !important; }
-        .add-extra-btn { width: 100%; padding: 5px; margin-top: 5px; border: 1px dashed var(--success); color: var(--success); background: none; cursor: pointer; font-size: 11px; }
+        .add-extra-btn { width: 100%; padding: 10px 5px; margin-top: 5px; border: 1px dashed var(--success); color: var(--success); background: none; cursor: pointer; font-size: 11px; min-height: 44px; border-radius: 6px; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; background: white; }
         .stats-table th, .stats-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
 
@@ -261,6 +261,16 @@
             overflow-x: auto;
             border-radius: 10px;
             border: 1px solid #ddd;
+            position: relative;
+        }
+        .member-table-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 48px; height: 100%;
+            background: linear-gradient(to left, rgba(255,255,255,0.85), transparent);
+            pointer-events: none;
+            border-radius: 0 10px 10px 0;
         }
         #memberTable { width: 100%; border-collapse: collapse; font-size: 11px; background: white; }
         #memberTable th, #memberTable td { border: 1px solid #eee; padding: 6px 3px; text-align: center; min-width: 52px; vertical-align: middle; }
@@ -761,12 +771,13 @@
          Section 6：員工班表
     ====================================== -->
     <div id="section-member" class="section">
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px;">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px; flex-wrap:wrap; gap:10px;">
             <h2 style="margin:0;">📋 員工班表</h2>
-            <div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <button class="btn btn-gray" onclick="member_changeMonth(-1)">❮</button>
-                <span id="member-monthDisplay" style="font-size:18px; font-weight:bold; margin:0 15px;"></span>
+                <span id="member-monthDisplay" style="font-size:18px; font-weight:bold; margin:0 5px;"></span>
                 <button class="btn btn-gray" onclick="member_changeMonth(1)">❯</button>
+                <input type="text" id="member-filter" placeholder="🔍 篩選員工..." oninput="member_applyFilter()" style="width:150px; padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px;">
             </div>
         </div>
         <div class="card">
@@ -846,7 +857,11 @@ async function syncSharedData() {
     ]);
     sharedData.stores = {};
     sSnap.forEach(d => sharedData.stores[d.id] = { id: d.id, ...d.data() });
-    sharedData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    sharedData.emps = eSnap.docs.map(d => {
+        const data = d.data();
+        if (!Array.isArray(data.restDays)) data.restDays = [];
+        return { id: d.id, ...data };
+    });
     sharedData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
     sharedDataLoaded = true;
 }
@@ -1141,75 +1156,109 @@ async function sch_startAiScheduler() {
             history[e.id] = con;
         });
 
-        // === 步驟3：建立 Prompt ===
-        const basePrompt = sch_buildPrompt(y, m, startDay, endDay, history);
+        // === 步驟3：批次設定（>15 天自動分兩批） ===
+        const totalDays = endDay - startDay + 1;
+        const batches = totalDays > 15
+            ? [{ s: startDay, e: Math.floor((startDay + endDay) / 2) },
+               { s: Math.floor((startDay + endDay) / 2) + 1, e: endDay }]
+            : [{ s: startDay, e: endDay }];
+        if (batches.length > 1) sch_setLoadingMsg(`範圍 ${totalDays} 天，將分兩批執行（第一批：${batches[0].s}-${batches[0].e}，第二批：${batches[1].s}-${batches[1].e}）`);
 
-        // === 步驟4：呼叫 AI，最多重試一次（帶違規清單） ===
-        let aiRoster = null;
+        let allAiRoster = {};
+        let allFinalViolations = [];
         let usedModel = '';
-        let retryDone = false;
-        let finalViolations = [];
 
-        for (let modelIdx = 0; modelIdx < availableModels.length; modelIdx++) {
-            const targetModel = availableModels[modelIdx];
-            const modelShort = targetModel.replace('models/', '');
-            sch_setLoadingMsg(`使用模型：${modelShort}，正在生成班表...`);
+        // === 步驟4：逐批呼叫 AI，最多重試一次（帶違規清單） ===
+        for (const batch of batches) {
+            const batchStart = batch.s, batchEnd = batch.e;
 
-            let prompt = basePrompt;
-
-            while (true) { // 最多執行兩輪（原始 + 帶違規重試）
-                try {
-                    const resp = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`,
-                        {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: prompt }] }],
-                                generationConfig: { temperature: 0.1, maxOutputTokens: 16384 }
-                            })
-                        }
-                    );
-                    const resJson = await resp.json();
-
-                    if (resJson.error) throw new Error(resJson.error.message);
-
-                    if (!resJson.candidates?.length) throw new Error('AI 無回應（candidates 為空），可能是安全過濾或配額問題');
-
-                    const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    // 更強的 JSON 提取：找最外層完整 {...}
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (!jsonMatch) throw new Error('AI 回傳內容無法解析為 JSON');
-
-                    aiRoster = JSON.parse(jsonMatch[0]);
-                    usedModel = modelShort;
-
-                    // === 步驟5：後處理驗證 ===
-                    sch_setLoadingMsg(`驗證 AI 結果中...`);
-                    const { roster: fixedRoster, violations } = sch_validateAndFix(aiRoster, startDay, endDay, y, m);
-                    aiRoster = fixedRoster;
-                    finalViolations = violations;
-
-                    if (violations.length > 3 && !retryDone) {
-                        // 有超過3個違規且還沒重試過 → 帶違規清單重打
-                        retryDone = true;
-                        const violationSummary = violations.slice(0, 10).join('\n');
-                        prompt = basePrompt + `\n\n【修正要求】上一次生成的班表有以下違規，請在重新生成時嚴格修正：\n${violationSummary}`;
-                        sch_setLoadingMsg(`發現 ${violations.length} 個違規，帶修正清單重新生成...`);
-                        continue; // 重打同一模型
-                    }
-
-                    // 驗證通過（或重試後接受結果）
-                    break;
-
-                } catch (err) {
-                    console.warn(`模型 ${targetModel} 失敗：`, err.message);
-                    break; // 此模型失敗，嘗試下一個
+            // 為此批次重算連班歷史（查 batchStart 前）
+            const batchHistory = {};
+            sharedData.emps.forEach(e => {
+                let con = 0;
+                for (let i = 1; i <= 6; i++) {
+                    if (hasShiftOnDate(y, m, batchStart - i, e.id)) con++;
+                    else break;
                 }
+                batchHistory[e.id] = con;
+            });
+
+            const basePrompt = sch_buildPrompt(y, m, batchStart, batchEnd, batchHistory);
+
+            let aiRoster = null;
+            let retryDone = false;
+            let finalViolations = [];
+
+            for (let modelIdx = 0; modelIdx < availableModels.length; modelIdx++) {
+                const targetModel = availableModels[modelIdx];
+                const modelShort = targetModel.replace('models/', '');
+                const batchLabel = batches.length > 1 ? `（第 ${batches.indexOf(batch)+1} 批）` : '';
+                sch_setLoadingMsg(`使用模型：${modelShort}，正在生成班表...${batchLabel}`);
+
+                let prompt = basePrompt;
+
+                while (true) { // 最多執行兩輪（原始 + 帶違規重試）
+                    try {
+                        const resp = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [{ parts: [{ text: prompt }] }],
+                                    generationConfig: { temperature: 0.1, maxOutputTokens: 16384 }
+                                })
+                            }
+                        );
+                        const resJson = await resp.json();
+
+                        if (resJson.error) throw new Error(resJson.error.message);
+
+                        if (!resJson.candidates?.length) throw new Error('AI 無回應（candidates 為空），可能是安全過濾或配額問題');
+
+                        const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                        // 更強的 JSON 提取：找最外層完整 {...}
+                        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                        if (!jsonMatch) throw new Error('AI 回傳內容無法解析為 JSON');
+
+                        aiRoster = JSON.parse(jsonMatch[0]);
+                        usedModel = modelShort;
+
+                        // === 步驟5：後處理驗證 ===
+                        sch_setLoadingMsg(`驗證 AI 結果中...`);
+                        const { roster: fixedRoster, violations } = sch_validateAndFix(aiRoster, batchStart, batchEnd, y, m);
+                        aiRoster = fixedRoster;
+                        finalViolations = violations;
+
+                        if (violations.length > 3 && !retryDone) {
+                            // 有超過3個違規且還沒重試過 → 帶違規清單重打
+                            retryDone = true;
+                            const violationSummary = violations.slice(0, 10).join('\n');
+                            prompt = basePrompt + `\n\n【修正要求】上一次生成的班表有以下違規，請在重新生成時嚴格修正：\n${violationSummary}`;
+                            sch_setLoadingMsg(`發現 ${violations.length} 個違規，帶修正清單重新生成...`);
+                            continue; // 重打同一模型
+                        }
+
+                        // 驗證通過（或重試後接受結果）
+                        break;
+
+                    } catch (err) {
+                        console.warn(`模型 ${targetModel} 失敗：`, err.message);
+                        break; // 此模型失敗，嘗試下一個
+                    }
+                }
+
+                if (aiRoster) break; // 已成功取得結果，不繼續嘗試其他模型
             }
 
-            if (aiRoster) break; // 已成功取得結果，不繼續嘗試其他模型
-        }
+            if (aiRoster) {
+                Object.assign(allAiRoster, aiRoster);
+                allFinalViolations.push(...finalViolations);
+            }
+        } // end batch loop
+
+        const aiRoster = Object.keys(allAiRoster).length > 0 ? allAiRoster : null;
+        const finalViolations = allFinalViolations;
 
         if (!aiRoster) throw new Error('所有可用模型均失敗，請檢查 API Key 或稍後再試。');
 
@@ -1506,6 +1555,10 @@ window.emp_openWishModal = (id) => {
 
 window.emp_saveWishData = async () => {
     const dates = document.getElementById('emp-wishDatePicker').value;
+    const dateCount = dates ? dates.split(', ').filter(Boolean).length : 0;
+    if (dateCount > 8) {
+        if (!confirm(`⚠️ 許願假已設定 ${dateCount} 天，超過建議上限（8天）。\n許願假過多時，AI 可能無法同時滿足所有員工的人力需求。\n確定儲存嗎？`)) return;
+    }
     await db.collection("Employees").doc(emp_currentWishId).update({ wishLeaves: dates });
     alert("許願成功！");
     emp_closeModal();
@@ -1998,7 +2051,20 @@ window.sub_openModal = (sId, storeName, jobIdx) => {
             else break;
         }
         const isRestDay = (e.restDays || []).includes(wkName);
-        return { ...e, conDays, isRestDay };
+        // 計算本月已上工時
+        let monthHours = 0;
+        const shiftDefs = sub_allShifts;
+        Object.entries(fullRoster).forEach(([dateKey, dayJobs]) => {
+            (dayJobs || []).filter(j => j.eId === e.id).forEach(j => {
+                const shDef = shiftDefs.find(s => s.code === String(j.sh||'').toUpperCase());
+                if (shDef) {
+                    const parts = shDef.startTime.split(':'), eparts = shDef.endTime.split(':');
+                    let h = (parseInt(eparts[0])*60 + parseInt(eparts[1]) - (parseInt(parts[0])*60 + parseInt(parts[1]))) / 60;
+                    monthHours += (h > 6 ? h - 1 : h);
+                }
+            });
+        });
+        return { ...e, conDays, isRestDay, monthHours };
     }).sort((a, b) => a.conDays - b.conDays);
 
     document.getElementById('sub-modalTitle').innerText = `🆘 ${job.eName} (${job.sh}) 代班候選人`;
@@ -2014,10 +2080,14 @@ window.sub_openModal = (sId, storeName, jobIdx) => {
         </div>`;
     } else {
         candidates.forEach(c => {
+            const maxH = c.maxHours || 80;
+            const hoursColor = c.monthHours >= maxH ? 'var(--danger)' : (c.monthHours >= maxH * 0.85 ? 'var(--warning)' : 'var(--primary)');
+            const hoursLabel = c.monthHours >= maxH ? '（已達上限）' : '';
             bodyHtml += `<div class="sub-result-card" ${c.isRestDay ? 'style="border-left-color:#fb8c00;"' : ''}>
                 <div style="font-weight:bold; font-size:14px;">${c.name}${c.isRestDay ? ' <span style="color:#fb8c00; font-size:12px;">⚠️ 今日排休，加班出勤</span>' : ''}</div>
                 <div style="font-size:12px; color:#666; margin-top:4px;">
                     當前已連班：<b style="color:var(--primary);">${c.conDays}</b> 天
+                    ｜本月已 <b style="color:${hoursColor};">${c.monthHours.toFixed(1)}h</b>（上限 ${maxH}h）${hoursLabel}
                     ｜門市：${(c.canWorkStores || []).join(', ')}
                 </div>
             </div>`;
@@ -2051,7 +2121,11 @@ async function member_fetchData() {
             db.collection("Rosters").where("month", "==", monthKey).get()
         ]);
 
-        member_dbData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        member_dbData.emps = eSnap.docs.map(d => {
+            const data = d.data();
+            if (!Array.isArray(data.restDays)) data.restDays = [];
+            return { id: d.id, ...data };
+        });
         member_dbData.stores = {};
         sSnap.forEach(d => member_dbData.stores[d.id] = { id: d.id, ...d.data() });
         member_dbData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
@@ -2096,6 +2170,12 @@ function member_buildTable() {
         const mainName = member_dbData.stores[mainSid]?.name || "未分派";
         return { ...e, mainName };
     }).sort((a,b) => a.mainName.localeCompare(b.mainName) || a.name.localeCompare(b.name));
+
+    if (empSorted.length === 0) {
+        document.getElementById('member-tbody').innerHTML =
+            '<tr><td colspan="32" style="text-align:center; color:#999; padding:40px; font-size:14px;">尚無員工資料，請先至「員工管理」新增員工</td></tr>';
+        return;
+    }
 
     let bodyHtml = "";
     let curGroup = "";
@@ -2164,8 +2244,27 @@ function member_buildTable() {
 }
 
 async function member_render() {
+    const filterEl = document.getElementById('member-filter');
+    if (filterEl) filterEl.value = '';
     await member_fetchData();
 }
+
+window.member_applyFilter = () => {
+    const keyword = (document.getElementById('member-filter')?.value || '').trim().toLowerCase();
+    const tbody = document.getElementById('member-tbody');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(tr => {
+        const nameCell = tr.querySelector('.emp-name-col');
+        if (!nameCell) {
+            // 分組標題列或工時列，若有篩選關鍵字則隱藏分組標題（簡化顯示）
+            tr.style.display = keyword ? 'none' : '';
+            return;
+        }
+        const name = nameCell.textContent.trim().toLowerCase();
+        tr.style.display = (!keyword || name.includes(keyword)) ? '' : 'none';
+    });
+};
 
 window.member_changeMonth = (v) => {
     member_currDate.setMonth(member_currDate.getMonth() + v);
