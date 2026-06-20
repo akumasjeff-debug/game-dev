@@ -8,6 +8,7 @@ var _bgm: AudioStreamPlayer
 
 func _ready():
 	add_to_group("main_controller")
+	add_to_group("level_controller")
 	_start_bgm()
 	_setup_mission_manager()
 	await get_tree().process_frame
@@ -58,6 +59,9 @@ func _connect_enemy_signals():
 func _on_enemy_died(enemy):
 	if mission_manager:
 		mission_manager.on_enemy_died(enemy)
+	var hud_nodes = get_tree().get_nodes_in_group("hud")
+	if hud_nodes.size() > 0 and hud_nodes[0].has_method("add_kill"):
+		hud_nodes[0].add_kill()
 
 func _on_mission_complete():
 	_stop_bgm()
@@ -76,11 +80,18 @@ func _configure_boss_enemy():
 	var boss_sprite = boss.get_node_or_null("CopSprite")
 	if boss_sprite and boss_sprite.has_method("reconfigure"):
 		boss_sprite.reconfigure("boss")
-	# Boss 數值差異化
-	if "SPEED" in boss:
-		boss.SPEED = 80.0
-	if "VISION_RANGE" in boss:
-		boss.VISION_RANGE = 400.0
+	# Boss 旗標
+	boss.is_boss = true
+	boss.is_veteran = true
+	# Boss 數值差異化（必須在 _ready 之前設定 MAX_HP/hp，
+	# 此處在 await process_frame 之後，_ready 已跑完。
+	# 直接覆蓋 hp 與 MAX_HP，_update_hp_bar 會在下次受傷時更新）
+	boss.MAX_HP = 200
+	boss.hp = 200
+	boss.SPEED = 80.0
+	boss.VISION_RANGE = 500.0
+	# 老兵的 VISION_RANGE 也設定（is_veteran 共用這個欄位）
+	boss._cover_timer = 0.0
 
 func _show_mission_objective():
 	var hud_nodes = get_tree().get_nodes_in_group("hud")

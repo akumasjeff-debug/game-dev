@@ -1,13 +1,13 @@
 extends CharacterBody2D
 
-# 數值
-const SPEED = 150.0
-const MAX_HP = 100
-const MAX_AMMO = 30
-const FIRE_RATE = 0.1       # 600 RPM = 每 0.1 秒一發
-const DAMAGE = 25
-const RELOAD_TIME = 2.0
-const RANGE = 500.0
+# 數值（改為 var 以支援職業系統動態修改）
+var SPEED = 150.0
+var MAX_HP = 100
+var MAX_AMMO = 30
+var FIRE_RATE = 0.1       # 600 RPM = 每 0.1 秒一發
+var DAMAGE = 25
+var RELOAD_TIME = 2.0
+var RANGE = 500.0
 
 # 狀態
 var hp: int = MAX_HP
@@ -19,6 +19,12 @@ var reload_timer: float = 0.0
 var _is_dead: bool = false
 var _hit_flash_timer: float = 0.0
 const HIT_FLASH_DURATION = 0.15
+
+# 職業
+var current_class: String = "assault"
+
+# 準星
+var _crosshair: Node2D
 
 # 參考
 @onready var vision_cone = $VisionCone
@@ -71,6 +77,44 @@ func _ready():
 
 	emit_signal("hp_changed", hp, MAX_HP)
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
+
+	# 隱藏系統游標
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+	# 建立準星（圓形 + 十字線），加到場景根節點而非玩家子節點
+	_crosshair = Node2D.new()
+	_crosshair.z_index = 20
+	get_parent().call_deferred("add_child", _crosshair)
+
+	# 外圓
+	var circle = _make_circle_outline(12.0, Color(1, 1, 1, 0.8))
+	_crosshair.add_child(circle)
+
+	# 四條短線（十字）
+	for i in range(4):
+		var angle = float(i) * PI / 2.0
+		var line = Line2D.new()
+		line.add_point(Vector2(cos(angle) * 15.0, sin(angle) * 15.0))
+		line.add_point(Vector2(cos(angle) * 22.0, sin(angle) * 22.0))
+		line.width = 1.5
+		line.default_color = Color(1, 1, 1, 0.8)
+		_crosshair.add_child(line)
+
+func _make_circle_outline(radius: float, color: Color) -> Node2D:
+	var node = Node2D.new()
+	var line = Line2D.new()
+	for i in range(33):
+		var a = float(i) / 32.0 * TAU
+		line.add_point(Vector2(cos(a), sin(a)) * radius)
+	line.width = 1.5
+	line.default_color = color
+	node.add_child(line)
+	return node
+
+func _process(_delta):
+	# 更新準星位置跟隨滑鼠
+	if _crosshair and is_instance_valid(_crosshair):
+		_crosshair.global_position = get_global_mouse_position()
 
 func _physics_process(delta):
 	_handle_input(delta)
@@ -262,5 +306,30 @@ func take_damage(amount: int):
 
 func _die():
 	set_physics_process(false)
+	# 恢復系統游標
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	# 隱藏準星
+	if _crosshair and is_instance_valid(_crosshair):
+		_crosshair.visible = false
 	# 簡易死亡：隱藏玩家
 	hide()
+
+# 套用職業數值
+func apply_class(class_key: String):
+	var data = ClassData.CLASSES.get(class_key, ClassData.CLASSES["assault"])
+	current_class = class_key
+	MAX_HP = data["hp"]
+	SPEED = data["speed"]
+	DAMAGE = data["damage"]
+	FIRE_RATE = data["fire_rate"]
+	MAX_AMMO = data["ammo"]
+	RELOAD_TIME = data["reload_time"]
+	RANGE = data["range"]
+	# 重設當前狀態為新職業的滿值
+	hp = MAX_HP
+	ammo = MAX_AMMO
+	reloading = false
+	fire_timer = 0.0
+	reload_timer = 0.0
+	emit_signal("hp_changed", hp, MAX_HP)
+	emit_signal("ammo_changed", ammo, MAX_AMMO)

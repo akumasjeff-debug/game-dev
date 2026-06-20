@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 # 敵人數值
-const MAX_HP = 75
+var MAX_HP: int = 75
 var SPEED: float = 120.0
 const DAMAGE = 20
 const FIRE_RATE = 0.5
@@ -10,12 +10,21 @@ const VISION_ANGLE = deg_to_rad(120.0)
 const ATTACK_RANGE = 150.0
 const WAYPOINT_REACH_DIST = 20.0
 
+# 老兵模式
+var is_veteran: bool = false
+var _cover_timer: float = 0.0
+var _cover_position: Vector2 = Vector2.ZERO
+
+# Boss 模式
+var is_boss: bool = false
+var _backup_called: bool = false
+
 # 狀態機
 enum State { PATROL, ALERT, CHASE, SHOOT }
 var state: State = State.PATROL
 
 # 內部變數
-var hp: int = MAX_HP
+var hp: int = -1  # -1 代表未初始化，_ready 裡再設定
 var fire_timer: float = FIRE_RATE  # 避免第一幀立即開槍
 var current_waypoint: int = 0
 var player: Node2D = null
@@ -38,6 +47,9 @@ signal died(enemy)
 
 func _ready():
 	add_to_group("enemies")
+	# hp 由外部設定 MAX_HP 後會覆蓋，未設定則使用預設值
+	if hp < 0:
+		hp = MAX_HP
 	if patrol_points.is_empty():
 		patrol_points = [global_position, global_position + Vector2(100, 0), global_position + Vector2(100, 100)]
 
@@ -175,16 +187,33 @@ func _do_chase(_delta):
 		velocity = nav_dir * SPEED
 	move_and_slide()
 
-func _do_shoot(_delta):
+func _do_shoot(delta):
 	if not player:
 		return
-	velocity = Vector2.ZERO
 	var dir = (player.global_position - global_position)
 	rotation = dir.angle()
 	# 離開攻擊範圍則追擊（can_see_player 已確認為 true 才會到這裡）
 	if dir.length() > ATTACK_RANGE * 1.2:
 		_set_state(State.CHASE)
 		return
+
+	# 老兵：每 3 秒橫移找掩體，移動中不射擊
+	if is_veteran:
+		_cover_timer -= delta
+		if _cover_timer <= 0.0:
+			_cover_timer = 3.0
+			var perp = Vector2(-sin(rotation), cos(rotation)) * randf_range(-80.0, 80.0)
+			_cover_position = global_position + perp
+		if _cover_position.distance_to(global_position) > 20.0:
+			var move_dir = (_cover_position - global_position).normalized()
+			velocity = move_dir * SPEED * 0.5
+			move_and_slide()
+			return  # 移動中不射擊
+		else:
+			velocity = Vector2.ZERO
+	else:
+		velocity = Vector2.ZERO
+
 	if fire_timer <= 0.0:
 		fire_timer = FIRE_RATE
 		_shoot()
@@ -224,8 +253,15 @@ func take_damage(amount: int):
 	# 受傷立即進入追擊狀態
 	if state == State.PATROL or state == State.ALERT:
 		_set_state(State.CHASE)
+	# Boss：HP 低於 40% 時呼叫增援（只呼叫一次）
+	if is_boss and not _backup_called and float(hp) / float(MAX_HP) < 0.4:
+		_backup_called = true
+		_call_backup()
 	if hp <= 0:
 		_die()
+
+func _call_backup():
+	get_tree().call_group("level_controller", "spawn_boss_backup", global_position)
 
 func _update_hp_bar():
 	if hp_fill:

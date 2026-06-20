@@ -11,6 +11,7 @@ func _ready():
 	_setup_patrol_routes()
 	_connect_enemy_signals()
 	_create_floor_tiles()
+	_setup_cover_objects()
 
 func _start_bgm():
 	_bgm = AudioStreamPlayer.new()
@@ -54,6 +55,9 @@ func _connect_enemy_signals():
 func _on_enemy_died(enemy):
 	if mission_manager:
 		mission_manager.on_enemy_died(enemy)
+	var hud_nodes = get_tree().get_nodes_in_group("hud")
+	if hud_nodes.size() > 0 and hud_nodes[0].has_method("add_kill"):
+		hud_nodes[0].add_kill()
 
 func _on_mission_complete():
 	_stop_bgm()
@@ -90,6 +94,48 @@ func _setup_patrol_routes():
 			for p in routes[enemy_name]:
 				typed_points.append(p)
 			enemy.set_patrol_points(typed_points)
+
+func _setup_cover_objects():
+	# 辦公室掩體物件（辦公桌、木箱、柱子）
+	# 位置已避開敵人巡邏路線與現有隔牆
+	var cover_defs = [
+		# 辦公桌（48x32，棕色）
+		{"pos": Vector2(500, 600),  "size": Vector2(48, 32), "color": Color(0.45, 0.28, 0.12), "name": "Desk1"},
+		{"pos": Vector2(900, 250),  "size": Vector2(48, 32), "color": Color(0.45, 0.28, 0.12), "name": "Desk2"},
+		{"pos": Vector2(1350, 300), "size": Vector2(48, 32), "color": Color(0.45, 0.28, 0.12), "name": "Desk3"},
+		# 木箱（24x24，深棕色）
+		{"pos": Vector2(650, 700),  "size": Vector2(24, 24), "color": Color(0.38, 0.22, 0.08), "name": "Box1"},
+		{"pos": Vector2(1100, 400), "size": Vector2(24, 24), "color": Color(0.38, 0.22, 0.08), "name": "Box2"},
+		{"pos": Vector2(1500, 800), "size": Vector2(24, 24), "color": Color(0.38, 0.22, 0.08), "name": "Box3"},
+		# 柱子（16x48，深灰色）
+		{"pos": Vector2(700, 150),  "size": Vector2(16, 48), "color": Color(0.30, 0.30, 0.30), "name": "Pillar1"},
+		{"pos": Vector2(1300, 750), "size": Vector2(16, 48), "color": Color(0.30, 0.30, 0.30), "name": "Pillar2"},
+	]
+
+	var props_node = Node2D.new()
+	props_node.name = "Props"
+	$World.add_child(props_node)
+
+	for def in cover_defs:
+		var body = StaticBody2D.new()
+		body.name = def["name"]
+		body.position = def["pos"]
+		body.collision_layer = 4  # 牆壁層，與現有隔牆一致
+		body.collision_mask = 0
+
+		var col = CollisionShape2D.new()
+		var shape = RectangleShape2D.new()
+		shape.size = def["size"]
+		col.shape = shape
+		body.add_child(col)
+
+		var rect = ColorRect.new()
+		rect.color = def["color"]
+		rect.size = def["size"]
+		rect.position = -def["size"] / 2.0
+		body.add_child(rect)
+
+		props_node.add_child(body)
 
 func _create_floor_tiles():
 	# 從 tilesheet 裁切第 2 列第 1 行（座標 0,64）的深灰地板磚，用 Sprite2D repeat 模式鋪滿地圖

@@ -6,6 +6,13 @@ extends Node2D
 var mission_manager: Node = null
 var _bgm: AudioStreamPlayer
 
+# ── 增援波次系統 ──────────────────────────────────────────
+var _next_wave_time: float = 20.0   # 第一波在第 20 秒
+var _wave_count: int = 0
+const MAX_WAVES = 3                  # 共 3 波（20s / 35s / 50s）
+var _warning_shown: bool = false     # 本波「增援即將到來」提示是否已顯示
+# ─────────────────────────────────────────────────────────
+
 func _ready():
 	add_to_group("main_controller")
 	_start_bgm()
@@ -70,6 +77,58 @@ func _on_time_updated(remaining: float):
 	if hud_nodes.size() > 0:
 		if hud_nodes[0].has_method("update_countdown"):
 			hud_nodes[0].update_countdown(remaining)
+
+	# 計算已過時間（總時 60 秒）
+	var elapsed = 60.0 - remaining
+	_check_reinforcement(elapsed, remaining)
+
+func _check_reinforcement(elapsed: float, remaining: float):
+	if _wave_count >= MAX_WAVES:
+		return
+	# 增援前 5 秒顯示提示（每波只顯示一次）
+	if not _warning_shown and elapsed >= (_next_wave_time - 5.0):
+		_warning_shown = true
+		var hud_nodes = get_tree().get_nodes_in_group("hud")
+		if hud_nodes.size() > 0 and hud_nodes[0].has_method("set_mission_text"):
+			hud_nodes[0].set_mission_text("⚠ 增援即將到來！")
+	# 到達波次時間則生成
+	if elapsed >= _next_wave_time:
+		_spawn_wave()
+		_next_wave_time += 15.0
+		_wave_count += 1
+		_warning_shown = false
+		# 還原任務文字
+		var hud_nodes = get_tree().get_nodes_in_group("hud")
+		if hud_nodes.size() > 0 and hud_nodes[0].has_method("set_mission_text"):
+			hud_nodes[0].set_mission_text("目標：守住陣地 %d 秒" % int(remaining))
+
+func _spawn_wave():
+	var spawn_points: Array[Vector2] = [
+		Vector2(randf_range(200, 1720), 50),    # 上邊緣
+		Vector2(randf_range(200, 1720), 1030),  # 下邊緣
+		Vector2(50, randf_range(100, 980)),     # 左邊緣
+		Vector2(1870, randf_range(100, 980)),   # 右邊緣
+	]
+	spawn_points.shuffle()
+	# 各選 2 個邊緣，各生成 1 個敵人
+	for i in range(2):
+		_spawn_enemy_at(spawn_points[i])
+
+func _spawn_enemy_at(pos: Vector2):
+	var scene = load("res://scenes/Enemy.tscn")
+	if not scene:
+		push_error("Level4: 無法載入 Enemy.tscn")
+		return
+	var e = scene.instantiate()
+	e.global_position = pos
+	add_child(e)
+	# 設定初始巡邏點：生成位置 → 地圖中央
+	if e.has_method("set_patrol_points"):
+		var pts: Array[Vector2] = [pos, Vector2(960, 540)]
+		e.set_patrol_points(pts)
+	# 連接死亡信號（與 kill count 整合）
+	if e.has_signal("died") and not e.died.is_connected(_on_enemy_died):
+		e.died.connect(_on_enemy_died)
 
 func _on_mission_complete():
 	_stop_bgm()
