@@ -2,7 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/base_main.gd" id="1_base_main"]
 
-[node name="Base" type="Node2D"]
+[node name="Base" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource("1_base_main")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -11,7 +13,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_right = 1920.0
 offset_bottom = 1080.0
-color = Color(0.102, 0.102, 0.18, 1)
+color = Color(0.051, 0.067, 0.09, 1)
 z_index = -1
 
 [node name="Header" type="Control" parent="."]
@@ -21,7 +23,7 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 0.0
 offset_right = 0.0
-offset_bottom = 100.0
+offset_bottom = 110.0
 grow_horizontal = 2
 grow_vertical = 1
 
@@ -35,126 +37,46 @@ offset_right = 0.0
 offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "幽靈行動  指揮中心"
+text = "幽靈行動"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 48
 theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
 
-[node name="OrgName" type="Label" parent="Header"]
+[node name="MoneyLabel" type="Label" parent="Header"]
 anchors_preset = -1
-anchor_left = 0.0
-anchor_top = 1.0
+anchor_left = 1.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -200.0
+offset_right = -20.0
 offset_top = 0.0
-offset_bottom = 28.0
-grow_horizontal = 2
-grow_vertical = 1
-text = "Task Force NULL"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.6, 0.8, 1.0, 1)
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "$0"
+horizontal_alignment = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1.0, 0.85, 0.2, 1)
 
-[node name="MainContent" type="HBoxContainer" parent="."]
+[node name="LevelScrollContainer" type="ScrollContainer" parent="."]
 anchors_preset = -1
 anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 40.0
 offset_top = 130.0
-offset_bottom = -70.0
+offset_right = -40.0
+offset_bottom = -130.0
 grow_horizontal = 2
 grow_vertical = 2
-size_flags_horizontal = 3
+
+[node name="LevelCardRow" type="HBoxContainer" parent="LevelScrollContainer"]
 size_flags_vertical = 3
-
-[node name="LeftPanel" type="PanelContainer" parent="MainContent"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.25
-
-[node name="LeftContent" type="VBoxContainer" parent="MainContent/LeftPanel"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="LeftTitle" type="Label" parent="MainContent/LeftPanel/LeftContent"]
-text = "隊員管理"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
-
-[node name="LeftSub" type="Label" parent="MainContent/LeftPanel/LeftContent"]
-text = "（即將開放）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-
-[node name="CenterPanel" type="PanelContainer" parent="MainContent"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.5
-
-[node name="MissionBoard" type="VBoxContainer" parent="MainContent/CenterPanel"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="MissionTitle" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務板"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
-
-[node name="Mission1" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務 1：廢棄辦公室掃蕩（殲滅）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.29, 0.62, 1.0, 1)
-
-[node name="Mission2" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務 2：倉庫廠房暗殺（Boss）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.29, 0.62, 1.0, 1)
-
-[node name="Mission3" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務 3：廢棄醫院救援（人質）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.29, 0.62, 1.0, 1)
-
-[node name="Mission4" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務 4：軍事指揮中心防守（90s）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.29, 0.62, 1.0, 1)
-
-[node name="Mission5" type="Label" parent="MainContent/CenterPanel/MissionBoard"]
-text = "任務 5：廢棄造船廠最終決戰"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(1.0, 0.4, 0.4, 1)
-
-[node name="RightPanel" type="PanelContainer" parent="MainContent"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.25
-
-[node name="RightContent" type="VBoxContainer" parent="MainContent/RightPanel"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="RightTitle" type="Label" parent="MainContent/RightPanel/RightContent"]
-text = "裝備管理"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
-
-[node name="RightSub" type="Label" parent="MainContent/RightPanel/RightContent"]
-text = "（即將開放）"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_constants/separation = 20
 
 [node name="BottomBar" type="HBoxContainer" parent="."]
 anchors_preset = -1
@@ -162,36 +84,44 @@ anchor_left = 0.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -60.0
-offset_bottom = 0.0
+offset_top = -110.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
+theme_override_constants/separation = 20
 
-[node name="StartMissionBtn" type="Button" parent="BottomBar"]
-size_flags_horizontal = 0
-custom_minimum_size = Vector2(300, 50)
-text = "出發執行任務"
-theme_override_font_sizes/font_size = 18
+[node name="UpgradeBtn" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(220, 60)
+text = "升級裝備"
+theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
 
-[node name="Spacer" type="Control" parent="BottomBar"]
-size_flags_horizontal = 0
-custom_minimum_size = Vector2(20, 1)
-
-[node name="SettingsBtn" type="Button" parent="BottomBar"]
-size_flags_horizontal = 0
-custom_minimum_size = Vector2(120, 50)
-text = "設定"
-theme_override_font_sizes/font_size = 18
+[node name="RosterBtn" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(220, 60)
+text = "調整陣容"
+theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
 
-[node name="TransitionOverlay" type="ColorRect" parent="."]
+[node name="FormationBtn" type="Button" parent="BottomBar"]
+custom_minimum_size = Vector2(220, 60)
+text = "選擇陣型"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)
+
+[node name="ComingSoonPanel" type="Panel" parent="."]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 1920.0
-offset_bottom = 1080.0
-color = Color(0, 0, 0, 1)
-modulate = Color(1, 1, 1, 0)
-mouse_filter = 2
+mouse_filter = 0
+
+[node name="ComingSoonLabel" type="Label" parent="ComingSoonPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "即將推出"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(0.878, 0.878, 0.878, 1)

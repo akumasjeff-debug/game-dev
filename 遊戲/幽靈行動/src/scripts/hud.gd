@@ -5,10 +5,6 @@ extends CanvasLayer
 @onready var ammo_bar: ProgressBar = $HUDContainer/AmmoSection/AmmoBar
 @onready var ammo_label: Label = $HUDContainer/AmmoSection/AmmoLabel
 @onready var reload_label: Label = $HUDContainer/ReloadLabel
-@onready var safe_indicator: ColorRect = $SafeIndicator
-@onready var safe_label: Label = $SafeIndicator/SafeLabel
-@onready var safe_hint: Label = $SafeIndicator/SafeHint
-@onready var auto_aim_label: Label = $AutoAimLabel
 @onready var death_panel: Control = $DeathPanel
 @onready var victory_panel: Control = $VictoryPanel
 @onready var failed_panel: Control = $FailedPanel
@@ -28,7 +24,6 @@ func _ready():
 		player.reload_started.connect(_on_reload_started)
 		player.reload_finished.connect(_on_reload_finished)
 		player.died.connect(_on_player_died)
-		player.auto_aim_changed.connect(_on_auto_aim_changed)
 
 	# 初始狀態
 	if reload_label:
@@ -39,9 +34,6 @@ func _ready():
 		victory_panel.visible = false
 	if failed_panel:
 		failed_panel.visible = false
-	if auto_aim_label:
-		auto_aim_label.visible = false
-	_update_safe_indicator(false)
 
 	# 動態建立任務文字標籤
 	_mission_label = Label.new()
@@ -50,12 +42,6 @@ func _ready():
 	_mission_label.modulate = Color(1.0, 0.85, 0.1, 0.9)
 	_mission_label.add_theme_font_size_override("font_size", 18)
 	add_child(_mission_label)
-
-func _process(_delta):
-	# 同步安全模式狀態（直接使用快取的 player）
-	if player and is_instance_valid(player):
-		if "safe_mode" in player:
-			_update_safe_indicator(player.safe_mode)
 
 func _input(event):
 	if death_panel and death_panel.visible and event.is_action_pressed("restart"):
@@ -66,19 +52,8 @@ func _input(event):
 		get_tree().reload_current_scene()
 
 func _go_to_next_level():
-	# 根據當前場景決定下一關
-	var current = get_tree().current_scene.scene_file_path
-	var next_map = {
-		"res://scenes/Main.tscn":   "res://scenes/Level2.tscn",
-		"res://scenes/Level2.tscn": "res://scenes/Level3.tscn",
-		"res://scenes/Level3.tscn": "res://scenes/Level4.tscn",
-		"res://scenes/Level4.tscn": "res://scenes/Level5.tscn",
-	}
-	if current in next_map:
-		get_tree().change_scene_to_file(next_map[current])
-	else:
-		# Level5 完成 → 回到指揮中心（HQ）
-		get_tree().change_scene_to_file("res://scenes/Base.tscn")
+	# 勝利後 → 進入結算畫面（GameData 已由 base_main.start_level 預寫好）
+	get_tree().change_scene_to_file("res://scenes/ResultScreen.tscn")
 
 func _on_hp_changed(current_hp: int, max_hp: int):
 	if hp_bar:
@@ -110,16 +85,6 @@ func _on_reload_finished():
 func _on_player_died():
 	if death_panel:
 		death_panel.visible = true
-
-func _update_safe_indicator(is_safe: bool):
-	if safe_indicator:
-		safe_indicator.color = Color(0, 0.8, 0) if is_safe else Color(0.8, 0, 0)
-	if safe_label:
-		safe_label.text = "SAFE" if is_safe else "FIRE"
-
-func _on_auto_aim_changed(is_auto_aiming: bool):
-	if auto_aim_label:
-		auto_aim_label.visible = is_auto_aiming
 
 func show_victory_panel():
 	if victory_panel:

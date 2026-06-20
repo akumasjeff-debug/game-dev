@@ -12,14 +12,13 @@ const RANGE = 500.0
 # 狀態
 var hp: int = MAX_HP
 var ammo: int = MAX_AMMO
-var safe_mode: bool = false
+var locked_target: Node2D = null  # 鎖定的目標
 var reloading: bool = false
 var fire_timer: float = 0.0
 var reload_timer: float = 0.0
 var _is_dead: bool = false
 var _hit_flash_timer: float = 0.0
 const HIT_FLASH_DURATION = 0.15
-var _is_auto_aiming: bool = false
 
 # 參考
 @onready var vision_cone = $VisionCone
@@ -34,7 +33,6 @@ signal ammo_changed(current_ammo, max_ammo)
 signal reload_started()
 signal reload_finished()
 signal died()
-signal auto_aim_changed(is_auto_aiming: bool)
 
 func _load_wav(path: String) -> AudioStreamWAV:
 	# 用 FileAccess 直接讀取 WAV PCM，繞過 import 系統
@@ -99,8 +97,9 @@ func _handle_input(delta):
 	if Input.is_action_pressed("move_right"):
 		dir.x += 1
 
-	if Input.is_action_just_pressed("toggle_safe_mode"):
-		safe_mode = !safe_mode
+	# 滑鼠左鍵點擊 → 嘗試鎖定最近的敵人
+	if Input.is_action_just_pressed("shoot"):
+		_try_lock_target()
 
 	# 手動換彈（R 鍵）：未在換彈中且彈藥不滿時可觸發
 	if Input.is_action_just_pressed("manual_reload") and not reloading and ammo < MAX_AMMO:
@@ -109,33 +108,23 @@ func _handle_input(delta):
 	velocity = dir.normalized() * SPEED
 
 func _update_aim():
-	# PC 模式：朝向滑鼠
-	var mouse_pos = get_global_mouse_position()
-	var dir_to_mouse = (mouse_pos - global_position)
-
-	var was_auto = _is_auto_aiming
-
-	if dir_to_mouse.length() > 5.0:
-		# 滑鼠有偏移，朝向滑鼠
-		rotation = dir_to_mouse.angle()
-		_is_auto_aiming = false
-	elif velocity.length() > 10.0:
-		# 無滑鼠輸入但在移動，跟隨移動方向
-		rotation = velocity.angle()
-		_is_auto_aiming = false
+	# 有鎖定目標時，玩家朝向鎖定目標（不跟滑鼠）
+	if locked_target and is_instance_valid(locked_target):
+		var dir = locked_target.global_position - global_position
+		rotation = dir.angle()
 	else:
-		# 完全靜止：自動瞄準最近敵人
-		var nearest = _find_nearest_enemy()
-		if nearest:
-			var dir = (nearest.global_position - global_position)
-			rotation = dir.angle()
-			_is_auto_aiming = true
+		# 原本邏輯：朝向滑鼠或移動方向
+		var mouse_pos = get_global_mouse_position()
+		var dir_to_mouse = (mouse_pos - global_position)
+		if dir_to_mouse.length() > 5.0:
+			rotation = dir_to_mouse.angle()
+		elif velocity.length() > 10.0:
+			rotation = velocity.angle()
 		else:
-			_is_auto_aiming = false
-
-	# 自動瞄準狀態改變時發送 signal
-	if _is_auto_aiming != was_auto:
-		emit_signal("auto_aim_changed", _is_auto_aiming)
+			var nearest = _find_nearest_enemy()
+			if nearest:
+				var dir = (nearest.global_position - global_position)
+				rotation = dir.angle()
 
 	# 視野錐形跟著子節點繼承的 Player rotation，不需額外設定
 
@@ -157,23 +146,48 @@ func _find_nearest_enemy() -> Node2D:
 			nearest = e
 	return nearest
 
+func _try_lock_target():
+	var mouse_pos = get_global_mouse_position()
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var closest: Node2D = null
+	var closest_dist = 200.0  # 點擊容差 200px
+	for e in enemies:
+		var d = mouse_pos.distance_to(e.global_position)
+		if d < closest_dist:
+			closest_dist = d
+			closest = e
+	locked_target = closest  # 若點到空地，清除鎖定（closest = null）
+
 func _handle_shooting(delta):
 	if reloading:
 		return
 	fire_timer -= delta
-	if safe_mode:
-		return
 	if fire_timer <= 0.0:
 		var target = _find_enemy_in_cone()
 		if target:
 			_fire(target)
 
 func _find_enemy_in_cone() -> Node2D:
+	var space = get_world_2d().direct_space_state
+
+	# 若有 locked_target 且在視野內 + 有 LOS，優先選它
+	if locked_target and is_instance_valid(locked_target):
+		var to_locked = locked_target.global_position - global_position
+		var dist = to_locked.length()
+		if dist <= RANGE:
+			var query = PhysicsRayQueryParameters2D.create(global_position, locked_target.global_position, 4)
+			query.exclude = [self]
+			var result = space.intersect_ray(query)
+			if not result:
+				return locked_target  # 優先打鎖定目標
+		else:
+			locked_target = null  # 超出範圍自動解鎖
+
+	# 若無鎖定目標，走原本邏輯（視野內最近敵人）
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	var half_cone = deg_to_rad(60.0)  # 120° 扇形的一半
 	var nearest: Node2D = null
 	var nearest_dist = INF
-	var space = get_world_2d().direct_space_state
 	for e in enemies:
 		var to_enemy = e.global_position - global_position
 		var dist = to_enemy.length()
@@ -200,31 +214,9 @@ func _fire(target):
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
 	if _sfx_gunshot and _sfx_gunshot.stream:
 		_sfx_gunshot.play()
-	_spawn_muzzle_flash()
 	_spawn_bullet(target.global_position)
 	if ammo <= 0:
 		_start_reload()
-
-func _spawn_muzzle_flash():
-	var root = get_parent()
-	if not root:
-		return
-
-	var flash = Sprite2D.new()
-	# 槍口位置：玩家前方 15px（依照玩家朝向旋轉）
-	flash.global_position = global_position + Vector2(15.0, 0.0).rotated(rotation)
-	flash.z_index = 10
-	# 隨機縮放讓每次槍口焰略有不同
-	var scale_val = randf_range(0.8, 1.3)
-	flash.scale = Vector2(scale_val, scale_val)
-
-	var img_path = ProjectSettings.globalize_path("res://assets/vfx/generated/muzzle_flash.png")
-	var img = Image.load_from_file(img_path)
-	if img:
-		flash.texture = ImageTexture.create_from_image(img)
-
-	root.add_child(flash)
-	get_tree().create_timer(0.05).timeout.connect(flash.queue_free)
 
 func _spawn_bullet(target_pos: Vector2):
 	var scene = load("res://scenes/Bullet.tscn")

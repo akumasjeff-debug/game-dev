@@ -69,6 +69,10 @@ manual_reload={
 ]
 }
 
+[autoload]
+
+GameData="*res://scripts/game_data.gd"
+
 [physics]
 
 2d/default_gravity=0

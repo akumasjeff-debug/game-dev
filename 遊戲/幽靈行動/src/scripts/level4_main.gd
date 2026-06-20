@@ -1,7 +1,7 @@
 extends Node2D
 
 # 關卡 4：軍事指揮中心 — 限時防守任務
-# 目標：守住陣地 90 秒
+# 目標：守住陣地 60 秒
 
 var mission_manager: Node = null
 var _bgm: AudioStreamPlayer
@@ -20,7 +20,7 @@ func _ready():
 	var hud_nodes = get_tree().get_nodes_in_group("hud")
 	if hud_nodes.size() > 0:
 		if hud_nodes[0].has_method("start_countdown"):
-			hud_nodes[0].start_countdown(90.0)
+			hud_nodes[0].start_countdown(60.0)
 
 func _start_bgm():
 	_bgm = AudioStreamPlayer.new()
@@ -51,7 +51,7 @@ func _setup_mission_manager():
 	mission_manager = load("res://scripts/mission_manager.gd").new()
 	mission_manager.name = "MissionManager"
 	add_child(mission_manager)
-	mission_manager.setup_defense(90.0)
+	mission_manager.setup_defense(60.0)
 	mission_manager.mission_complete.connect(_on_mission_complete)
 	mission_manager.mission_failed.connect(_on_mission_failed)
 
@@ -85,7 +85,7 @@ func _show_mission_objective():
 	if hud_nodes.size() > 0:
 		var hud = hud_nodes[0]
 		if hud.has_method("set_mission_text"):
-			hud.set_mission_text("目標：守住陣地 90 秒")
+			hud.set_mission_text("目標：守住陣地 60 秒")
 
 func _setup_patrol_routes():
 	var enemies_node = $World/Enemies
