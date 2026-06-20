@@ -27,4 +27,7 @@ color = Color(1, 1, 0.8, 0.15)
 z_index = 2
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.8, 0.8)
+position = Vector2(0, 0)
+zoom = Vector2(2.0, 2.0)
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
