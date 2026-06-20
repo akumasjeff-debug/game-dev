@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排班管理系統</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* ===== 全局變數 ===== */
+        :root {
+            --primary: #1a73e8;
+            --success: #00c853;
+            --danger: #ff5252;
+            --warning: #fb8c00;
+            --bg: #f8f9fa;
+            --nav-width: 200px;
+            --nav-bg: #2c3e50;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: #333;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== 側欄導覽 ===== */
+        #sidebar {
+            width: var(--nav-width);
+            background: var(--nav-bg);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sidebar .logo {
+            padding: 20px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ecf0f1;
+            line-height: 1.4;
+        }
+
+        #sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        #sidebar nav a:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        #sidebar nav a.active {
+            background: rgba(26,115,232,0.25);
+            color: white;
+            border-left-color: var(--primary);
+        }
+
+        /* ===== 主內容區 ===== */
+        #main {
+            margin-left: var(--nav-width);
+            flex: 1;
+            padding: 25px;
+            min-width: 0;
+        }
+
+        /* ===== Section 切換 ===== */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* ===== 共用元件 ===== */
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 13px;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn:disabled { background: #ccc !important; cursor: not-allowed; transform: none; }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); }
+        .btn-gray { background: #666; }
+        .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        label { font-size: 13px; font-weight: bold; color: #666; display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="number"], input[type="time"], input[type="date"], input[type="password"], select, textarea {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            font-family: inherit;
+        }
+        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(26,115,232,0.15); }
+        input:disabled { background: #e9ecef; cursor: not-allowed; }
+
+        .form-section { background: #f1f3f4; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: flex-end; }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: flex-end; }
+        .form-group { display: flex; flex-direction: column; }
+
+        .check-section { background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 15px; }
+        .check-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .check-item { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; background: #eee; padding: 6px 12px; border-radius: 6px; }
+        .check-item:has(input:checked) { background: #e8f0fe; color: var(--primary); font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #5f6368; color: white; font-size: 13px; }
+        tr:hover { background: #fafafa; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+            color: #333;
+        }
+        .modal-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px; box-sizing: border-box; }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            flex-direction: column;
+        }
+
+        /* ===== 主排班 Section ===== */
+        .api-panel {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .api-panel input { flex: 1; padding: 8px; border-radius: 5px; border: none; outline: none; width: auto; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 30px; }
+        .cal-head { background: #5f6368; color: white; padding: 10px; text-align: center; border-radius: 8px; font-weight: bold; }
+        .cal-cell { background: white; min-height: 450px; padding: 10px; border: 1px solid #ddd; border-radius: 12px; }
+        .day-label { font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; margin-bottom: 10px; padding-bottom: 5px; color: #70757a; display: block; }
+        .store-box { background: #f1f3f4; border-left: 5px solid var(--primary); padding: 8px; margin-bottom: 10px; border-radius: 8px; }
+        .store-box.under-staffed { background: #fff5f5 !important; border: 2px solid var(--danger) !important; }
+        .store-name { font-weight: bold; color: var(--primary); font-size: 12px; display: block; margin-bottom: 5px; }
+        .roster-item { background: white; border: 1px solid #e0e0e0; padding: 8px; margin-top: 5px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        .empty-slot { border: 1px dashed var(--danger); color: var(--danger); text-align: center; padding: 8px; margin-top: 5px; font-size: 11px; font-weight: bold; background: #fff5f5; border-radius: 6px; cursor: pointer; }
+        .conflict-item { background: #fff3e0 !important; border: 1px solid var(--warning) !important; color: #e65100 !important; }
+        .add-extra-btn { width: 100%; padding: 5px; margin-top: 5px; border: 1px dashed var(--success); color: var(--success); background: none; cursor: pointer; font-size: 11px; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; background: white; }
+        .stats-table th, .stats-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
+
+        /* ===== 門市管理 Section ===== */
+        .shift-check {
+            display: flex; align-items: center; gap: 6px; font-size: 13px;
+            cursor: pointer; background: #eee; padding: 8px 14px;
+            border-radius: 8px; border: 2px solid transparent; transition: 0.2s;
+        }
+        .shift-check.is-checked { background: #e8f0fe; border-color: var(--primary); color: var(--primary); font-weight: bold; }
+
+        .demand-tag {
+            display: inline-block; background: #e8f0fe; color: #1a73e8;
+            padding: 2px 6px; border-radius: 4px; font-size: 11px;
+            margin-right: 3px; border: 1px solid #d2e3fc; font-weight: bold;
+        }
+
+        .weekly-demand-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        .weekly-demand-table th { background: #fff9c4; color: #827717; padding: 10px; border: 1px solid #ffe57f; transition: 0.3s; }
+        .weekly-demand-table td { padding: 10px; border: 1px solid #ffe57f; background: #fffde7; }
+        .weekly-demand-table input { width: 55px; text-align: center; padding: 8px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; font-size: 16px; }
+
+        .config-layout { display: grid; grid-template-columns: 240px 1fr 1fr; gap: 20px; }
+        .zone { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 380px; border: 2px dashed #cbd5e0; }
+        .shift-item { background: white; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 10px; cursor: grab; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .remove-btn { color: var(--danger); cursor: pointer; font-size: 18px; font-weight: bold; }
+
+        /* ===== 員工管理 Section ===== */
+        .tool-bar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .role-manager { background: #e8f0fe; padding: 15px; border-radius: 12px; flex: 2; border: 1px solid #c2d7ff; }
+        .global-actions { background: #fff0f0; padding: 15px; border-radius: 12px; flex: 1; border: 1px solid #ffcdd2; text-align: center; }
+        .btn-wish { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .btn-edit-emp { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .role-tag { display: inline-block; background: white; border: 1px solid #c2d7ff; border-radius: 6px; padding: 4px 10px; margin: 4px; font-size: 13px; }
+        .role-tag span { color: var(--danger); cursor: pointer; margin-left: 5px; }
+
+        /* ===== 代班推薦 Section ===== */
+        .sub-result-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--success);
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .store-day-group {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* ===== 員工班表 Section ===== */
+        .member-table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+        #memberTable { width: 100%; border-collapse: collapse; font-size: 11px; background: white; }
+        #memberTable th, #memberTable td { border: 1px solid #eee; padding: 6px 3px; text-align: center; min-width: 52px; vertical-align: middle; }
+        #memberTable thead th { background: #f1f3f4; position: sticky; top: 0; z-index: 10; height: 45px; }
+        .emp-name-col {
+            background: #fff !important;
+            font-weight: bold;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 90px;
+            border-right: 2px solid #ddd !important;
+            text-align: left !important;
+            padding-left: 8px !important;
+            font-size: 12px;
+        }
+        .is-off { background: #ffebee; color: #c62828; font-weight: bold; font-size: 13px; }
+        .is-work { background: #f0f4ff; }
+        .shift-code { color: var(--primary); font-weight: bold; display: block; font-size: 12px; }
+        .store-tag { color: #555; font-size: 9px; display: block; margin-top: 1px; }
+        .is-weekend-col { background: #f5f5f5; }
+        .hours-row td { background: #e8f0fe; font-weight: bold; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<!-- ===== 側欄 ===== -->
+<div id="sidebar">
+    <div class="logo">排班管理系統</div>
+    <nav>
+        <a onclick="switchSection('scheduler')" id="nav-scheduler" class="active">🗓️ 主排班</a>
+        <a onclick="switchSection('employee')" id="nav-employee">👥 員工管理</a>
+        <a onclick="switchSection('store')" id="nav-store">🏪 門市管理</a>
+        <a onclick="switchSection('shift')" id="nav-shift">⏰ 班別管理</a>
+        <a onclick="switchSection('sub')" id="nav-sub">🔄 代班推薦</a>
+        <a onclick="switchSection('member')" id="nav-member">📋 員工班表</a>
+    </nav>
+</div>
+
+<!-- ===== 主內容區 ===== -->
+<div id="main">
+
+    <!-- =====================================
+         Section 1：主排班
+    ====================================== -->
+    <div id="section-scheduler" class="section active">
+        <div class="loading-overlay" id="sch-loading">
+            <div style="font-size: 24px; margin-bottom: 10px;">🤖 Gemini 正在優化排班 (嚴格遵守 6休1)...</div>
+            <p id="sch-loadingMsg">正在處理...</p>
+        </div>
+
+        <div class="api-panel">
+            <span>🔑 API Key:</span>
+            <input type="password" id="apiKey" placeholder="貼上 Gemini API Key">
+            <button class="btn btn-success" onclick="sch_saveKey()">💾 儲存</button>
+            <span id="modelBadge" style="background:#dcfce7; color:#166534; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold; display:none;"></span>
+        </div>
+
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px;">
+            <div>
+                <button class="btn btn-gray" onclick="sch_changeMonth(-1)">❮</button>
+                <span id="sch-monthDisplay" style="font-size:22px; font-weight:bold; margin:0 20px;"></span>
+                <button class="btn btn-gray" onclick="sch_changeMonth(1)">❯</button>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-warning" onclick="sch_openAiModal()">🧠 AI 智慧排班</button>
+                <button class="btn btn-danger" onclick="sch_clearUI()">🗑️ 清空</button>
+                <button class="btn btn-primary" onclick="sch_saveData()">💾 儲存結果</button>
+            </div>
+        </div>
+
+        <div id="sch-storeStatsArea" style="background:#e8f0fe; padding:15px; border-radius:15px; margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap;"></div>
+
+        <div id="sch-mainGrid" class="calendar-grid"></div>
+
+        <div class="card">
+            <h3>📊 員工時數統計與設定</h3>
+            <table class="stats-table">
+                <thead>
+                    <tr><th>員工</th><th>當前工時</th><th>Min (H)</th><th>Max (H)</th><th>連休 2天+</th></tr>
+                </thead>
+                <tbody id="sch-statsBody"></tbody>
+            </table>
+            <div style="margin-top:15px; text-align:right;">
+                <button class="btn btn-primary" onclick="sch_saveHoursRange()">💾 儲存區間設定</button>
+            </div>
+        </div>
+
+        <!-- AI Modal -->
+        <div id="sch-aiModal" class="modal">
+            <div class="modal-content" style="width:420px;">
+                <h3>🤖 AI 智慧排班設定</h3>
+                <p style="font-size:13px; color:#666; margin-top:8px;">系統會自動避開連上 7 天的情況，並優先填補缺口。</p>
+                <div class="form-grid-2" style="margin: 20px 0;">
+                    <div><label>開始日期</label><input type="number" id="sch-aiStart" class="modal-input" value="1"></div>
+                    <div><label>結束日期</label><input type="number" id="sch-aiEnd" class="modal-input" value="31"></div>
+                </div>
+                <button class="btn btn-warning" style="width:100%;" onclick="sch_startAiScheduler()">執行 AI 專家排班</button>
+                <button class="btn" style="background:#ccc; width:100%; margin-top:10px; color:black;" onclick="sch_closeModal('sch-aiModal')">取消</button>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="sch-editModal" class="modal">
+            <div class="modal-content" style="width:420px;">
+                <h3>手動調整</h3>
+                <label>選擇班別：</label>
+                <select id="sch-modalShiftSelect" class="modal-input" style="margin-bottom:15px;"></select>
+                <div id="sch-empList" style="border:1px solid #eee; border-radius:8px; max-height:300px; overflow-y:auto;"></div>
+                <button class="btn" style="background:#ccc; width:100%; margin-top:20px; color:black;" onclick="sch_closeModal('sch-editModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================
+         Section 2：員工管理
+    ====================================== -->
+    <div id="section-employee" class="section">
+        <div class="tool-bar" style="margin-bottom:20px;">
+            <div class="card role-manager" style="margin:0;">
+                <h3>🛠️ 職位管理</h3>
+                <div style="display: flex; gap: 10px; margin-top:10px;">
+                    <input type="text" id="emp-newRoleName" placeholder="輸入職稱">
+                    <button class="btn btn-success" onclick="emp_addNewRole()" style="white-space:nowrap;">＋ 新增</button>
+                </div>
+                <div id="emp-roleTagsContainer" style="margin-top: 10px;"></div>
+            </div>
+            <div class="card global-actions" style="margin:0;">
+                <h3>🧹 全域操作</h3>
+                <button class="btn btn-danger" style="width:100%; margin-top:10px;" onclick="emp_clearAllWishLeaves()">清空全體許願日期</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👥 員工資料管理</h2>
+            <div class="form-section">
+                <input type="hidden" id="emp-oldEmpId">
+                <div class="form-grid-3">
+                    <div class="form-group"><label>員工姓名</label><input type="text" id="emp-name"></div>
+                    <div class="form-group"><label>員工代碼 (ID)</label><input type="text" id="emp-id"></div>
+                    <div class="form-group"><label>職位/類別</label><select id="emp-roleSelect"></select></div>
+                </div>
+                <div class="check-section">
+                    <label>📍 可支援門市：</label>
+                    <div class="check-grid" id="emp-storeContainer"></div>
+                </div>
+                <div class="check-section">
+                    <label>📅 固定公休日 (每週)：</label>
+                    <div class="check-grid">
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="一"> 一</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="二"> 二</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="三"> 三</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="四"> 四</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="五"> 五</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="六"> 六</label>
+                        <label class="check-item"><input type="checkbox" class="emp-off-cb" value="日"> 日</label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="emp_saveEmployee()">💾 儲存員工基本資料</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>姓名 (ID)</th><th>職位</th><th>門市 / 固定公休</th><th>許願休假日期</th><th>操作</th></tr>
+                </thead>
+                <tbody id="emp-tableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- 許願 Modal -->
+        <div id="emp-wishModal" class="modal">
+            <div class="modal-content" style="width:350px; text-align:center;">
+                <h3 id="emp-wishTargetName">員工許願</h3>
+                <input type="text" id="emp-wishDatePicker" style="width: 100%; margin: 15px 0;" placeholder="選擇日期...">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="emp_saveWishData()">儲存許願</button>
+                    <button class="btn" style="background:#eee; flex:1; color:#333;" onclick="emp_closeModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================
+         Section 3：門市管理
+    ====================================== -->
+    <div id="section-store" class="section">
+        <div class="card">
+            <h2>🏪 門市管理中心</h2>
+            <div class="form-section">
+                <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:15px;">
+                    <div class="form-group" style="flex:1;"><label>門市名稱</label><input type="text" id="store-name" placeholder="例如: 大直店"></div>
+                    <div class="form-group" style="flex:1;"><label>門市簡稱</label><input type="text" id="store-short" placeholder="例如: 大直"></div>
+                    <button class="btn btn-primary" onclick="store_saveBasic()">💾 儲存基本資料</button>
+                </div>
+                <div class="check-section">
+                    <label>📍 勾選此門市可用的班別：</label>
+                    <div class="check-grid" id="store-shiftCheckboxes">載入中...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>門市總覽</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:150px;">門市名稱</th>
+                        <th style="width:100px;">簡稱</th>
+                        <th>可用班別</th>
+                        <th>一週人力編制</th>
+                        <th style="width:250px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="store-tableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- 門市設定 Modal -->
+        <div id="store-configModal" class="modal">
+            <div class="modal-content" style="width:95%; max-width:1100px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 id="store-modalTitle" style="color:var(--primary); margin:0;">人力需求配置</h3>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="store-saveMsg" style="color:var(--success); font-weight:bold; opacity:0; transition:0.3s;">已完成儲存！</span>
+                        <button class="btn btn-primary" id="store-configSaveBtn" onclick="store_saveFullConfig()">💾 儲存並同步</button>
+                        <button class="btn btn-gray" onclick="store_closeConfig()">關閉</button>
+                    </div>
+                </div>
+
+                <table class="weekly-demand-table">
+                    <thead>
+                        <tr>
+                            <th id="store-th-1">週一</th><th id="store-th-2">週二</th><th id="store-th-3">週三</th>
+                            <th id="store-th-4">週四</th><th id="store-th-5">週五</th><th id="store-th-6">週六</th><th id="store-th-0">週日</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="store-week-1" onfocus="store_focusDay('1')" onchange="store_updateTotal('1',this.value)"></td>
+                            <td><input type="number" id="store-week-2" onfocus="store_focusDay('2')" onchange="store_updateTotal('2',this.value)"></td>
+                            <td><input type="number" id="store-week-3" onfocus="store_focusDay('3')" onchange="store_updateTotal('3',this.value)"></td>
+                            <td><input type="number" id="store-week-4" onfocus="store_focusDay('4')" onchange="store_updateTotal('4',this.value)"></td>
+                            <td><input type="number" id="store-week-5" onfocus="store_focusDay('5')" onchange="store_updateTotal('5',this.value)"></td>
+                            <td><input type="number" id="store-week-6" onfocus="store_focusDay('6')" onchange="store_updateTotal('6',this.value)"></td>
+                            <td><input type="number" id="store-week-0" onfocus="store_focusDay('0')" onchange="store_updateTotal('0',this.value)"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size:14px;">📌 正在設定：<b id="store-displayDayName" style="color:var(--danger); font-size: 18px;">週一</b> 的優先順序</label>
+                    <button class="btn" style="background:#e6fffa; color:#2c7a7b; border:1px solid #81e6d9;" onclick="store_syncToAllWeek()">🔄 複製此設定至全週並儲存</button>
+                </div>
+
+                <div class="config-layout">
+                    <div class="zone"><div style="font-weight:bold; margin-bottom:10px;">可用池 (可拖拽)</div><div id="store-shiftPool"></div></div>
+                    <div class="zone" ondrop="store_drop(event,'must')" ondragover="store_allowDrop(event)"><div style="font-weight:bold; margin-bottom:10px; color:var(--danger);">🚩 必須 (Must)</div><div id="store-mustContent"></div></div>
+                    <div class="zone" ondrop="store_drop(event,'prio')" ondragover="store_allowDrop(event)"><div style="font-weight:bold; margin-bottom:10px; color:var(--primary);">🔝 優先 (Prio)</div><div id="store-prioContent"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================
+         Section 4：班別管理
+    ====================================== -->
+    <div id="section-shift" class="section">
+        <div class="card">
+            <h2 style="color:var(--primary);">✨ 班別資料管理</h2>
+            <p style="font-size:13px; color:#888; margin: 8px 0 15px;">設定門市可使用的班次（例如 A1, PT8），請務必填寫實際工時以利 AI 計算。</p>
+            <div class="form-grid-3" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="form-group"><label>班別代碼 (例如: A1)</label><input type="text" id="shift-code"></div>
+                <div class="form-group"><label>班別名稱</label><input type="text" id="shift-name"></div>
+                <div class="form-group"><label>上班時間</label><input type="time" id="shift-start"></div>
+                <div class="form-group"><label>下班時間</label><input type="time" id="shift-end"></div>
+                <div class="form-group"><label>實際工時 (h)</label><input type="number" id="shift-hours" step="0.5" placeholder="數字"></div>
+            </div>
+            <button class="btn btn-success" id="shift-saveBtn" style="width:100%; margin-top:15px; padding:12px;" onclick="shift_save()">💾 儲存班別資料</button>
+            <div id="shift-status" style="font-size:14px; margin-top:12px; font-weight:bold; min-height:1.2em;"></div>
+        </div>
+
+        <div class="card">
+            <h3>目前班別清單</h3>
+            <table>
+                <thead>
+                    <tr><th>代碼</th><th>名稱</th><th>時間範圍</th><th>工時</th><th>操作</th></tr>
+                </thead>
+                <tbody id="shift-body">
+                    <tr><td colspan="5" style="text-align:center;">讀取中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- =====================================
+         Section 5：代班推薦
+    ====================================== -->
+    <div id="section-sub" class="section">
+        <div class="card">
+            <h2>🔄 代班推薦</h2>
+            <div style="display:flex; gap:15px; align-items:flex-end; margin-top:15px;">
+                <div class="form-group" style="flex:1;">
+                    <label>選擇日期</label>
+                    <input type="date" id="sub-dateInput">
+                </div>
+                <button class="btn btn-primary" onclick="sub_loadDay()">🔍 查詢當日排班</button>
+            </div>
+        </div>
+
+        <div id="sub-result"></div>
+
+        <!-- 代班候選人 Modal -->
+        <div id="sub-modal" class="modal">
+            <div class="modal-content" style="width:460px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 id="sub-modalTitle" style="margin:0; color:var(--danger);">🆘 代班候選人</h3>
+                    <button class="btn btn-gray btn-sm" onclick="sub_closeModal()">✖ 關閉</button>
+                </div>
+                <div id="sub-modalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================
+         Section 6：員工班表
+    ====================================== -->
+    <div id="section-member" class="section">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px 20px;">
+            <h2 style="margin:0;">📋 員工班表</h2>
+            <div>
+                <button class="btn btn-gray" onclick="member_changeMonth(-1)">❮</button>
+                <span id="member-monthDisplay" style="font-size:18px; font-weight:bold; margin:0 15px;"></span>
+                <button class="btn btn-gray" onclick="member_changeMonth(1)">❯</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="member-table-wrapper">
+                <table id="memberTable">
+                    <thead id="member-thead"></thead>
+                    <tbody id="member-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div><!-- end #main -->
+
+<!-- ===== Firebase compat SDK ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+// =====================================================
+//  Firebase 初始化（只做一次）
+// =====================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyC8TlY8xg8FnSptymQxT7eCLtfsCK2Jp0M",
+    authDomain: "roster-fadmart.firebaseapp.com",
+    projectId: "roster-fadmart",
+    storageBucket: "roster-fadmart.firebasestorage.app",
+    messagingSenderId: "880597429282",
+    appId: "1:880597429282:web:d7b587fe49a2c823b6ee7b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// =====================================================
+//  導覽切換
+// =====================================================
+const sectionIds = ['scheduler','employee','store','shift','sub','member'];
+let currentSection = 'scheduler';
+
+function switchSection(id) {
+    sectionIds.forEach(s => {
+        document.getElementById('section-' + s).classList.toggle('active', s === id);
+        document.getElementById('nav-' + s).classList.toggle('active', s === id);
+    });
+    currentSection = id;
+    // 切換時重新載入資料
+    if (id === 'scheduler') { sch_load(); }
+    else if (id === 'employee') { emp_init(); }
+    else if (id === 'store') { store_init(); }
+    else if (id === 'shift') { shift_fetchAll(); }
+    else if (id === 'sub') { sub_setDefaultDate(); }
+    else if (id === 'member') { member_render(); }
+}
+
+// =====================================================
+//  共用：forceISO 工具函數
+// =====================================================
+const forceISO = (d) => {
+    if (!d) return "NONE";
+    let s = String(d).trim();
+    const p = s.split('-');
+    return p.length !== 3 ? s : `${p[0]}-${String(p[1]).padStart(2,'0')}-${String(p[2]).padStart(2,'0')}`;
+};
+
+// =====================================================
+//  共用：syncDatabase（所有 section 共用的基礎資料）
+// =====================================================
+const sharedData = { stores: {}, emps: [], shifts: [] };
+let sharedDataLoaded = false;
+
+async function syncSharedData() {
+    const [sSnap, eSnap, shSnap] = await Promise.all([
+        db.collection("Stores").get(),
+        db.collection("Employees").get(),
+        db.collection("ShiftTypes").get()
+    ]);
+    sharedData.stores = {};
+    sSnap.forEach(d => sharedData.stores[d.id] = { id: d.id, ...d.data() });
+    sharedData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    sharedData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
+    sharedDataLoaded = true;
+}
+
+
+// =====================================================
+//  SECTION 1：主排班
+// =====================================================
+let sch_currDate = new Date(2026, 2, 1);
+let sch_roster = {};
+let sch_editCtx = null;
+
+const sch_getShiftHours = (shCode) => {
+    const sh = sharedData.shifts.find(s => String(s.code).toUpperCase().trim() === String(shCode).toUpperCase().trim());
+    if (!sh) return 8;
+    const s = sh.startTime.split(':'), e = sh.endTime.split(':');
+    let h = (parseInt(e[0])*60 + parseInt(e[1]) - (parseInt(s[0])*60 + parseInt(s[1]))) / 60;
+    return h > 6 ? h - 1 : h;
+};
+
+function sch_saveKey() {
+    const key = document.getElementById("apiKey").value.trim();
+    if (!key) return alert("請輸入金鑰！");
+    localStorage.setItem("scheduler_api_key", key);
+    alert("API 金鑰已儲存！");
+}
+
+async function sch_load() {
+    await syncSharedData();
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    document.getElementById('sch-monthDisplay').innerText = `${y} 年 ${m} 月`;
+    const snap = await db.collection("Rosters").where("month", "==", `${y}-${String(m).padStart(2,'0')}`).get();
+    sch_roster = snap.empty ? {} : snap.docs.sort((a,b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))[0].data().data;
+    sch_render();
+}
+
+function sch_render() {
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    const days = new Date(y, m, 0).getDate();
+    const offset = (new Date(y, m-1, 1).getDay() || 7) - 1;
+    const grid = document.getElementById('sch-mainGrid');
+    const wkMap = ["日", "一", "二", "三", "四", "五", "六"];
+    grid.innerHTML = wkMap.slice(1).concat(wkMap[0]).map(d => `<div class="cal-head">${d}</div>`).join('');
+    for (let i = 0; i < offset; i++) grid.innerHTML += `<div></div>`;
+
+    const storeHours = {};
+    Object.keys(sharedData.stores).forEach(sid => storeHours[sid] = 0);
+
+    for (let d = 1; d <= days; d++) {
+        const dateKey = `${y}-${m}-${d}`;
+        const wkIndex = new Date(y, m-1, d).getDay();
+        let html = `<div class="cal-cell"><span class="day-label">${d}</span>`;
+        Object.values(sharedData.stores).sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+            const conf = s.config?.[wkIndex] || { total: 0 };
+            const req = parseInt(conf.total) || 0;
+            const dailyJobs = (sch_roster[dateKey] || []).filter(j => j.sId === s.id);
+            html += `<div class="store-box ${dailyJobs.length < req ? 'under-staffed' : ''}"><span class="store-name">${s.name} (${dailyJobs.length}/${req})</span>`;
+            dailyJobs.forEach((j, idx) => {
+                let con = 0;
+                for (let i = 1; i <= 7; i++) {
+                    if (sch_roster[`${y}-${m}-${d-i}`]?.some(x => x.eId === j.eId)) con++;
+                    else break;
+                }
+                storeHours[s.id] += sch_getShiftHours(j.sh);
+                html += `<div class="roster-item ${con >= 6 ? 'conflict-item' : ''}" onclick="sch_openEdit('${dateKey}','${s.id}',${idx},'${j.sh}')"><b>${j.eName}</b> <small>${j.sh}</small></div>`;
+            });
+            if (dailyJobs.length < req) {
+                for (let k = dailyJobs.length; k < req; k++) {
+                    html += `<div class="empty-slot" onclick="sch_openEdit('${dateKey}','${s.id}',${k},'A')">🪹 缺口補位</div>`;
+                }
+            }
+            html += `<button class="add-extra-btn" onclick="sch_openEdit('${dateKey}','${s.id}',${Math.max(req, dailyJobs.length)},'A')">＋機動新增</button></div>`;
+        });
+        grid.innerHTML += html + `</div>`;
+    }
+
+    const statsArea = document.getElementById('sch-storeStatsArea');
+    statsArea.innerHTML = Object.values(sharedData.stores).map(s =>
+        `<div style="background:white; padding:8px 12px; border-radius:8px; font-size:12px;"><b>${s.name}:</b> ${storeHours[s.id].toFixed(1)}H</div>`
+    ).join('');
+    sch_updateStats();
+}
+
+async function sch_startAiScheduler() {
+    const apiKey = document.getElementById("apiKey").value.trim();
+    if (!apiKey) return alert("請先設定 API Key！");
+    const startDay = parseInt(document.getElementById('sch-aiStart').value);
+    const endDay = parseInt(document.getElementById('sch-aiEnd').value);
+    const loading = document.getElementById('sch-loading');
+    loading.style.display = 'flex';
+    sch_closeModal('sch-aiModal');
+
+    try {
+        const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const modelData = await modelRes.json();
+        const availableModels = modelData.models
+            .filter(m => m.supportedGenerationMethods.includes("generateContent"))
+            .map(m => m.name)
+            .sort((a, b) => a.includes("flash") ? -1 : 1);
+
+        const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+        const history = {};
+        sharedData.emps.forEach(e => {
+            let con = 0;
+            for (let i = 1; i <= 6; i++) {
+                if (sch_roster[`${y}-${m}-${startDay-i}`]?.some(j => j.eId === e.id)) con++;
+                else break;
+            }
+            history[e.id] = con;
+        });
+
+        const context = {
+            targetRange: { start: startDay, end: endDay, month: `${y}-${m}` },
+            employees: sharedData.emps.map(e => ({
+                id: e.id, name: e.name, stores: e.canWorkStores || [],
+                min: e.minHours || 60, max: e.maxHours || 80,
+                wish: e.wishLeaves, fixedOff: e.unavailableDays,
+                workHistoryBeforeRange: history[e.id]
+            })),
+            stores: Object.values(sharedData.stores).map(s => ({ id: s.id, name: s.name, config: s.config })),
+            currentRoster: sch_roster
+        };
+
+        const prompt = `你是專業排班專家。請為 ${y}年${m}月 的 ${startDay} 到 ${endDay} 號排班。
+            最高禁令：
+            1. 絕對不允許連續上班超過 6 天。請參考每位員工的 workHistoryBeforeRange (區間開始前已連上的天數)。
+            2. 如果員工在區間內已經達到連 6，第 7 天必須強迫排休。
+            3. 每位員工的總工時應在 [Min, Max] 之間。
+            4. 優先讓只能在一家固定上班的店員排班，保留機動人員遞補。
+            回傳格式：純 JSON {"YYYY-M-D": [{"sId":"店ID","idx":0,"eId":"員工ID","eName":"名","sh":"班別"}]}
+            數據：${JSON.stringify(context)}`;
+
+        let success = false;
+        for (let targetModel of availableModels) {
+            if (success) break;
+            try {
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 } })
+                });
+                const resJson = await resp.json();
+                const aiText = resJson.candidates[0].content.parts[0].text;
+                const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const aiRoster = JSON.parse(jsonMatch[0]);
+                    for (let d = startDay; d <= endDay; d++) {
+                        const key = `${y}-${m}-${d}`;
+                        if (aiRoster[key]) sch_roster[key] = aiRoster[key];
+                    }
+                    sch_render();
+                    success = true;
+                    alert(`AI 已完成 ${startDay}-${endDay} 號排班 (已執行 6休1 檢查)。`);
+                }
+            } catch (err) { console.warn(`模型 ${targetModel} 失敗`); }
+        }
+    } catch (e) { alert(`錯誤：${e.message}`); }
+    finally { loading.style.display = 'none'; }
+}
+
+window.sch_openAiModal = () => {
+    document.getElementById('sch-aiEnd').value = new Date(sch_currDate.getFullYear(), sch_currDate.getMonth() + 1, 0).getDate();
+    document.getElementById('sch-aiModal').style.display = 'flex';
+};
+
+window.sch_openEdit = (dK, sId, idx, cS) => {
+    sch_editCtx = { dateKey: dK, sId, idx };
+    document.getElementById('sch-modalShiftSelect').innerHTML = sharedData.shifts.map(s =>
+        `<option value="${s.code}" ${s.code.toUpperCase() === cS.toUpperCase() ? 'selected' : ''}>${s.code}</option>`
+    ).join('');
+    const list = document.getElementById('sch-empList');
+    const taken = (sch_roster[dK] || []).map(j => j.eId);
+    list.innerHTML = `<div style="color:red;font-weight:bold;padding:12px;cursor:pointer;border-bottom:1px solid #eee;" onclick="sch_pick(null)">❌ 移除人員</div>`;
+    sharedData.emps.forEach(e => {
+        const canS = e.canWorkStores && (e.canWorkStores.includes(sId) || e.canWorkStores.includes(sharedData.stores[sId]?.name));
+        list.innerHTML += `<div style="padding:12px;border-bottom:1px solid #eee;cursor:pointer;" onclick="sch_pick('${e.id}','${e.name}')">
+            <b>${e.name}</b> ${taken.includes(e.id) ? '(已有班)' : ''} ${!canS ? '<small style="color:red">(不支援)</small>' : ''}
+        </div>`;
+    });
+    document.getElementById('sch-editModal').style.display = 'flex';
+};
+
+window.sch_pick = (eid, ename) => {
+    const { dateKey, sId, idx } = sch_editCtx;
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+
+    // === 6休1 前端驗證 ===
+    if (eid) {
+        // 解析 dateKey 為 d
+        const parts = dateKey.split('-');
+        const dayNum = parseInt(parts[2]);
+        let before = 0, after = 0;
+
+        // 往前查連班天數（不含當日）
+        for (let i = 1; i <= 6; i++) {
+            const checkKey = `${y}-${m}-${dayNum - i}`;
+            if ((sch_roster[checkKey] || []).some(j => j.eId === eid)) before++;
+            else break;
+        }
+        // 往後查連班天數（不含當日）
+        for (let i = 1; i <= 6; i++) {
+            const checkKey = `${y}-${m}-${dayNum + i}`;
+            if ((sch_roster[checkKey] || []).some(j => j.eId === eid)) after++;
+            else break;
+        }
+
+        const total = before + 1 + after;
+        if (total >= 7) {
+            const empName = sharedData.emps.find(e => e.id === eid)?.name || eid;
+            alert(`⚠️ 無法排班：${empName} 若排入此日，將造成連續 ${total} 天上班！`);
+            return;
+        }
+    }
+
+    if (!sch_roster[dateKey]) sch_roster[dateKey] = [];
+    sch_roster[dateKey] = sch_roster[dateKey].filter(j => !(j.sId === sId && j.idx === idx));
+    if (eid) {
+        sch_roster[dateKey].push({
+            sId, idx, eId: eid, eName: ename,
+            sh: document.getElementById('sch-modalShiftSelect').value.toUpperCase()
+        });
+    }
+    sch_render();
+    sch_closeModal('sch-editModal');
+};
+
+window.sch_updateStats = () => {
+    const tbody = document.getElementById('sch-statsBody');
+    tbody.innerHTML = "";
+    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+    sharedData.emps.forEach(e => {
+        let h = 0, mask = [];
+        for (let d = 1; d <= 31; d++) {
+            const job = (sch_roster[`${y}-${m}-${d}`] || []).find(j => j.eId === e.id);
+            if (job) { h += sch_getShiftHours(job.sh); mask.push(1); } else mask.push(0);
+        }
+        let seqs = mask.join('').split('1').filter(s => s.length >= 2).length;
+        tbody.innerHTML += `<tr>
+            <td><b>${e.name}</b></td>
+            <td>${h.toFixed(1)}</td>
+            <td><input type="number" id="sch-min-${e.id}" value="${e.minHours || 60}" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:4px;"></td>
+            <td><input type="number" id="sch-max-${e.id}" value="${e.maxHours || 80}" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:4px;"></td>
+            <td>${seqs}</td>
+        </tr>`;
+    });
+};
+
+window.sch_saveHoursRange = async () => {
+    const batch = db.batch();
+    sharedData.emps.forEach(e => {
+        batch.update(db.collection("Employees").doc(e.id), {
+            minHours: parseInt(document.getElementById(`sch-min-${e.id}`).value),
+            maxHours: parseInt(document.getElementById(`sch-max-${e.id}`).value)
+        });
+    });
+    await batch.commit();
+    alert("時數區間已更新");
+    sch_load();
+};
+
+window.sch_saveData = async () => {
+    await db.collection("Rosters").add({
+        month: `${sch_currDate.getFullYear()}-${String(sch_currDate.getMonth() + 1).padStart(2, '0')}`,
+        data: sch_roster,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("雲端儲存完成！");
+};
+
+window.sch_clearUI = () => {
+    if (confirm("確定清空畫面？")) { sch_roster = {}; sch_render(); }
+};
+
+window.sch_closeModal = (id) => document.getElementById(id).style.display = 'none';
+window.sch_changeMonth = (v) => { sch_currDate.setMonth(sch_currDate.getMonth() + v); sch_load(); };
+window.sch_startAiScheduler = sch_startAiScheduler;
+
+
+// =====================================================
+//  SECTION 2：員工管理
+// =====================================================
+let emp_allEmployees = {};
+let emp_currentWishId = null;
+let emp_fpWish = null;
+
+async function emp_init() {
+    emp_fpWish = flatpickr("#emp-wishDatePicker", {
+        mode: "multiple",
+        dateFormat: "Y-m-d",
+        conjunction: ", "
+    });
+    await emp_loadRoles();
+    await emp_loadStoreOptions();
+    await emp_loadEmployees();
+}
+
+async function emp_loadRoles() {
+    const snap = await db.collection("EmployeeRoles").get();
+    const tagContainer = document.getElementById('emp-roleTagsContainer');
+    const select = document.getElementById('emp-roleSelect');
+    tagContainer.innerHTML = "";
+    select.innerHTML = '<option value="">請選擇</option>';
+    snap.forEach(d => {
+        const role = d.id;
+        tagContainer.innerHTML += `<span class="role-tag">${role} <span onclick="emp_deleteRole('${role}')">×</span></span>`;
+        select.innerHTML += `<option value="${role}">${role}</option>`;
+    });
+}
+
+window.emp_addNewRole = async () => {
+    const name = document.getElementById('emp-newRoleName').value.trim();
+    if (name) {
+        await db.collection("EmployeeRoles").doc(name).set({ name });
+        document.getElementById('emp-newRoleName').value = "";
+        emp_loadRoles();
+    }
+};
+
+window.emp_deleteRole = async (n) => {
+    if (confirm(`刪除 ${n}?`)) {
+        await db.collection("EmployeeRoles").doc(n).delete();
+        emp_loadRoles();
+    }
+};
+
+async function emp_loadStoreOptions() {
+    const snap = await db.collection("Stores").get();
+    const container = document.getElementById('emp-storeContainer');
+    container.innerHTML = "";
+    snap.forEach(d => {
+        const s = d.data();
+        if (s.name) container.innerHTML += `<label class="check-item"><input type="checkbox" class="emp-store-cb" value="${s.name}"> ${s.name}</label>`;
+    });
+}
+
+window.emp_saveEmployee = async () => {
+    const name = document.getElementById('emp-name').value.trim();
+    const id = document.getElementById('emp-id').value.trim();
+    const oldId = document.getElementById('emp-oldEmpId').value;
+    const role = document.getElementById('emp-roleSelect').value;
+    const stores = Array.from(document.querySelectorAll('.emp-store-cb:checked')).map(cb => cb.value);
+    const offs = Array.from(document.querySelectorAll('.emp-off-cb:checked')).map(cb => cb.value);
+
+    if (!name || !id || !role) return alert("請填寫姓名、ID 與職位");
+
+    let wishData = "";
+    if (oldId && emp_allEmployees[oldId]) wishData = emp_allEmployees[oldId].wishLeaves || "";
+
+    await db.collection("Employees").doc(id).set(
+        { id, name, role, canWorkStores: stores, unavailableDays: offs, wishLeaves: wishData },
+        { merge: true }
+    );
+    if (oldId && oldId !== id) await db.collection("Employees").doc(oldId).delete();
+
+    // 清空表單
+    document.getElementById('emp-name').value = "";
+    document.getElementById('emp-id').value = "";
+    document.getElementById('emp-oldEmpId').value = "";
+    document.getElementById('emp-roleSelect').value = "";
+    document.querySelectorAll('.emp-store-cb').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.emp-off-cb').forEach(cb => cb.checked = false);
+    await emp_loadEmployees();
+};
+
+async function emp_loadEmployees() {
+    const snap = await db.collection("Employees").get();
+    const body = document.getElementById('emp-tableBody');
+    body.innerHTML = "";
+    emp_allEmployees = {};
+    snap.forEach(d => {
+        const e = d.data();
+        emp_allEmployees[d.id] = e;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${e.name}</b><br><small>${d.id}</small></td>
+            <td>${e.role || ''}</td>
+            <td>
+                <div style="font-size:11px; color:#666;">門市: ${(e.canWorkStores || []).join(', ')}</div>
+                <div style="font-size:11px; color:#999;">公休: ${(e.unavailableDays || []).join(', ')}</div>
+            </td>
+            <td style="font-size:11px; color:var(--success); max-width:150px; word-break:break-all;">${e.wishLeaves || '--'}</td>
+            <td>
+                <button class="btn btn-wish btn-sm" onclick="emp_openWishModal('${d.id}')">📅 許願</button>
+                <button class="btn btn-edit-emp btn-sm" onclick="emp_editEmp('${d.id}')" style="margin-left:5px;">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="emp_deleteEmp('${d.id}')" style="margin-left:5px;">🗑️</button>
+            </td>`;
+        body.appendChild(tr);
+    });
+}
+
+window.emp_openWishModal = (id) => {
+    emp_currentWishId = id;
+    const e = emp_allEmployees[id];
+    document.getElementById('emp-wishTargetName').innerText = `${e.name} 的休假許願`;
+    if (emp_fpWish) emp_fpWish.setDate(e.wishLeaves || "");
+    document.getElementById('emp-wishModal').style.display = 'flex';
+};
+
+window.emp_saveWishData = async () => {
+    const dates = document.getElementById('emp-wishDatePicker').value;
+    await db.collection("Employees").doc(emp_currentWishId).update({ wishLeaves: dates });
+    alert("許願成功！");
+    emp_closeModal();
+    emp_loadEmployees();
+};
+
+window.emp_clearAllWishLeaves = async () => {
+    if (!confirm("確定清空全體許願日期？")) return;
+    const snap = await db.collection("Employees").get();
+    const batch = db.batch();
+    snap.forEach(d => batch.update(db.collection("Employees").doc(d.id), { wishLeaves: "" }));
+    await batch.commit();
+    emp_loadEmployees();
+};
+
+window.emp_editEmp = (id) => {
+    const e = emp_allEmployees[id];
+    document.getElementById('emp-name').value = e.name;
+    document.getElementById('emp-id').value = id;
+    document.getElementById('emp-oldEmpId').value = id;
+    document.getElementById('emp-roleSelect').value = e.role;
+    document.querySelectorAll('.emp-store-cb').forEach(cb => cb.checked = (e.canWorkStores || []).includes(cb.value));
+    document.querySelectorAll('.emp-off-cb').forEach(cb => cb.checked = (e.unavailableDays || []).includes(cb.value));
+    window.scrollTo(0, 0);
+};
+
+window.emp_deleteEmp = async (id) => {
+    if (confirm(`刪除 ${id}?`)) {
+        await db.collection("Employees").doc(id).delete();
+        emp_loadEmployees();
+    }
+};
+
+window.emp_closeModal = () => document.getElementById('emp-wishModal').style.display = 'none';
+
+
+// =====================================================
+//  SECTION 3：門市管理
+// =====================================================
+let store_allShifts = [];
+let store_currentStoreName = null;
+let store_currentDay = "1";
+let store_tempConfig = {};
+let store_allStoresData = {};
+
+async function store_init() {
+    const shSnap = await db.collection("ShiftTypes").get();
+    const checkboxArea = document.getElementById('store-shiftCheckboxes');
+    checkboxArea.innerHTML = "";
+    store_allShifts = [];
+    shSnap.forEach(d => {
+        const s = d.data();
+        store_allShifts.push(s);
+        checkboxArea.innerHTML += `<label class="shift-check" id="store-label_${s.code}"><input type="checkbox" class="store-sh-cb" value="${s.code}" onchange="this.parentElement.classList.toggle('is-checked', this.checked)"> ${s.code}</label>`;
+    });
+    await store_loadStores();
+}
+
+window.store_saveBasic = async () => {
+    const name = document.getElementById('store-name').value.trim();
+    const short = document.getElementById('store-short').value.trim();
+    const selShifts = Array.from(document.querySelectorAll('.store-sh-cb:checked')).map(cb => cb.value);
+    if (!name) return alert("請輸入門市名稱");
+    const snap = await db.collection("Stores").doc(name).get();
+    let existing = snap.exists ? snap.data() : { config: store_createDefaultConfig() };
+    await db.collection("Stores").doc(name).set({ ...existing, name, shortName: short, applicableShifts: selShifts });
+    store_loadStores();
+};
+
+function store_createDefaultConfig() {
+    let conf = {};
+    for (let i = 0; i <= 6; i++) conf[i] = { total: 0, must: [], prio: [] };
+    return conf;
+}
+
+async function store_loadStores() {
+    const snap = await db.collection("Stores").get();
+    const body = document.getElementById('store-tableBody');
+    body.innerHTML = "";
+    store_allStoresData = {};
+    snap.forEach(d => {
+        const s = d.data();
+        if (!s.name) return;
+        store_allStoresData[s.name] = s;
+        let demandHtml = "";
+        [1, 2, 3, 4, 5, 6, 0].forEach(dNum => {
+            const val = s.config?.[dNum]?.total || 0;
+            const label = ['日','一','二','三','四','五','六'][dNum];
+            demandHtml += `<span class="demand-tag">${label}:${val}</span>`;
+        });
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${s.name}</b></td>
+            <td>${s.shortName || ''}</td>
+            <td><small>${(s.applicableShifts || []).join(', ')}</small></td>
+            <td>${demandHtml}</td>
+            <td>
+                <button class="btn btn-outline btn-sm" data-name="${s.name}">⚙️ 配置</button>
+                <button class="btn btn-edit-emp btn-sm" data-name="${s.name}" style="margin-left:5px;">✏️ 編輯</button>
+                <button class="btn btn-danger btn-sm" data-name="${s.name}" style="margin-left:5px;">🗑️</button>
+            </td>`;
+        body.appendChild(tr);
+    });
+    document.querySelectorAll('[data-name]').forEach(btn => {
+        if (btn.textContent.includes('配置')) btn.onclick = () => store_openConfig(btn.dataset.name);
+        else if (btn.textContent.includes('編輯')) btn.onclick = () => store_editStore(btn.dataset.name);
+        else btn.onclick = () => store_deleteStore(btn.dataset.name);
+    });
+}
+
+window.store_editStore = (name) => {
+    const s = store_allStoresData[name];
+    if (!s) return;
+    document.getElementById('store-name').value = s.name;
+    document.getElementById('store-short').value = s.shortName || "";
+    const sel = s.applicableShifts || [];
+    document.querySelectorAll('.store-sh-cb').forEach(cb => {
+        cb.checked = sel.includes(cb.value);
+        cb.parentElement.classList.toggle('is-checked', cb.checked);
+    });
+    window.scrollTo(0, 0);
+};
+
+window.store_openConfig = (name) => {
+    store_currentStoreName = name;
+    const s = store_allStoresData[name];
+    store_tempConfig = JSON.parse(JSON.stringify(s.config || store_createDefaultConfig()));
+    for (let i = 0; i <= 6; i++) {
+        document.getElementById(`store-week-${i}`).value = store_tempConfig[i].total || 0;
+    }
+    const pool = document.getElementById('store-shiftPool');
+    pool.innerHTML = "";
+    const appShifts = s.applicableShifts || [];
+    store_allShifts.filter(sh => appShifts.includes(sh.code)).forEach(sh => {
+        pool.innerHTML += `<div class="shift-item" draggable="true" ondragstart="store_drag(event)" id="store-p_${sh.code}" data-code="${sh.code}">
+            <span><b>${sh.code}</b> <small style="display:block;color:#888;">${sh.startTime}-${sh.endTime}</small></span>
+        </div>`;
+    });
+    document.getElementById('store-modalTitle').innerText = name + " 人力配置";
+    document.getElementById('store-configModal').style.display = 'flex';
+    store_focusDay("1");
+};
+
+window.store_focusDay = (day) => {
+    store_currentDay = day;
+    const dayNames = {"1":"週一","2":"週二","3":"週三","4":"週四","5":"週五","6":"週六","0":"週日"};
+    document.getElementById('store-displayDayName').innerText = dayNames[day];
+    for (let i = 0; i <= 6; i++) document.getElementById(`store-th-${i}`).style.background = "#fff9c4";
+    document.getElementById(`store-th-${day}`).style.background = "#ffeb3b";
+    store_renderDay();
+};
+
+window.store_updateTotal = (day, val) => {
+    if (!store_tempConfig[day]) store_tempConfig[day] = { total: 0, must: [], prio: [] };
+    store_tempConfig[day].total = parseInt(val, 10) || 0;
+};
+
+function store_renderDay() {
+    const d = store_tempConfig[store_currentDay] || { total: 0, must: [], prio: [] };
+    document.getElementById('store-mustContent').innerHTML = (d.must || []).map(c => store_createBlock(c, 'must')).join('');
+    document.getElementById('store-prioContent').innerHTML = (d.prio || []).map(c => store_createBlock(c, 'prio')).join('');
+}
+
+function store_createBlock(code, zone) {
+    const s = store_allShifts.find(x => x.code === code);
+    return `<div class="shift-item">
+        <span><b>${code}</b> <small style="display:block;color:#666;">${s ? s.startTime + '-' + s.endTime : ''}</small></span>
+        <span class="remove-btn" onclick="store_removeShift('${code}','${zone}')">×</span>
+    </div>`;
+}
+
+window.store_allowDrop = (ev) => ev.preventDefault();
+window.store_drag = (ev) => ev.dataTransfer.setData("code", ev.target.dataset.code);
+window.store_drop = (ev, zone) => {
+    ev.preventDefault();
+    const code = ev.dataTransfer.getData("code");
+    if (!store_tempConfig[store_currentDay][zone].includes(code)) {
+        store_tempConfig[store_currentDay][zone].push(code);
+        store_renderDay();
+    }
+};
+window.store_removeShift = (code, zone) => {
+    store_tempConfig[store_currentDay][zone] = store_tempConfig[store_currentDay][zone].filter(c => c !== code);
+    store_renderDay();
+};
+
+window.store_syncToAllWeek = async () => {
+    const sourceData = store_tempConfig[store_currentDay];
+    if (!sourceData) return;
+    const dayNames = {"1":"週一","2":"週二","3":"週三","4":"週四","5":"週五","6":"週六","0":"週日"};
+    if (!confirm(`確定要將【${dayNames[store_currentDay]}】的設定同步到全週並寫入資料庫嗎？`)) return;
+    for (let i = 0; i <= 6; i++) {
+        store_tempConfig[i] = {
+            total: parseInt(sourceData.total) || 0,
+            must: [...(sourceData.must || [])],
+            prio: [...(sourceData.prio || [])]
+        };
+        const inputEl = document.getElementById(`store-week-${i}`);
+        if (inputEl) inputEl.value = sourceData.total;
+    }
+    await store_saveFullConfig();
+    store_renderDay();
+    alert("已完成全週同步！");
+};
+
+window.store_saveFullConfig = async () => {
+    const msg = document.getElementById('store-saveMsg');
+    const btn = document.getElementById('store-configSaveBtn');
+    try {
+        btn.disabled = true;
+        btn.innerText = "同步中...";
+        for (let i = 0; i <= 6; i++) {
+            const val = document.getElementById(`store-week-${i}`).value;
+            store_tempConfig[i].total = parseInt(val, 10) || 0;
+        }
+        await db.collection("Stores").doc(store_currentStoreName).set({ config: store_tempConfig }, { merge: true });
+        if (store_allStoresData[store_currentStoreName]) {
+            store_allStoresData[store_currentStoreName].config = JSON.parse(JSON.stringify(store_tempConfig));
+        }
+        msg.style.opacity = "1";
+        await store_loadStores();
+        setTimeout(() => {
+            msg.style.opacity = "0";
+            btn.disabled = false;
+            btn.innerText = "💾 儲存並同步";
+        }, 1000);
+    } catch (e) {
+        alert("儲存失敗");
+        btn.disabled = false;
+        btn.innerText = "💾 儲存並同步";
+    }
+};
+
+window.store_closeConfig = () => document.getElementById('store-configModal').style.display = 'none';
+window.store_deleteStore = async (name) => {
+    if (confirm(`確定刪除 ${name}?`)) {
+        await db.collection("Stores").doc(name).delete();
+        store_loadStores();
+    }
+};
+
+
+// =====================================================
+//  SECTION 4：班別管理
+// =====================================================
+let shift_isEditMode = false;
+
+async function shift_fetchAll() {
+    try {
+        const snap = await db.collection("ShiftTypes").get();
+        const tbody = document.getElementById('shift-body');
+        tbody.innerHTML = "";
+        if (snap.empty) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">目前無班別資料</td></tr>';
+            return;
+        }
+        snap.forEach(d => {
+            const s = d.data();
+            tbody.innerHTML += `<tr>
+                <td><b>${s.code}</b></td>
+                <td>${s.name}</td>
+                <td>${s.startTime} ~ ${s.endTime}</td>
+                <td>${s.workHours} h</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="shift_edit('${s.code}')">編輯</button>
+                    <button class="btn btn-danger btn-sm" onclick="shift_delete('${s.code}')" style="margin-left:5px;">刪除</button>
+                </td>
+            </tr>`;
+        });
+    } catch (e) { console.error("讀取失敗:", e); }
+}
+
+window.shift_save = async () => {
+    const code = document.getElementById('shift-code').value.trim().toUpperCase();
+    const name = document.getElementById('shift-name').value.trim();
+    const startTime = document.getElementById('shift-start').value;
+    const endTime = document.getElementById('shift-end').value;
+    const workHours = document.getElementById('shift-hours').value;
+    const status = document.getElementById('shift-status');
+
+    if (!code || !name || !startTime || !endTime || workHours === "") {
+        status.style.color = "red";
+        status.innerText = "請填寫完整資訊（所有欄位均為必填）";
+        return;
+    }
+
+    if (!shift_isEditMode) {
+        const docSnap = await db.collection("ShiftTypes").doc(code).get();
+        if (docSnap.exists) {
+            status.style.color = "red";
+            status.innerText = `代碼「${code}」已存在，請勿重複建立。`;
+            return;
+        }
+    }
+
+    try {
+        status.style.color = "var(--primary)";
+        status.innerText = "儲存中...";
+        await db.collection("ShiftTypes").doc(code).set({ code, name, startTime, endTime, workHours: parseFloat(workHours) });
+        status.style.color = "green";
+        status.innerText = "班別已成功儲存！";
+        shift_resetForm();
+        shift_fetchAll();
+    } catch (e) {
+        status.style.color = "red";
+        status.innerText = "儲存失敗，請檢查網路連線。";
+    }
+};
+
+window.shift_edit = async (code) => {
+    const docSnap = await db.collection("ShiftTypes").doc(code).get();
+    if (docSnap.exists) {
+        const s = docSnap.data();
+        document.getElementById('shift-code').value = s.code;
+        document.getElementById('shift-code').disabled = true;
+        document.getElementById('shift-name').value = s.name;
+        document.getElementById('shift-start').value = s.startTime;
+        document.getElementById('shift-end').value = s.endTime;
+        document.getElementById('shift-hours').value = s.workHours;
+        shift_isEditMode = true;
+        document.getElementById('shift-saveBtn').innerText = "更新班別資料";
+        document.getElementById('shift-status').innerText = `正在編輯班別：${code}`;
+        document.getElementById('shift-status').style.color = "#e65100";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+
+window.shift_delete = async (code) => {
+    if (confirm(`確定要永久刪除班別「${code}」嗎？`)) {
+        try {
+            await db.collection("ShiftTypes").doc(code).delete();
+            shift_fetchAll();
+        } catch (e) { alert("刪除失敗。"); }
+    }
+};
+
+function shift_resetForm() {
+    document.getElementById('shift-code').value = "";
+    document.getElementById('shift-code').disabled = false;
+    document.getElementById('shift-name').value = "";
+    document.getElementById('shift-start').value = "";
+    document.getElementById('shift-end').value = "";
+    document.getElementById('shift-hours').value = "";
+    document.getElementById('shift-saveBtn').innerText = "💾 儲存班別資料";
+    shift_isEditMode = false;
+}
+
+
+// =====================================================
+//  SECTION 5：代班推薦
+// =====================================================
+// 本地快取
+let sub_rosterDay = {};      // { sId: [ { eId, eName, sh } ] }
+let sub_allEmps = [];
+let sub_allStores = {};
+let sub_allShifts = [];
+let sub_currentDate = "";
+let sub_subCtx = null;       // 目前要找代班的 { sId, storeName, job }
+
+function sub_setDefaultDate() {
+    const today = new Date();
+    const fmt = today.toISOString().split('T')[0];
+    document.getElementById('sub-dateInput').value = fmt;
+    document.getElementById('sub-result').innerHTML = "";
+}
+
+async function sub_loadDay() {
+    const dateVal = document.getElementById('sub-dateInput').value;
+    if (!dateVal) return alert("請選擇日期");
+    sub_currentDate = dateVal;
+
+    const [y, mo, d] = dateVal.split('-').map(Number);
+    const monthKey = `${y}-${String(mo).padStart(2,'0')}`;
+    const dateKey = `${y}-${mo}-${d}`;
+
+    // 讀取共用資料
+    await syncSharedData();
+    sub_allEmps = sharedData.emps;
+    sub_allStores = sharedData.stores;
+    sub_allShifts = sharedData.shifts;
+
+    // 讀取當月排班
+    const rSnap = await db.collection("Rosters").where("month", "==", monthKey).get();
+    let fullRoster = {};
+    if (!rSnap.empty) {
+        fullRoster = rSnap.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))[0].data().data;
+    }
+
+    const dayJobs = fullRoster[dateKey] || [];
+
+    // 建立當日連班查詢用
+    sub_rosterDay._fullRoster = fullRoster;
+    sub_rosterDay._y = y;
+    sub_rosterDay._mo = mo;
+    sub_rosterDay._d = d;
+
+    // 依門市分組
+    const byStore = {};
+    dayJobs.forEach(j => {
+        if (!byStore[j.sId]) byStore[j.sId] = [];
+        byStore[j.sId].push(j);
+    });
+
+    const resultDiv = document.getElementById('sub-result');
+    const dateObj = new Date(y, mo - 1, d);
+    const wkName = ['日','一','二','三','四','五','六'][dateObj.getDay()];
+    resultDiv.innerHTML = `<div class="card" style="padding:12px 20px; background:#e8f0fe; margin-bottom:15px;">
+        <b>查詢日期：${dateVal}（週${wkName}）</b> — 共 ${dayJobs.length} 筆排班
+    </div>`;
+
+    if (Object.keys(sub_allStores).length === 0) {
+        resultDiv.innerHTML += `<div class="card">暫無門市資料</div>`;
+        return;
+    }
+
+    Object.values(sub_allStores).sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+        const jobs = byStore[s.id] || [];
+        let jobsHtml = "";
+        if (jobs.length === 0) {
+            jobsHtml = `<div style="color:#999; font-size:13px; padding:10px 0;">此門市當日無排班</div>`;
+        } else {
+            jobs.forEach((j, idx) => {
+                const shDef = sub_allShifts.find(x => x.code === String(j.sh||'').toUpperCase());
+                const timeStr = shDef ? `${shDef.startTime}-${shDef.endTime}` : j.sh;
+                jobsHtml += `<div style="display:flex; align-items:center; gap:15px; padding:10px 0; border-bottom:1px solid #f0f0f0;">
+                    <div style="flex:1;"><b>${j.eName}</b> <span style="color:#888; font-size:12px;">${j.sh} ${timeStr}</span></div>
+                    <button class="btn btn-danger btn-sm" onclick="sub_openModal('${s.id}','${s.name}',${idx})">🆘 找代班</button>
+                </div>`;
+            });
+        }
+        resultDiv.innerHTML += `<div class="store-day-group">
+            <div style="font-weight:bold; color:var(--primary); font-size:15px; margin-bottom:10px;">🏪 ${s.name}</div>
+            ${jobsHtml}
+        </div>`;
+    });
+}
+
+window.sub_openModal = (sId, storeName, jobIdx) => {
+    const [y, mo, d] = [sub_rosterDay._y, sub_rosterDay._mo, sub_rosterDay._d];
+    const dateKey = `${y}-${mo}-${d}`;
+    const fullRoster = sub_rosterDay._fullRoster;
+    const dayJobs = fullRoster[dateKey] || [];
+    const byStore = {};
+    dayJobs.forEach(j => { if (!byStore[j.sId]) byStore[j.sId] = []; byStore[j.sId].push(j); });
+    const job = (byStore[sId] || [])[jobIdx];
+    if (!job) return;
+
+    sub_subCtx = { sId, storeName, job };
+
+    // 計算當日已有班的員工
+    const busyEmpIds = new Set(dayJobs.map(j => j.eId));
+
+    // 日期的星期
+    const dateObj = new Date(y, mo - 1, d);
+    const wkName = ['日','一','二','三','四','五','六'][dateObj.getDay()];
+
+    // 過濾候選人
+    const candidates = sub_allEmps.filter(e => {
+        if (e.id === job.eId) return false;                                    // 排除本人
+        if (busyEmpIds.has(e.id)) return false;                                // 排除當天已有班
+        if ((e.unavailableDays || []).includes(wkName)) return false;          // 排除固定公休
+        if (!(e.canWorkStores || []).includes(storeName)) return false;        // 排除不支援此門市
+
+        // 排除排入後會連續 7 天的人
+        let before = 0, after = 0;
+        for (let i = 1; i <= 6; i++) {
+            const k = `${y}-${mo}-${d - i}`;
+            if ((fullRoster[k] || []).some(x => x.eId === e.id)) before++;
+            else break;
+        }
+        for (let i = 1; i <= 6; i++) {
+            const k = `${y}-${mo}-${d + i}`;
+            if ((fullRoster[k] || []).some(x => x.eId === e.id)) after++;
+            else break;
+        }
+        if (before + 1 + after >= 7) return false;
+
+        return true;
+    }).map(e => {
+        // 計算當前連班天數（往前）
+        let conDays = 0;
+        for (let i = 1; i <= 7; i++) {
+            const k = `${y}-${mo}-${d - i}`;
+            if ((fullRoster[k] || []).some(x => x.eId === e.id)) conDays++;
+            else break;
+        }
+        return { ...e, conDays };
+    }).sort((a, b) => a.conDays - b.conDays);
+
+    document.getElementById('sub-modalTitle').innerText = `🆘 ${job.eName} (${job.sh}) 代班候選人`;
+
+    let bodyHtml = `<p style="font-size:13px; color:#666; margin-bottom:15px;">
+        門市：${storeName}｜日期：${sub_currentDate}｜班別：${job.sh}
+    </p>`;
+
+    if (candidates.length === 0) {
+        bodyHtml += `<div style="color:var(--danger); text-align:center; padding:20px;">
+            找不到符合條件的代班人選。<br>
+            <small>（已排除：當日有班、固定公休、不支援門市、連班 7 天者）</small>
+        </div>`;
+    } else {
+        candidates.forEach(c => {
+            bodyHtml += `<div class="sub-result-card">
+                <div style="font-weight:bold; font-size:14px;">${c.name}</div>
+                <div style="font-size:12px; color:#666; margin-top:4px;">
+                    當前已連班：<b style="color:var(--primary);">${c.conDays}</b> 天
+                    ｜門市：${(c.canWorkStores || []).join(', ')}
+                </div>
+            </div>`;
+        });
+    }
+
+    document.getElementById('sub-modalBody').innerHTML = bodyHtml;
+    document.getElementById('sub-modal').style.display = 'flex';
+};
+
+window.sub_closeModal = () => document.getElementById('sub-modal').style.display = 'none';
+window.sub_loadDay = sub_loadDay;
+
+
+// =====================================================
+//  SECTION 6：員工班表
+// =====================================================
+let member_currDate = new Date(2026, 2, 1);
+let member_dbData = { roster: {}, emps: [], stores: {}, shifts: [] };
+
+async function member_fetchData() {
+    const y = member_currDate.getFullYear(), m = member_currDate.getMonth() + 1;
+    const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+    document.getElementById('member-monthDisplay').innerText = `${y} 年 ${m} 月`;
+
+    const [eSnap, sSnap, shSnap, rSnap] = await Promise.all([
+        db.collection("Employees").get(),
+        db.collection("Stores").get(),
+        db.collection("ShiftTypes").get(),
+        db.collection("Rosters").where("month", "==", monthKey).get()
+    ]);
+
+    member_dbData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    member_dbData.stores = {};
+    sSnap.forEach(d => member_dbData.stores[d.id] = { id: d.id, ...d.data() });
+    member_dbData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
+
+    if (!rSnap.empty) {
+        const latest = rSnap.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))[0];
+        member_dbData.roster = latest.data().data;
+    } else {
+        member_dbData.roster = {};
+    }
+
+    member_buildTable();
+}
+
+function member_buildTable() {
+    const y = member_currDate.getFullYear(), m = member_currDate.getMonth() + 1;
+    const days = new Date(y, m, 0).getDate();
+    const wkLabels = ['日','一','二','三','四','五','六'];
+
+    // 表頭
+    let headHtml = `<tr><th class="emp-name-col">員工 \\ 日</th>`;
+    for (let d = 1; d <= days; d++) {
+        const wk = new Date(y, m-1, d).getDay();
+        const isWe = (wk === 0 || wk === 6);
+        headHtml += `<th class="${isWe ? 'is-weekend-col' : ''}">${d}<br><small>${wkLabels[wk]}</small></th>`;
+    }
+    headHtml += `</tr>`;
+    document.getElementById('member-thead').innerHTML = headHtml;
+
+    // 依主要門市分組排序
+    const empSorted = member_dbData.emps.map(e => {
+        const counts = {};
+        Object.values(member_dbData.roster).forEach(dayJobs => {
+            (dayJobs || []).filter(j => j.eId === e.id).forEach(j => {
+                counts[j.sId] = (counts[j.sId] || 0) + 1;
+            });
+        });
+        const mainSid = Object.keys(counts).reduce((a,b) => counts[a] > counts[b] ? a : b, "ZZZ");
+        const mainName = member_dbData.stores[mainSid]?.name || "未分派";
+        return { ...e, mainName };
+    }).sort((a,b) => a.mainName.localeCompare(b.mainName) || a.name.localeCompare(b.name));
+
+    let bodyHtml = "";
+    let curGroup = "";
+
+    // 統計工時
+    const empHours = {};
+
+    empSorted.forEach(e => {
+        // 分組標題
+        if (e.mainName !== curGroup) {
+            curGroup = e.mainName;
+            bodyHtml += `<tr style="background:#e8eaed;"><td colspan="${days + 1}" style="font-weight:bold; padding:8px 12px; text-align:left; font-size:13px;">📍 ${curGroup}</td></tr>`;
+        }
+
+        let totalH = 0;
+        bodyHtml += `<tr><td class="emp-name-col">${e.name}</td>`;
+
+        for (let d = 1; d <= days; d++) {
+            const dateKey = `${y}-${m}-${d}`;
+            const wk = new Date(y, m-1, d).getDay();
+            const isWe = (wk === 0 || wk === 6);
+            const job = (member_dbData.roster[dateKey] || []).find(j => j.eId === e.id);
+
+            // 判斷是否公休
+            const wl = typeof e.wishLeaves === 'string'
+                ? e.wishLeaves.split(',').map(x => x.trim()).filter(Boolean)
+                : (Array.isArray(e.wishLeaves) ? e.wishLeaves : []);
+            const isWishOff = wl.some(x => forceISO(x) === forceISO(dateKey));
+            const isFixedOff = (e.unavailableDays || []).includes(wkLabels[wk]);
+
+            if (job) {
+                const store = member_dbData.stores[job.sId];
+                const storeShort = store?.shortName || store?.name || '';
+                const shDef = member_dbData.shifts.find(s => s.code === String(job.sh).toUpperCase());
+                const h = shDef ? (shDef.workHours || 8) : 8;
+                totalH += h;
+                bodyHtml += `<td class="is-work ${isWe ? 'is-weekend-col' : ''}">
+                    <span class="shift-code">${job.sh}</span>
+                    <span class="store-tag">${storeShort}</span>
+                </td>`;
+            } else if (isWishOff || isFixedOff) {
+                bodyHtml += `<td class="is-off ${isWe ? 'is-weekend-col' : ''}">休</td>`;
+            } else {
+                bodyHtml += `<td class="${isWe ? 'is-weekend-col' : ''}">-</td>`;
+            }
+        }
+
+        bodyHtml += `</tr>`;
+        empHours[e.id] = totalH;
+    });
+
+    // 工時統計列
+    bodyHtml += `<tr class="hours-row"><td class="emp-name-col" style="background:#c5d8fc !important;">本月工時(h)</td>`;
+    for (let d = 1; d <= days; d++) bodyHtml += `<td>-</td>`;
+    bodyHtml += `</tr>`;
+
+    // 各員工工時
+    empSorted.forEach(e => {
+        bodyHtml += `<tr class="hours-row">
+            <td class="emp-name-col" style="background:#dce8ff !important;">${e.name}</td>
+            <td colspan="${days}" style="text-align:left; padding-left:8px;">${empHours[e.id]?.toFixed(1)} h</td>
+        </tr>`;
+    });
+
+    document.getElementById('member-tbody').innerHTML = bodyHtml;
+}
+
+async function member_render() {
+    await member_fetchData();
+}
+
+window.member_changeMonth = (v) => {
+    member_currDate.setMonth(member_currDate.getMonth() + v);
+    member_render();
+};
+
+
+// =====================================================
+//  初始化
+// =====================================================
+window.onload = function() {
+    const savedKey = localStorage.getItem("scheduler_api_key");
+    if (savedKey) document.getElementById("apiKey").value = savedKey;
+    // 預設載入主排班
+    sch_load();
+};
+</script>
+</body>
+</html>
