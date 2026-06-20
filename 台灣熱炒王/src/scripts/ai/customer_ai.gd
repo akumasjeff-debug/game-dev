@@ -107,6 +107,19 @@ var velocity: Vector2 = Vector2.ZERO
 ## TODO: AnimatedSprite2D 素材完成後，取消此處的 @onready 註解
 ## @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
+## 幀切換動畫（純程式碼，不依賴 AnimatedSprite2D 場景節點）
+var _sprite: Sprite2D = null
+var _anim_frame: int = 0
+var _anim_timer: float = 0.0
+const ANIM_FPS: float = 6.0
+
+const ANIM_WALK_FRAMES: Array[String] = [
+	"res://assets/sprites/characters/char_customer_a_idle.png",
+	"res://assets/sprites/characters/char_customer_a_walk_f2.png",
+	"res://assets/sprites/characters/char_customer_a_walk_f3.png",
+	"res://assets/sprites/characters/char_customer_a_walk_f4.png",
+]
+
 
 # ============================================================
 # FSM 內部狀態
@@ -174,6 +187,8 @@ func _update_state(delta: float) -> void:
 
 		State.LEAVING:
 			_process_leaving(delta)
+
+	_tick_animation(delta)
 
 
 # ============================================================
@@ -385,3 +400,33 @@ func _on_leaving_complete() -> void:
 ##             _force_transition(State.LEAVING)
 ##         State.LEAVING:
 ##             _on_leaving_complete()
+
+
+# ============================================================
+# 幀切換動畫（Timer float 驅動，不依賴 AnimatedSprite2D）
+# ============================================================
+
+## 外部呼叫：傳入已掛好的 Sprite2D 參考
+func set_sprite(s: Sprite2D) -> void:
+	_sprite = s
+
+
+## 幀切換 tick（由 _update_state 末尾呼叫）
+func _tick_animation(delta: float) -> void:
+	if _sprite == null:
+		return
+
+	var is_walking: bool = (_current_state == State.ENTERING or _current_state == State.LEAVING)
+
+	if is_walking:
+		_anim_timer += delta
+		if _anim_timer >= 1.0 / ANIM_FPS:
+			_anim_timer -= 1.0 / ANIM_FPS
+			_anim_frame = (_anim_frame + 1) % ANIM_WALK_FRAMES.size()
+			_sprite.texture = load(ANIM_WALK_FRAMES[_anim_frame])
+	else:
+		# 非走路狀態：固定顯示 idle（frame 0）
+		if _anim_frame != 0:
+			_anim_frame = 0
+			_anim_timer = 0.0
+			_sprite.texture = load(ANIM_WALK_FRAMES[0])

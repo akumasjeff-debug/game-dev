@@ -42,7 +42,8 @@ var _auto_cook_timers: Dictionary = {}
 var _auto_deliver_timers: Dictionary = {}
 
 ## 自動完成烹飪的等待時間（秒）
-const AUTO_COOK_DELAY: float = 5.0
+## 設為 12.0 給真實廚師走路+烹飪 8 秒足夠時間，防止備用路徑搶先完成
+const AUTO_COOK_DELAY: float = 12.0
 ## 自動送餐的等待時間（秒）
 const AUTO_DELIVER_DELAY: float = 5.0
 
@@ -150,6 +151,7 @@ func place_order(customer_id: String, dish_id: String, table_tile: Vector2i) -> 
 	_kitchen_queue.append(order_id)
 	order_placed.emit(order_data)
 	print("[OrderManager] 訂單 %s 建立：%s（客人 %s）" % [order_id, dish_id, customer_id])
+	_try_assign_chef(order_id)
 	return order_id
 
 
@@ -272,6 +274,23 @@ func _notify_available_server(order_id: String) -> void:
 	# 沒有空閒員工，加入待送佇列
 	_pending_delivery_queue.append(order_id)
 	print("[OrderManager] 訂單 %s 等待外場員工（佇列中）" % order_id)
+
+
+## 嘗試找空閒廚師分配烹飪任務
+func _try_assign_chef(order_id: String) -> void:
+	var staff_nodes: Array[Node] = get_tree().get_nodes_in_group("staff")
+	for staff_node: Node in staff_nodes:
+		if not ("task_queue" in staff_node and "current_task" in staff_node and "_is_chef" in staff_node):
+			continue
+		if not staff_node._is_chef:
+			continue  # 只找廚師，不派外場
+		var is_queue_empty: bool = (staff_node.task_queue as Array).is_empty()
+		var is_task_empty: bool = (staff_node.current_task as Dictionary).is_empty()
+		if is_queue_empty and is_task_empty:
+			assign_to_chef(order_id, staff_node.name)
+			return
+	# 沒空閒廚師，留在 kitchen_queue，備用路徑繼續兜底
+	print("[OrderManager] 無空閒廚師，訂單 %s 留在廚房佇列" % order_id)
 
 
 ## 在指定群組中依名稱尋找節點，找不到回傳 null

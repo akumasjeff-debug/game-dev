@@ -36,8 +36,10 @@ OrderManager="*res://scripts/systems/OrderManager.gd"
 window/size/viewport_width=480
 window/size/viewport_height=270
 window/size/resizable=false
+window/size/initial_position_type=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
+window/stretch/scale=3.0
 window/handheld/orientation=1
 
 [input]

@@ -99,11 +99,20 @@ var _low_morale_penalty_active: bool = false
 # ============================================================
 
 func _ready() -> void:
-	# TODO: 整合 SaveManager 後，在此呼叫 load_game()
-	# 例：var save_data = SaveManager.load_game()
-	#     if not save_data.is_empty(): _apply_save_data(save_data)
 	_initialize_default_state()
-	print("[GameManager] 初始化完成，Year %d Day %d" % [current_year, current_day])
+	if SaveManager.has_save_file():
+		var save_data: Dictionary = SaveManager.load_game()
+		if not save_data.is_empty():
+			var gd: Dictionary = save_data.get("game_data", {})
+			if not gd.is_empty():
+				apply_save_data(gd)
+				print("[GameManager] 存檔讀取完成：Year %d Day %d" % [current_year, current_day])
+			else:
+				print("[GameManager] 存檔 game_data 為空，使用預設值")
+		else:
+			print("[GameManager] 存檔讀取失敗，使用預設值")
+	else:
+		print("[GameManager] 無既有存檔，使用預設值（新遊戲）")
 
 
 ## 套用預設初始狀態（新遊戲）
@@ -187,7 +196,11 @@ func _on_day_ended() -> void:
 	else:
 		_low_morale_penalty_active = false
 
-	# TODO: 呼叫 SaveManager.save_game() 自動存檔
+	var saved: bool = SaveManager.auto_save(export_save_data())
+	if not saved:
+		push_warning("[GameManager] 自動存檔失敗（Day %d）" % current_day)
+	else:
+		print("[GameManager] 自動存檔完成（Day %d）" % current_day)
 	# TODO: 通知結算 UI 顯示今日收支
 
 	# 推進日數
@@ -344,7 +357,6 @@ func get_time_string() -> String:
 # ============================================================
 
 ## 匯出存檔資料（給 SaveManager 呼叫）
-## TODO: SaveManager 整合後補充此函式
 func export_save_data() -> Dictionary:
 	return {
 		"year": current_year,
@@ -356,7 +368,6 @@ func export_save_data() -> Dictionary:
 
 
 ## 套用存檔資料（從 SaveManager 讀入）
-## TODO: SaveManager 整合後補充此函式
 func apply_save_data(data: Dictionary) -> void:
 	current_year = data.get("year", 1)
 	current_day = data.get("day", 1)
@@ -366,3 +377,11 @@ func apply_save_data(data: Dictionary) -> void:
 	money_changed.emit(money)
 	reputation_changed.emit(reputation)
 	staff_morale_changed.emit(staff_morale)
+
+
+## 手動存檔（供主選單、暫停畫面呼叫）
+## 回傳 true 表示成功，false 表示失敗
+func save_now() -> bool:
+	var result: bool = SaveManager.save_game(export_save_data())
+	print("[GameManager] 手動存檔 %s" % ("成功" if result else "失敗"))
+	return result

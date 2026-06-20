@@ -11,10 +11,53 @@ const StaffAIScript := preload("res://scripts/ai/staff_ai.gd")
 ## 金錢飄字：記錄上一次金額，計算增量
 var _last_money: float = 10000.0
 
+## 客人持續生成系統
+var _customer_spawn_timer: float = 0.0
+const CUSTOMER_SPAWN_INTERVAL: float = 8.0  # 每 8 秒生成一個客人
+const MAX_CUSTOMERS: int = 4               # 最多同時 4 個客人
+
+# 客人入口位置（外場區右側邊緣，讓客人從右方進入）
+const SPAWN_POSITIONS: Array = [
+	Vector2(96, 64),
+	Vector2(96, 48),
+	Vector2(96, 72),
+]
+
 
 # ============================================================
 # _ready
 # ============================================================
+
+func _process(delta: float) -> void:
+	_tick_customer_spawn(delta)
+
+
+func _tick_customer_spawn(delta: float) -> void:
+	_customer_spawn_timer += delta
+	if _customer_spawn_timer < CUSTOMER_SPAWN_INTERVAL:
+		return
+	_customer_spawn_timer = 0.0
+
+	var container := get_node_or_null("characters")
+	if container == null:
+		return
+
+	var current_count: int = container.get_children().filter(
+		func(n): return n.is_in_group("customers")
+	).size()
+
+	if current_count >= MAX_CUSTOMERS:
+		return
+
+	var new_customer: Node2D = CustomerAIScript.new()
+	var spawn_pos: Vector2 = SPAWN_POSITIONS[randi() % SPAWN_POSITIONS.size()]
+	new_customer.position = spawn_pos
+	container.add_child(new_customer)
+	new_customer.add_to_group("customers")
+	var sp_spawn: Sprite2D = _add_sprite(new_customer, "res://assets/sprites/characters/char_customer_a_idle.png")
+	new_customer.set_sprite(sp_spawn)
+	print("[game.gd] 新客人生成，當前總數: %d" % (current_count + 1))
+
 
 func _ready() -> void:
 	_init_map_zones()
@@ -164,11 +207,12 @@ func _on_day_ended(income: float) -> void:
 # 測試角色生成
 # ============================================================
 
-func _add_sprite(parent: Node2D, texture_path: String) -> void:
+func _add_sprite(parent: Node2D, texture_path: String) -> Sprite2D:
 	var sprite := Sprite2D.new()
 	sprite.texture = load(texture_path)
 	sprite.centered = false
 	parent.add_child(sprite)
+	return sprite
 
 
 func _spawn_test_customer() -> void:
@@ -181,7 +225,9 @@ func _spawn_test_customer() -> void:
 	else:
 		add_child(customer)
 
-	_add_sprite(customer, "res://assets/sprites/characters/char_customer_a_idle.png")
+	customer.add_to_group("customers")
+	var sp_customer: Sprite2D = _add_sprite(customer, "res://assets/sprites/characters/char_customer_a_idle.png")
+	customer.set_sprite(sp_customer)
 	print("[game.gd] 測試客人已生成，位置: ", customer.position)
 
 
@@ -202,8 +248,15 @@ func _spawn_test_staff() -> void:
 		add_child(chef)
 		add_child(waiter)
 
-	_add_sprite(chef, "res://assets/sprites/characters/char_chef_idle.png")
-	_add_sprite(waiter, "res://assets/sprites/characters/char_waiter_idle.png")
+	var sp_chef: Sprite2D = _add_sprite(chef, "res://assets/sprites/characters/char_chef_idle.png")
+	chef.set_sprite(sp_chef, true)
+	var sp_waiter: Sprite2D = _add_sprite(waiter, "res://assets/sprites/characters/char_waiter_idle.png")
+	waiter.set_sprite(sp_waiter, false)
+
+	# 設定待機位置，讓 StaffAI 知道任務完成後要走回哪裡
+	chef.set_home_position(Vector2(24, 24))
+	waiter.set_home_position(Vector2(40, 64))
+
 	print("[game.gd] 測試員工已生成（廚師: %s，外場: %s）" % [chef.position, waiter.position])
 
 
@@ -258,15 +311,20 @@ func _on_money_changed_for_popup(new_amount: float) -> void:
 
 
 ## 建立一個向上飄動並淡出的金錢 Label
+## 使用獨立 CanvasLayer（layer=2）確保顯示在 HUD（layer=1）上方
 func _show_money_popup(amount: float) -> void:
+	var popup_layer := CanvasLayer.new()
+	popup_layer.layer = 2
+	get_tree().root.add_child(popup_layer)
+
 	var label := Label.new()
-	label.position = Vector2(60, 50)
+	label.position = Vector2(240, 160)
 	label.text = "+$%d" % int(amount)
 	label.add_theme_color_override("font_color", Color(1, 0.9, 0.2))  # 金色
-	add_child(label)
+	popup_layer.add_child(label)
 
 	var tween := create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 20.0, 1.0)
+	tween.tween_property(label, "position:y", label.position.y - 30.0, 1.0)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
-	tween.tween_callback(label.queue_free)
+	tween.tween_callback(popup_layer.queue_free)
 	print("[game.gd] 金錢飄字：+$%d" % int(amount))

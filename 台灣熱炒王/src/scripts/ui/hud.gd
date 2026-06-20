@@ -4,6 +4,9 @@
 
 extends CanvasLayer
 
+## 建造模式切換信號（底部工具列「建造」按鈕觸發）
+signal build_mode_toggled
+
 
 # ============================================================
 # 私有成員
@@ -31,6 +34,20 @@ func _ready() -> void:
 # ============================================================
 
 func _build_labels() -> void:
+	# 頂部 HUD 背景色塊
+	var hud_bg := ColorRect.new()
+	hud_bg.color = Color(0.102, 0.102, 0.180, 0.85)  # #1A1A2E alpha=0.85
+	hud_bg.size = Vector2(480, 20)
+	hud_bg.position = Vector2(0, 0)
+	add_child(hud_bg)
+
+	# 頂部底邊霓虹線（1px 高 #FF2D55）
+	var neon_line := ColorRect.new()
+	neon_line.color = Color(1.0, 0.176, 0.333, 1.0)  # #FF2D55
+	neon_line.size = Vector2(480, 1)
+	neon_line.position = Vector2(0, 20)
+	add_child(neon_line)
+
 	_money_label = Label.new()
 	_money_label.position = Vector2(8, 4)
 	_money_label.text = "$0"
@@ -39,7 +56,7 @@ func _build_labels() -> void:
 
 	_day_label = Label.new()
 	_day_label.position = Vector2(180, 4)
-	_day_label.text = "Year 1 - Day 1"
+	_day_label.text = "第 1 年 第 1 天"
 	_day_label.add_theme_color_override("font_color", Color.WHITE)
 	add_child(_day_label)
 
@@ -54,6 +71,45 @@ func _build_labels() -> void:
 	_message_label.text = ""
 	_message_label.add_theme_color_override("font_color", Color.WHITE)
 	add_child(_message_label)
+
+	# 底部工具列
+	_build_toolbar()
+
+
+func _build_toolbar() -> void:
+	# 底部工具列背景
+	var toolbar_bg := ColorRect.new()
+	toolbar_bg.color = Color(0.102, 0.102, 0.180, 0.85)  # #1A1A2E alpha=0.85
+	toolbar_bg.size = Vector2(480, 18)
+	toolbar_bg.position = Vector2(0, 252)
+	add_child(toolbar_bg)
+
+	# 四個按鈕定義：[顯示文字, 是否接線]
+	var buttons_def: Array = [
+		["建造", true],
+		["擺桌", false],
+		["雇員", false],
+		["菜單", false],
+	]
+
+	var btn_width: float = 480.0 / buttons_def.size()
+
+	for i in range(buttons_def.size()):
+		var btn_text: String = buttons_def[i][0]
+		var btn_active: bool = buttons_def[i][1]
+
+		var btn := Button.new()
+		btn.text = btn_text
+		btn.position = Vector2(i * btn_width, 252)
+		btn.custom_minimum_size = Vector2(60, 18)
+		btn.size = Vector2(btn_width, 18)
+		btn.add_theme_font_size_override("font_size", 8)
+		btn.add_theme_color_override("font_color", Color(0.961, 0.961, 0.961, 1.0))  # #F5F5F5
+
+		if btn_active:
+			btn.pressed.connect(func(): build_mode_toggled.emit())
+
+		add_child(btn)
 
 
 # ============================================================
@@ -119,7 +175,7 @@ func _on_money_changed(new_amount: float) -> void:
 
 func _on_day_started(year: int, day: int) -> void:
 	if _day_label != null:
-		_day_label.text = "Year %d - Day %d" % [year, day]
+		_day_label.text = "第 %d 年 第 %d 天" % [year, day]
 
 
 func _on_reputation_changed(new_value: int) -> void:

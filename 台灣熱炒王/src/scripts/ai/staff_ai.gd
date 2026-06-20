@@ -106,6 +106,18 @@ var velocity: Vector2 = Vector2.ZERO
 ## 是否有指派任務（供 FSM 判斷走完路後的狀態）
 var has_task: bool = false
 
+## 待機位置（由 game.gd 生成員工後透過 set_home_position 設定）
+var home_position: Vector2 = Vector2.ZERO
+
+## 炒鍋位置（固定對應地圖上的炒菜台 Vector2i(1,1) * 16）
+var cook_position: Vector2 = Vector2(16.0, 16.0)
+
+## 當前移動目標（直線位移）
+var _move_target: Vector2 = Vector2.ZERO
+
+## 完成任務後是否正在返回待機位
+var _is_returning_home: bool = false
+
 
 # ============================================================
 # 動畫參考
@@ -113,6 +125,37 @@ var has_task: bool = false
 
 ## TODO: AnimatedSprite2D 素材完成後，取消此處的 @onready 註解
 ## @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
+## 幀切換動畫（純程式碼，不依賴 AnimatedSprite2D 場景節點）
+var _sprite: Sprite2D = null
+var _is_chef: bool = false
+var _anim_frame: int = 0
+var _anim_timer: float = 0.0
+const ANIM_FPS: float = 6.0
+const ANIM_COOK_FPS: float = 8.0
+
+const ANIM_CHEF_WALK: Array[String] = [
+	"res://assets/sprites/characters/char_chef_idle.png",
+	"res://assets/sprites/characters/char_chef_walk_f2.png",
+	"res://assets/sprites/characters/char_chef_walk_f3.png",
+	"res://assets/sprites/characters/char_chef_walk_f4.png",
+]
+const ANIM_CHEF_COOK: Array[String] = [
+	"res://assets/sprites/characters/char_chef_cook_f1.png",
+	"res://assets/sprites/characters/char_chef_cook_f2.png",
+	"res://assets/sprites/characters/char_chef_cook_f3.png",
+	"res://assets/sprites/characters/char_chef_cook_f4.png",
+	"res://assets/sprites/characters/char_chef_cook_f5.png",
+	"res://assets/sprites/characters/char_chef_cook_f6.png",
+]
+const ANIM_WAITER_WALK: Array[String] = [
+	"res://assets/sprites/characters/char_waiter_idle.png",
+	"res://assets/sprites/characters/char_waiter_walk_f1.png",
+]
+const ANIM_WAITER_CARRY: Array[String] = [
+	"res://assets/sprites/characters/char_waiter_carry_f1.png",
+	"res://assets/sprites/characters/char_waiter_carry_f3.png",
+]
 
 
 # ============================================================
@@ -184,6 +227,8 @@ func _update_state(delta: float) -> void:
 		State.ANGRY:
 			pass  ## 由 animation_finished 信號（或備用計時器保底）驅動回到 IDLE
 
+	_tick_animation(delta)
+
 
 # ============================================================
 # 各狀態處理邏輯
@@ -201,15 +246,23 @@ func _process_idle(delta: float) -> void:
 		_start_next_task()
 
 
-## WALK：移動至目標
-func _process_walk(_delta: float) -> void:
-	# TODO: PathfindingManager 整合後，實作 move_along_path()
-	# 目前以 path_complete flag 模擬抵達目標
-	if path_complete:
-		if has_task:
+## WALK：移動至目標（直線位移，2px 容差視為抵達）
+func _process_walk(delta: float) -> void:
+	var direction: Vector2 = _move_target - position
+	if direction.length() <= 2.0:
+		position = _move_target
+		path_complete = true
+		velocity = Vector2.ZERO
+		if _is_returning_home:
+			_is_returning_home = false
+			_transition_to(State.IDLE)
+		elif has_task:
 			_transition_to(State.WORKING)
 		else:
 			_transition_to(State.IDLE)
+	else:
+		velocity = direction.normalized() * move_speed
+		position += velocity * delta
 
 
 ## WORKING：執行任務
@@ -225,9 +278,16 @@ func _process_working(delta: float) -> void:
 func _process_satisfied(delta: float) -> void:
 	_satisfied_timer -= delta
 	if _satisfied_timer <= 0.0:
-		# 有待辦任務就繼續，否則回 IDLE
+		# 有待辦任務就繼續
 		if not task_queue.is_empty():
 			_start_next_task()
+			return
+		# 若離待機位超過 4px，先走回待機位
+		if home_position != Vector2.ZERO and (position - home_position).length() > 4.0:
+			_is_returning_home = true
+			_move_target = home_position
+			has_task = false
+			_transition_to(State.WALK)
 		else:
 			_transition_to(State.IDLE)
 
@@ -257,8 +317,16 @@ func _enter_state(state: State) -> void:
 		State.WALK:
 			task_done = false
 			path_complete = false
+			# _is_returning_home 與 _move_target 由呼叫端在 transition 前設定好
+			# 若非返回待機，則依任務類型決定移動目標
+			if not _is_returning_home:
+				var task_type: String = current_task.get("type", "")
+				match task_type:
+					"cook":
+						_move_target = cook_position
+					_:
+						_move_target = home_position if home_position != Vector2.ZERO else position
 			# TODO: 動畫整合後：animated_sprite.play("walk_%s" % _direction_suffix())
-			# TODO: PathfindingManager 整合後，在此計算路徑並啟動移動
 
 		State.WORKING:
 			_work_progress = 0.0
@@ -338,6 +406,11 @@ func clear_task_queue() -> void:
 # 工具函式
 # ============================================================
 
+## 設定待機位置（由 game.gd 在生成員工後呼叫）
+func set_home_position(pos: Vector2) -> void:
+	home_position = pos
+
+
 ## 依任務類型取得對應工作動畫名稱
 ## TODO: 動畫整合後，確認這些動畫名稱與 AnimatedSprite2D 的 animation 名稱一致
 func _get_work_animation(task_type: String) -> String:
@@ -392,3 +465,56 @@ func get_task_queue_size() -> int:
 ##         State.ANGRY:
 ##             morale = 0.3  ## 憤怒後恢復少量士氣
 ##             _transition_to(State.IDLE)
+
+
+# ============================================================
+# 幀切換動畫（Timer float 驅動，不依賴 AnimatedSprite2D）
+# ============================================================
+
+## 外部呼叫：傳入已掛好的 Sprite2D 參考與角色類型
+func set_sprite(s: Sprite2D, is_chef: bool = false) -> void:
+	_sprite = s
+	_is_chef = is_chef
+
+
+## 幀切換 tick（由 _update_state 末尾呼叫）
+func _tick_animation(delta: float) -> void:
+	if _sprite == null:
+		return
+
+	match _current_state:
+
+		State.WALK:
+			# 走路幀循環
+			var fps: float = ANIM_FPS
+			var frames: Array[String] = ANIM_CHEF_WALK if _is_chef else ANIM_WAITER_WALK
+			_anim_timer += delta
+			if _anim_timer >= 1.0 / fps:
+				_anim_timer -= 1.0 / fps
+				_anim_frame = (_anim_frame + 1) % frames.size()
+				_sprite.texture = load(frames[_anim_frame])
+
+		State.WORKING:
+			# 工作幀循環
+			if _is_chef:
+				# 廚師炒菜：6幀，8 FPS
+				_anim_timer += delta
+				if _anim_timer >= 1.0 / ANIM_COOK_FPS:
+					_anim_timer -= 1.0 / ANIM_COOK_FPS
+					_anim_frame = (_anim_frame + 1) % ANIM_CHEF_COOK.size()
+					_sprite.texture = load(ANIM_CHEF_COOK[_anim_frame])
+			else:
+				# 外場端餐：2幀，6 FPS
+				_anim_timer += delta
+				if _anim_timer >= 1.0 / ANIM_FPS:
+					_anim_timer -= 1.0 / ANIM_FPS
+					_anim_frame = (_anim_frame + 1) % ANIM_WAITER_CARRY.size()
+					_sprite.texture = load(ANIM_WAITER_CARRY[_anim_frame])
+
+		_:
+			# IDLE / SATISFIED / ANGRY：顯示待機幀（frame 0）
+			if _anim_frame != 0:
+				_anim_frame = 0
+				_anim_timer = 0.0
+				var idle_tex: String = ANIM_CHEF_WALK[0] if _is_chef else ANIM_WAITER_WALK[0]
+				_sprite.texture = load(idle_tex)

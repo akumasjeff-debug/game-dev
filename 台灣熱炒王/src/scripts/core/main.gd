@@ -48,6 +48,16 @@ func _on_day_started(year: int, day: int) -> void:
 
 func _on_day_ended(income: float) -> void:
 	print("[Main] 今日結算，收入：NT$%.0f" % income)
+	# 自動存檔
+	var save_data: Dictionary = {
+		"money": GameManager.money,
+		"year": GameManager.current_year,
+		"day": GameManager.current_day,
+		"reputation": GameManager.reputation,
+	}
+	SaveManager.save_game(save_data)
+	SaveManager.auto_save(save_data)
+	print("[Main] 自動存檔完成")
 	# TODO: 顯示日結 UI
 
 
