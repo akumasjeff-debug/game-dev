@@ -71,6 +71,9 @@ func _connect_enemy_signals():
 func _on_enemy_died(enemy):
 	if mission_manager:
 		mission_manager.on_enemy_died(enemy)
+	var hud_nodes = get_tree().get_nodes_in_group("hud")
+	if hud_nodes.size() > 0 and hud_nodes[0].has_method("add_kill"):
+		hud_nodes[0].add_kill()
 
 func _on_time_updated(remaining: float):
 	var hud_nodes = get_tree().get_nodes_in_group("hud")

@@ -90,8 +90,10 @@ func _configure_boss_enemy():
 	boss.hp = 200
 	boss.SPEED = 80.0
 	boss.VISION_RANGE = 500.0
-	# 老兵的 VISION_RANGE 也設定（is_veteran 共用這個欄位）
 	boss._cover_timer = 0.0
+	# 立即刷新 HP 條顯示
+	if boss.has_method("_update_hp_bar"):
+		boss._update_hp_bar()
 
 func _show_mission_objective():
 	var hud_nodes = get_tree().get_nodes_in_group("hud")
@@ -130,3 +132,17 @@ func _setup_patrol_routes():
 			for p in routes[enemy_name]:
 				typed_points.append(p)
 			enemy.set_patrol_points(typed_points)
+
+func spawn_boss_backup(boss_pos: Vector2):
+	var enemy_scene = load("res://scenes/Enemy.tscn")
+	if not enemy_scene:
+		return
+	var enemies_node = $World/Enemies
+	if not enemies_node:
+		return
+	for i in range(2):
+		var e = enemy_scene.instantiate()
+		e.global_position = boss_pos + Vector2(randf_range(-100.0, 100.0), randf_range(-100.0, 100.0))
+		enemies_node.add_child(e)
+		if e.has_signal("died") and not e.died.is_connected(_on_enemy_died):
+			e.died.connect(_on_enemy_died)
