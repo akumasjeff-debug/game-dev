@@ -567,7 +567,7 @@
                     <div class="check-grid" id="emp-storeContainer"></div>
                 </div>
                 <div class="check-section">
-                    <label>📅 固定公休日 (每週)：</label>
+                    <label>🚫 例假日（不可出勤，每週固定）：</label>
                     <div class="check-grid">
                         <label class="check-item"><input type="checkbox" class="emp-off-cb" value="一"> 一</label>
                         <label class="check-item"><input type="checkbox" class="emp-off-cb" value="二"> 二</label>
@@ -576,6 +576,18 @@
                         <label class="check-item"><input type="checkbox" class="emp-off-cb" value="五"> 五</label>
                         <label class="check-item"><input type="checkbox" class="emp-off-cb" value="六"> 六</label>
                         <label class="check-item"><input type="checkbox" class="emp-off-cb" value="日"> 日</label>
+                    </div>
+                </div>
+                <div class="check-section" style="margin-top:10px;">
+                    <label>💤 排休日（優先排休，但可代班/加班，每週）：</label>
+                    <div class="check-grid">
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="一"> 一</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="二"> 二</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="三"> 三</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="四"> 四</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="五"> 五</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="六"> 六</label>
+                        <label class="check-item"><input type="checkbox" class="emp-rest-cb" value="日"> 日</label>
                     </div>
                 </div>
                 <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:12px;" onclick="emp_saveEmployee()">💾 儲存員工基本資料</button>
@@ -843,8 +855,9 @@ async function syncSharedData() {
 // =====================================================
 //  SECTION 1：主排班
 // =====================================================
-let sch_currDate = new Date(2026, 2, 1);
+let sch_currDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let sch_roster = {};
+let sch_prevRoster = {};
 let sch_editCtx = null;
 
 const sch_getShiftHours = (shCode) => {
@@ -863,12 +876,23 @@ function sch_saveKey() {
 }
 
 async function sch_load() {
-    await syncSharedData();
-    const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
-    document.getElementById('sch-monthDisplay').innerText = `${y} 年 ${m} 月`;
-    const snap = await db.collection("Rosters").where("month", "==", `${y}-${String(m).padStart(2,'0')}`).get();
-    sch_roster = snap.empty ? {} : snap.docs.sort((a,b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))[0].data().data;
-    sch_render();
+    try {
+        await syncSharedData();
+        const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
+        document.getElementById('sch-monthDisplay').innerText = `${y} 年 ${m} 月`;
+        const snap = await db.collection("Rosters").where("month", "==", `${y}-${String(m).padStart(2,'0')}`).get();
+        sch_roster = snap.empty ? {} : snap.docs.sort((a,b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))[0].data().data;
+
+        // 載入上個月班表（用於跨月連班計算）
+        let prevY = y, prevM = m - 1;
+        if (prevM <= 0) { prevM = 12; prevY--; }
+        const prevSnap = await db.collection("Rosters").where("month", "==", `${prevY}-${String(prevM).padStart(2,'0')}`).get();
+        sch_prevRoster = prevSnap.empty ? {} : prevSnap.docs.sort((a,b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0))[0].data().data;
+
+        sch_render();
+    } catch (e) {
+        alert(`排班資料讀取失敗：${e.message}\n請確認網路連線與 Firebase 設定。`);
+    }
 }
 
 function sch_render() {
@@ -895,7 +919,7 @@ function sch_render() {
             dailyJobs.forEach((j, idx) => {
                 let con = 0;
                 for (let i = 1; i <= 7; i++) {
-                    if (sch_roster[`${y}-${m}-${d-i}`]?.some(x => x.eId === j.eId)) con++;
+                    if (hasShiftOnDate(y, m, d - i, j.eId)) con++;
                     else break;
                 }
                 storeHours[s.id] += sch_getShiftHours(j.sh);
@@ -926,6 +950,20 @@ function sch_render() {
 function sch_prevDateKey(y, m, d, back) {
     const dt = new Date(y, m - 1, d - back);
     return `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+}
+
+// 跨月查詢某人某日是否有班（同時查當月與上個月）
+function hasShiftOnDate(y, m, d, empId) {
+    if (d <= 0) {
+        let pm = m - 1, py = y;
+        if (pm <= 0) { pm = 12; py--; }
+        const prevMonthDays = new Date(py, pm, 0).getDate();
+        const rd = prevMonthDays + d;
+        const k = `${py}-${pm}-${rd}`;
+        return (sch_prevRoster[k] || []).some(j => j.eId === empId);
+    }
+    const k = `${y}-${m}-${d}`;
+    return (sch_roster[k] || []).some(j => j.eId === empId);
 }
 
 // 後處理驗證：檢查 6休1 與固定公休，回傳 { roster, violations }
@@ -1014,6 +1052,7 @@ function sch_buildPrompt(y, m, startDay, endDay, history) {
             `  - ${e.name}（id:${e.id}）`,
             `    可排門市：${storeNames || '無'}`,
             `    固定公休：每週${(e.unavailableDays || []).join('、') || '無'}`,
+            (e.restDays || []).length > 0 ? `    排休日（有需要可排，需標注）：每週${e.restDays.join('、')}` : null,
             `    目標工時：${e.minHours || 60}~${e.maxHours || 80}h`,
             `    區間前已連班：${histBefore}天`,
             wishInRange ? `    許願休假（本區間）：${wishInRange}` : null
@@ -1035,7 +1074,8 @@ function sch_buildPrompt(y, m, startDay, endDay, history) {
 【軟性規則 - 盡量滿足，人力確實不足時可例外但需盡力】
 1. 許願休假優先：「許願休假」的日期盡量安排該員工休假。
 2. 工時目標：每月總工時盡量在「目標工時」的 min~max 之間。
-3. 排班優先順序：只能排單一門市的員工優先排滿，再用多店機動員工補缺口。
+3. 排休日優先：員工的「排休日」星期優先安排休息，人力充足時不排；若確實缺人可排入，但視為特殊情況。
+4. 排班優先順序：只能排單一門市的員工優先排滿，再用多店機動員工補缺口。
 
 【各門市每週人力需求】
 ${storeLines.join('\n')}
@@ -1090,12 +1130,12 @@ async function sch_startAiScheduler() {
 
         const y = sch_currDate.getFullYear(), m = sch_currDate.getMonth() + 1;
 
-        // === 步驟2：計算區間前連班歷史 ===
+        // === 步驟2：計算區間前連班歷史（使用 hasShiftOnDate 支援跨月） ===
         const history = {};
         sharedData.emps.forEach(e => {
             let con = 0;
             for (let i = 1; i <= 6; i++) {
-                if (sch_roster[`${y}-${m}-${startDay-i}`]?.some(j => j.eId === e.id)) con++;
+                if (hasShiftOnDate(y, m, startDay - i, e.id)) con++;
                 else break;
             }
             history[e.id] = con;
@@ -1133,6 +1173,8 @@ async function sch_startAiScheduler() {
                     const resJson = await resp.json();
 
                     if (resJson.error) throw new Error(resJson.error.message);
+
+                    if (!resJson.candidates?.length) throw new Error('AI 無回應（candidates 為空），可能是安全過濾或配額問題');
 
                     const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
                     // 更強的 JSON 提取：找最外層完整 {...}
@@ -1211,6 +1253,7 @@ async function sch_startAiScheduler() {
 
 window.sch_openAiModal = () => {
     document.getElementById('sch-aiEnd').value = new Date(sch_currDate.getFullYear(), sch_currDate.getMonth() + 1, 0).getDate();
+    document.querySelector('#sch-aiModal h3').textContent = `🤖 ${sch_currDate.getFullYear()}年${sch_currDate.getMonth()+1}月 AI 智慧排班`;
     document.getElementById('sch-aiModal').style.display = 'flex';
 };
 
@@ -1242,10 +1285,9 @@ window.sch_pick = (eid, ename) => {
         const dayNum = parseInt(parts[2]);
         let before = 0, after = 0;
 
-        // 往前查連班天數（不含當日）
+        // 往前查連班天數（不含當日，支援跨月）
         for (let i = 1; i <= 6; i++) {
-            const checkKey = `${y}-${m}-${dayNum - i}`;
-            if ((sch_roster[checkKey] || []).some(j => j.eId === eid)) before++;
+            if (hasShiftOnDate(y, m, dayNum - i, eid)) before++;
             else break;
         }
         // 往後查連班天數（不含當日）
@@ -1340,9 +1382,13 @@ async function emp_init() {
         dateFormat: "Y-m-d",
         conjunction: ", "
     });
-    await emp_loadRoles();
-    await emp_loadStoreOptions();
-    await emp_loadEmployees();
+    try {
+        await emp_loadRoles();
+        await emp_loadStoreOptions();
+        await emp_loadEmployees();
+    } catch(e) {
+        alert(`員工資料讀取失敗：${e.message}`);
+    }
 }
 
 async function emp_loadRoles() {
@@ -1391,14 +1437,23 @@ window.emp_saveEmployee = async () => {
     const role = document.getElementById('emp-roleSelect').value;
     const stores = Array.from(document.querySelectorAll('.emp-store-cb:checked')).map(cb => cb.value);
     const offs = Array.from(document.querySelectorAll('.emp-off-cb:checked')).map(cb => cb.value);
+    const rests = Array.from(document.querySelectorAll('.emp-rest-cb:checked')).map(cb => cb.value);
 
     if (!name || !id || !role) return alert("請填寫姓名、ID 與職位");
 
     let wishData = "";
     if (oldId && emp_allEmployees[oldId]) wishData = emp_allEmployees[oldId].wishLeaves || "";
 
+    // 根據職位決定工時預設值（若已有資料則保留，只在新增時套用預設）
+    const isFullTime = /正職|全職|Full/i.test(role);
+    const defaultMin = isFullTime ? 160 : 60;
+    const defaultMax = isFullTime ? 176 : 80;
+    const existingEmp = emp_allEmployees[id];
+    const minHours = existingEmp?.minHours ?? defaultMin;
+    const maxHours = existingEmp?.maxHours ?? defaultMax;
+
     await db.collection("Employees").doc(id).set(
-        { id, name, role, canWorkStores: stores, unavailableDays: offs, wishLeaves: wishData },
+        { id, name, role, canWorkStores: stores, unavailableDays: offs, restDays: rests, wishLeaves: wishData, minHours, maxHours },
         { merge: true }
     );
     if (oldId && oldId !== id) await db.collection("Employees").doc(oldId).delete();
@@ -1410,6 +1465,7 @@ window.emp_saveEmployee = async () => {
     document.getElementById('emp-roleSelect').value = "";
     document.querySelectorAll('.emp-store-cb').forEach(cb => cb.checked = false);
     document.querySelectorAll('.emp-off-cb').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.emp-rest-cb').forEach(cb => cb.checked = false);
     await emp_loadEmployees();
 };
 
@@ -1427,7 +1483,8 @@ async function emp_loadEmployees() {
             <td>${e.role || ''}</td>
             <td>
                 <div style="font-size:11px; color:#666;">門市: ${(e.canWorkStores || []).join(', ')}</div>
-                <div style="font-size:11px; color:#999;">公休: ${(e.unavailableDays || []).join(', ')}</div>
+                <div style="font-size:11px; color:#c62828;">🚫 例假: ${(e.unavailableDays || []).join(', ') || '無'}</div>
+                <div style="font-size:11px; color:#1565c0;">💤 排休: ${(e.restDays || []).join(', ') || '無'}</div>
             </td>
             <td style="font-size:11px; color:var(--success); max-width:150px; word-break:break-all;">${e.wishLeaves || '--'}</td>
             <td>
@@ -1472,6 +1529,7 @@ window.emp_editEmp = (id) => {
     document.getElementById('emp-roleSelect').value = e.role;
     document.querySelectorAll('.emp-store-cb').forEach(cb => cb.checked = (e.canWorkStores || []).includes(cb.value));
     document.querySelectorAll('.emp-off-cb').forEach(cb => cb.checked = (e.unavailableDays || []).includes(cb.value));
+    document.querySelectorAll('.emp-rest-cb').forEach(cb => cb.checked = (e.restDays || []).includes(cb.value));
     window.scrollTo(0, 0);
 };
 
@@ -1495,16 +1553,20 @@ let store_tempConfig = {};
 let store_allStoresData = {};
 
 async function store_init() {
-    const shSnap = await db.collection("ShiftTypes").get();
-    const checkboxArea = document.getElementById('store-shiftCheckboxes');
-    checkboxArea.innerHTML = "";
-    store_allShifts = [];
-    shSnap.forEach(d => {
-        const s = d.data();
-        store_allShifts.push(s);
-        checkboxArea.innerHTML += `<label class="shift-check" id="store-label_${s.code}"><input type="checkbox" class="store-sh-cb" value="${s.code}" onchange="this.parentElement.classList.toggle('is-checked', this.checked)"> ${s.code}</label>`;
-    });
-    await store_loadStores();
+    try {
+        const shSnap = await db.collection("ShiftTypes").get();
+        const checkboxArea = document.getElementById('store-shiftCheckboxes');
+        checkboxArea.innerHTML = "";
+        store_allShifts = [];
+        shSnap.forEach(d => {
+            const s = d.data();
+            store_allShifts.push(s);
+            checkboxArea.innerHTML += `<label class="shift-check" id="store-label_${s.code}"><input type="checkbox" class="store-sh-cb" value="${s.code}" onchange="this.parentElement.classList.toggle('is-checked', this.checked)"> ${s.code}</label>`;
+        });
+        await store_loadStores();
+    } catch(e) {
+        alert(`門市資料讀取失敗：${e.message}`);
+    }
 }
 
 window.store_saveBasic = async () => {
@@ -1935,7 +1997,8 @@ window.sub_openModal = (sId, storeName, jobIdx) => {
             if ((fullRoster[k] || []).some(x => x.eId === e.id)) conDays++;
             else break;
         }
-        return { ...e, conDays };
+        const isRestDay = (e.restDays || []).includes(wkName);
+        return { ...e, conDays, isRestDay };
     }).sort((a, b) => a.conDays - b.conDays);
 
     document.getElementById('sub-modalTitle').innerText = `🆘 ${job.eName} (${job.sh}) 代班候選人`;
@@ -1951,8 +2014,8 @@ window.sub_openModal = (sId, storeName, jobIdx) => {
         </div>`;
     } else {
         candidates.forEach(c => {
-            bodyHtml += `<div class="sub-result-card">
-                <div style="font-weight:bold; font-size:14px;">${c.name}</div>
+            bodyHtml += `<div class="sub-result-card" ${c.isRestDay ? 'style="border-left-color:#fb8c00;"' : ''}>
+                <div style="font-weight:bold; font-size:14px;">${c.name}${c.isRestDay ? ' <span style="color:#fb8c00; font-size:12px;">⚠️ 今日排休，加班出勤</span>' : ''}</div>
                 <div style="font-size:12px; color:#666; margin-top:4px;">
                     當前已連班：<b style="color:var(--primary);">${c.conDays}</b> 天
                     ｜門市：${(c.canWorkStores || []).join(', ')}
@@ -1972,34 +2035,38 @@ window.sub_loadDay = sub_loadDay;
 // =====================================================
 //  SECTION 6：員工班表
 // =====================================================
-let member_currDate = new Date(2026, 2, 1);
+let member_currDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let member_dbData = { roster: {}, emps: [], stores: {}, shifts: [] };
 
 async function member_fetchData() {
-    const y = member_currDate.getFullYear(), m = member_currDate.getMonth() + 1;
-    const monthKey = `${y}-${String(m).padStart(2,'0')}`;
-    document.getElementById('member-monthDisplay').innerText = `${y} 年 ${m} 月`;
+    try {
+        const y = member_currDate.getFullYear(), m = member_currDate.getMonth() + 1;
+        const monthKey = `${y}-${String(m).padStart(2,'0')}`;
+        document.getElementById('member-monthDisplay').innerText = `${y} 年 ${m} 月`;
 
-    const [eSnap, sSnap, shSnap, rSnap] = await Promise.all([
-        db.collection("Employees").get(),
-        db.collection("Stores").get(),
-        db.collection("ShiftTypes").get(),
-        db.collection("Rosters").where("month", "==", monthKey).get()
-    ]);
+        const [eSnap, sSnap, shSnap, rSnap] = await Promise.all([
+            db.collection("Employees").get(),
+            db.collection("Stores").get(),
+            db.collection("ShiftTypes").get(),
+            db.collection("Rosters").where("month", "==", monthKey).get()
+        ]);
 
-    member_dbData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    member_dbData.stores = {};
-    sSnap.forEach(d => member_dbData.stores[d.id] = { id: d.id, ...d.data() });
-    member_dbData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
+        member_dbData.emps = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        member_dbData.stores = {};
+        sSnap.forEach(d => member_dbData.stores[d.id] = { id: d.id, ...d.data() });
+        member_dbData.shifts = shSnap.docs.map(d => ({ ...d.data(), code: String(d.data().code).trim().toUpperCase() }));
 
-    if (!rSnap.empty) {
-        const latest = rSnap.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))[0];
-        member_dbData.roster = latest.data().data;
-    } else {
-        member_dbData.roster = {};
+        if (!rSnap.empty) {
+            const latest = rSnap.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))[0];
+            member_dbData.roster = latest.data().data;
+        } else {
+            member_dbData.roster = {};
+        }
+
+        member_buildTable();
+    } catch(e) {
+        alert(`員工班表讀取失敗：${e.message}`);
     }
-
-    member_buildTable();
 }
 
 function member_buildTable() {
@@ -2223,6 +2290,12 @@ window.onload = function() {
     // 預設載入主排班
     sch_load().then(() => {
         if (window.innerWidth <= 768) mob_renderWeekView();
+    });
+    // Modal 點背景關閉
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) m.style.display = 'none';
+        });
     });
 };
 </script>
