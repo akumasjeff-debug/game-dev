@@ -200,9 +200,31 @@ func _fire(target):
 	emit_signal("ammo_changed", ammo, MAX_AMMO)
 	if _sfx_gunshot and _sfx_gunshot.stream:
 		_sfx_gunshot.play()
+	_spawn_muzzle_flash()
 	_spawn_bullet(target.global_position)
 	if ammo <= 0:
 		_start_reload()
+
+func _spawn_muzzle_flash():
+	var root = get_parent()
+	if not root:
+		return
+
+	var flash = Sprite2D.new()
+	# 槍口位置：玩家前方 15px（依照玩家朝向旋轉）
+	flash.global_position = global_position + Vector2(15.0, 0.0).rotated(rotation)
+	flash.z_index = 10
+	# 隨機縮放讓每次槍口焰略有不同
+	var scale_val = randf_range(0.8, 1.3)
+	flash.scale = Vector2(scale_val, scale_val)
+
+	var img_path = ProjectSettings.globalize_path("res://assets/vfx/generated/muzzle_flash.png")
+	var img = Image.load_from_file(img_path)
+	if img:
+		flash.texture = ImageTexture.create_from_image(img)
+
+	root.add_child(flash)
+	get_tree().create_timer(0.05).timeout.connect(flash.queue_free)
 
 func _spawn_bullet(target_pos: Vector2):
 	var scene = load("res://scenes/Bullet.tscn")

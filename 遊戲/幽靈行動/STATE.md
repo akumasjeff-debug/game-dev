@@ -29,6 +29,7 @@
 - **[2026-06-21] 敵人死亡音效防截斷**：`_die()` 前移 AudioStreamPlayer 至場景根節點再播放，播完自動 queue_free
 - **[2026-06-21] BGM 系統**：bgm_battle.wav（8 秒循環，Python wave 合成，60Hz 底音+150Hz 鼓擊+200Hz 金屬泛音），FileAccess 直讀，-12dB，勝利時停止，全 5 關共用
 - **[2026-06-21] 地板磚塊**：main.gd 含 _create_floor_tiles()（tilesheet 存在時自動鋪設），tilesheet 目前缺失但有防護不 crash
+- **[2026-06-21] Kenney 磚塊地圖整合**：Main.tscn 地板改為 Sprite2D（tilemap_packed.png col=9,row=1 深灰水泥磚，1920x1080 texture_repeat）；所有牆壁 Vis 節點從 ColorRect 改為 Sprite2D（col=8,row=0 深灰磚，texture_repeat 重複鋪設，各牆尺寸對應 CollisionShape2D）；碰撞系統完全不動；headless exit 0
 - **[2026-06-21] 關卡 2（Level2.tscn）**：倉庫廠房，暗殺 BossEnemy，7 雜兵 + 1 Boss，level2_main.gd
 - **[2026-06-21] 關卡 3（Level3.tscn）**：廢棄醫院，救援人質，8 雜兵，Hostage.tscn + ExitZone.tscn，level3_main.gd
 - **[2026-06-21] 關卡 4（Level4.tscn）**：軍事指揮中心，限時防守 90 秒，10 雜兵從四面逼近，HUD 倒數計時，level4_main.gd
@@ -62,7 +63,7 @@
 - 巡邏/追擊敵人顏色（深紅/正紅）對比不夠明顯（低優先）
 - cop_sprite 縮放 SCALE_FACTOR=0.25 可能偏小，待視覺驗證後調整
 - headless 模式下音效警告（非 bug，headless 不支援音頻驅動，實際遊戲正常）
-- main.gd 的 _create_floor_tiles() 需要 tilesheet_complete.png，目前缺失，push_warning 但不 crash（低優先）
+- main.gd 的 _create_floor_tiles() 需要 tilesheet_complete.png，目前缺失，push_warning 但不 crash（低優先，Main.tscn 已改用 Sprite2D 磚塊，此函式可移除）
 - BossEnemy（關卡 2）視野/速度差異化：SPEED 已為 var，level2_main.gd 有賦值程式碼，但需實際執行確認
 
 ## 操作紀錄
@@ -77,6 +78,7 @@
 - 2026-06-21：第七輪，音效系統（槍聲/換彈/死亡三個 WAV）、敵人死亡音效防截斷機制、headless exit 0
 - 2026-06-21：第十輪，關卡 2-5 全部完成（暗殺/救援/限時防守/最終殲滅），BGM，人質系統，HUD 串接，全 5 關關卡序列，headless exit 0
 - 2026-06-21：第十一輪，HQ 基地場景（Base.tscn + base_main.gd），主場景改為 Base，Level5 勝利後回 Base，headless exit 0
+- 2026-06-21：第十二輪，Main.tscn 磚塊整合（Kenney Roguelike Modern City），地板+牆壁全部換 Sprite2D，碰撞保留，headless exit 0
 
 ## 關卡一覽（全 5 關）
 | 關卡 | 場景 | 主題 | 任務類型 | 敵人數 |
