@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://hud001ghost"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="hp_fill_style"]
+bg_color = Color(0.8, 0.1, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="hp_bg_style"]
+bg_color = Color(0.2, 0.2, 0.2, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="ammo_fill_style"]
+bg_color = Color(1.0, 0.5, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="ammo_bg_style"]
+bg_color = Color(0.2, 0.2, 0.2, 0.8)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+layer = 10
+
+[node name="HUDContainer" type="VBoxContainer" parent="."]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 260.0
+offset_bottom = 130.0
+
+[node name="HPSection" type="VBoxContainer" parent="HUDContainer"]
+layout_mode = 2
+
+[node name="HPLabel" type="Label" parent="HUDContainer/HPSection"]
+layout_mode = 2
+text = "HP  100 / 100"
+
+[node name="HPBar" type="ProgressBar" parent="HUDContainer/HPSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 18)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+theme_override_styles/fill = SubResource("hp_fill_style")
+theme_override_styles/background = SubResource("hp_bg_style")
+
+[node name="AmmoSection" type="VBoxContainer" parent="HUDContainer"]
+layout_mode = 2
+
+[node name="AmmoLabel" type="Label" parent="HUDContainer/AmmoSection"]
+layout_mode = 2
+text = "Ammo  30 / 30"
+
+[node name="AmmoBar" type="ProgressBar" parent="HUDContainer/AmmoSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 18)
+max_value = 30.0
+value = 30.0
+show_percentage = false
+theme_override_styles/fill = SubResource("ammo_fill_style")
+theme_override_styles/background = SubResource("ammo_bg_style")
+
+[node name="ReloadLabel" type="Label" parent="HUDContainer"]
+layout_mode = 2
+visible = false
+text = "RELOADING..."
+
+[node name="SafeIndicator" type="ColorRect" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -100.0
+offset_right = -10.0
+offset_top = 10.0
+offset_bottom = 60.0
+color = Color(0.8, 0, 0, 1)
+
+[node name="SafeLabel" type="Label" parent="SafeIndicator"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "FIRE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SafeHint" type="Label" parent="SafeIndicator"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 50.0
+offset_right = 90.0
+offset_bottom = 70.0
+text = "[F] 切換"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="AutoAimLabel" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 140.0
+offset_right = 220.0
+offset_bottom = 165.0
+text = "自動瞄準中"
+modulate = Color(0.6, 0.9, 1.0, 0.9)
+theme_override_font_sizes/font_size = 16
+
+[node name="DeathPanel" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="Background" type="ColorRect" parent="DeathPanel"]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="DeathLabel" type="Label" parent="DeathPanel"]
+layout_mode = 1
+anchor_left = 0.3
+anchor_right = 0.7
+anchor_top = 0.35
+anchor_bottom = 0.55
+text = "任務失敗
+按 Enter 重新開始"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 48

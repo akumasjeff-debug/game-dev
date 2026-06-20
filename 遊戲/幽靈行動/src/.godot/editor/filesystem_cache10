@@ -1,0 +1,17 @@
+63f7b34db8d8cdea90c76aacccf841ec
+::res://::1781966323
+icon.svg::CompressedTexture2D::2485092715148665770::1781965155::1781966323::1::::<><><>0<>0<>238c67a752270b9f95b0d5d25d8318d4<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+::res://assets/::1781964970
+::res://scenes/::1781966075
+Enemy.tscn::PackedScene::1243795992088698567::1781965183::0::1::::<><><>0<>0<><>::res://scripts/enemy.gd
+HUD.tscn::PackedScene::15671694408957383::1781966075::0::1::::<><><>0<>0<><>::res://scripts/hud.gd
+Main.tscn::PackedScene::842776427812778951::1781965500::0::1::::<><><>0<>0<><>::res://scenes/Player.tscn<>res://scenes/Enemy.tscn<>res://scenes/HUD.tscn<>res://scripts/fog_of_war.gd
+Player.tscn::PackedScene::7443142911024070599::1781965813::0::1::::<><><>0<>0<><>::res://scripts/player.gd<>res://scripts/gun_line.gd<>res://scripts/vision_cone.gd
+::res://scripts/::1781966058
+bullet.gd::GDScript::1277447874103906776::1781965079::0::1::::<>Area2D<><>0<>0<><>::
+enemy.gd::GDScript::1577019767238009524::1781965792::0::1::::<>CharacterBody2D<><>0<>0<><>::
+fog_of_war.gd::GDScript::6398679566195672529::1781965993::0::1::::<>Node2D<><>0<>0<><>::
+gun_line.gd::GDScript::4844520882412459024::1781965012::0::1::::<>Node2D<><>0<>0<><>::
+hud.gd::GDScript::73700234071554491::1781966058::0::1::::<>CanvasLayer<><>0<>0<><>::
+player.gd::GDScript::3773330859534160458::1781966031::0::1::::<>CharacterBody2D<><>0<>0<><>::
+vision_cone.gd::GDScript::6700575778115855955::1781965021::0::1::::<>Node2D<><>0<>0<><>::

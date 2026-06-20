@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://player001ghost"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/vision_cone.gd" id="3_vision"]
+[ext_resource type="Script" path="res://scripts/cop_sprite.gd" id="4_cop"]
+
+[sub_resource type="CircleShape2D" id="1"]
+radius = 12.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 4
+script = ExtResource("1_player")
+
+[node name="CopSprite" type="AnimatedSprite2D" parent="."]
+script = ExtResource("4_cop")
+z_index = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="VisionCone" type="Node2D" parent="."]
+script = ExtResource("3_vision")
+
+[node name="ConePolygon" type="Polygon2D" parent="VisionCone"]
+color = Color(1, 1, 0.8, 0.15)
+z_index = 2
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.8, 0.8)
