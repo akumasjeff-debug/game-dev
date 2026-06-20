@@ -1032,6 +1032,12 @@ function sch_validateAndFix(aiRoster, startDay, endDay, y, m, prevBatchRoster = 
             // 4. 工時上限檢查（計算此員工在 aiRoster 中已累積工時）
             const maxH = emp.maxHours || 999;
             let accHours = 0;
+            // 先加計批次前已存在的班（手動或前批次 AI）
+            for (let cd = 1; cd < startDay; cd++) {
+                const ck = `${y}-${m}-${cd}`;
+                const pjob = (prevBatchRoster[ck] || sch_roster[ck] || []).find(j => j.eId === job.eId);
+                if (pjob) accHours += sch_getShiftHours(pjob.sh);
+            }
             for (let cd = startDay; cd < d; cd++) {
                 const ck = `${y}-${m}-${cd}`;
                 const cjob = (aiRoster[ck] || []).find(j => j.eId === job.eId);
@@ -1060,7 +1066,7 @@ function sch_setLoadingMsg(msg) {
 }
 
 // 構建結構化 prompt
-function sch_buildPrompt(y, m, startDay, endDay, history) {
+function sch_buildPrompt(y, m, startDay, endDay, history, extraRoster = {}) {
     const wkLabels = ['日','一','二','三','四','五','六'];
 
     // 預先計算每日各門市需求人數
@@ -1104,12 +1110,15 @@ function sch_buildPrompt(y, m, startDay, endDay, history) {
         `  - ${s.code}：${s.startTime}-${s.endTime}（${s.workHours}h）`
     );
 
-    // 收集排班範圍內已有的排班
+    // 收集排班範圍內已有的排班（合併 extraRoster 的結果）
     const existingEntries = [];
     for (let d = startDay; d <= endDay; d++) {
         const key = `${y}-${m}-${d}`;
-        if (sch_roster[key]?.length) {
-            const names = sch_roster[key].map(j => j.eName).join('、');
+        const combined = [...(extraRoster[key] || []), ...(sch_roster[key] || [])];
+        const seen = new Set();
+        const unique = combined.filter(j => seen.has(j.eId) ? false : seen.add(j.eId));
+        if (unique.length > 0) {
+            const names = unique.map(j => j.eName).join('、');
             existingEntries.push(`  ${m}/${d}：${names}`);
         }
     }
@@ -1223,7 +1232,7 @@ async function sch_startAiScheduler() {
                 batchHistory[e.id] = con;
             });
 
-            const basePrompt = sch_buildPrompt(y, m, batchStart, batchEnd, batchHistory);
+            const basePrompt = sch_buildPrompt(y, m, batchStart, batchEnd, batchHistory, allAiRoster);
 
             let aiRoster = null;
             let retryDone = false;
@@ -1263,6 +1272,19 @@ async function sch_startAiScheduler() {
 
                         aiRoster = JSON.parse(jsonMatch[0]);
                         usedModel = modelShort;
+
+                        // 正規化 key 格式：AI 有時回傳 "2024-06-05"，系統需要 "2024-6-5"
+                        const normalizedRoster = {};
+                        Object.entries(aiRoster).forEach(([k, v]) => {
+                            const parts = k.split('-');
+                            if (parts.length === 3) {
+                                const nk = `${parseInt(parts[0])}-${parseInt(parts[1])}-${parseInt(parts[2])}`;
+                                normalizedRoster[nk] = v;
+                            } else {
+                                normalizedRoster[k] = v;
+                            }
+                        });
+                        aiRoster = normalizedRoster;
 
                         // === 步驟5：後處理驗證 ===
                         sch_setLoadingMsg(`驗證 AI 結果中...`);
@@ -1311,18 +1333,25 @@ async function sch_startAiScheduler() {
 
         for (let d = startDay; d <= endDay; d++) {
             const key = `${y}-${m}-${d}`;
-            if (aiRoster[key] !== undefined) {
-                // 依門市分組，重新從 0 編 idx（不依賴 AI 給的 idx）
-                const grouped = {};
-                aiRoster[key].forEach(job => {
-                    if (!grouped[job.sId]) grouped[job.sId] = [];
-                    grouped[job.sId].push(job);
-                });
-                aiRoster[key] = Object.values(grouped).flatMap((jobs) =>
-                    jobs.map((job, idx) => ({ ...job, idx }))
-                );
-                sch_roster[key] = aiRoster[key];
-            }
+            if (aiRoster[key] === undefined) continue;
+
+            // 保留已有手動排班，AI 只補沒有排到的人
+            const existing = sch_roster[key] || [];
+            const existingIds = new Set(existing.map(j => j.eId));
+            const merged = [...existing];
+            (aiRoster[key] || []).forEach(job => {
+                if (!existingIds.has(job.eId)) merged.push(job);
+            });
+
+            // 依門市分組，重新從 0 編 idx
+            const grouped = {};
+            merged.forEach(job => {
+                if (!grouped[job.sId]) grouped[job.sId] = [];
+                grouped[job.sId].push(job);
+            });
+            sch_roster[key] = Object.values(grouped).flatMap((jobs) =>
+                jobs.map((job, idx) => ({ ...job, idx }))
+            );
         }
 
         // 更新模型徽章
