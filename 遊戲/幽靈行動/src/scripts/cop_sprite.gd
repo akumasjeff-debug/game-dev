@@ -1,12 +1,19 @@
 extends AnimatedSprite2D
 
 # 8 方向 AnimatedSprite2D 控制器
-# 根據父節點 rotation 自動切換對應方向動畫
-# 使用 set_as_top_level 讓 sprite 不跟著父節點旋轉
+# sprite_type: "enemy"（深色，原版）/ "player"（藍色）/ "boss"（金色）
 
-const IDLE_PATH = "res://assets/characters/swat/policeman_cc0/Policeman/_idle/"
-const WALK_PATH = "res://assets/characters/swat/policeman_cc0/Policeman/_walk/"
-const SHOOT_PATH = "res://assets/characters/swat/policeman_cc0/Policeman/_shoot/"
+@export var sprite_type: String = "enemy"
+
+const SPRITE_ROOTS = {
+	"enemy":  "res://assets/characters/swat/policeman_cc0/Policeman/",
+	"player": "res://assets/characters/swat/policeman_player/Policeman/",
+	"boss":   "res://assets/characters/swat/policeman_boss/Policeman/",
+}
+
+var IDLE_PATH: String
+var WALK_PATH: String
+var SHOOT_PATH: String
 
 const SCALE_FACTOR = 0.25
 const IDLE_FPS = 10
@@ -20,8 +27,20 @@ const NUM_DIRS = 8
 const DIR_OFFSET = 6
 
 func _ready():
-	top_level = true   # 脫離父節點 transform，sprite 不跟著父節點旋轉
+	top_level = true
 	scale = Vector2(SCALE_FACTOR, SCALE_FACTOR)
+	var root = SPRITE_ROOTS.get(sprite_type, SPRITE_ROOTS["enemy"])
+	IDLE_PATH  = root + "_idle/"
+	WALK_PATH  = root + "_walk/"
+	SHOOT_PATH = root + "_shoot/"
+	_build_frames()
+
+func reconfigure(type: String) -> void:
+	sprite_type = type
+	var root = SPRITE_ROOTS.get(sprite_type, SPRITE_ROOTS["enemy"])
+	IDLE_PATH  = root + "_idle/"
+	WALK_PATH  = root + "_walk/"
+	SHOOT_PATH = root + "_shoot/"
 	_build_frames()
 
 func _build_frames():

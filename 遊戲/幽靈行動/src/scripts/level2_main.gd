@@ -69,14 +69,18 @@ func _on_mission_failed(_reason: String):
 	pass  # 目前 HUD 尚未實作失敗面板，預留接口
 
 func _configure_boss_enemy():
-	# TODO: enemy.gd 中 SPEED 與 VISION_RANGE 皆為 const，
-	# 需改為 var 才能在此修改。目前先略過，不 crash。
-	# 預期 BossEnemy 規格：視野 400px，移速 80px/s。
 	var boss = $World/Enemies/BossEnemy
-	if boss and boss.has_method("set_vision_range"):
-		boss.set_vision_range(400.0)
-	if boss and "SPEED" in boss:
+	if not boss:
+		return
+	# 金色精靈集（Boss 外觀）
+	var boss_sprite = boss.get_node_or_null("CopSprite")
+	if boss_sprite and boss_sprite.has_method("reconfigure"):
+		boss_sprite.reconfigure("boss")
+	# Boss 數值差異化
+	if "SPEED" in boss:
 		boss.SPEED = 80.0
+	if "VISION_RANGE" in boss:
+		boss.VISION_RANGE = 400.0
 
 func _show_mission_objective():
 	var hud_nodes = get_tree().get_nodes_in_group("hud")

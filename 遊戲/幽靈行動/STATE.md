@@ -36,12 +36,24 @@
 - **[2026-06-21] 人質系統**：Hostage.tscn + hostage.gd（狀態機：IDLE/FOLLOWING/STOPPED，NavigationAgent2D），ExitZone.tscn
 - **[2026-06-21] hud.gd 擴充**：set_mission_text、start_countdown、update_countdown（倒數 Label 上方正中）、_go_to_next_level 關卡串接（Main→L2→L3→L4→L5）
 - **[2026-06-21] enemy.gd SPEED/VISION_RANGE 改為 var**：支援 BossEnemy 外部屬性差異化
+- **[2026-06-21] 基地場景（HQ）**：Base.tscn + base_main.gd，深色 #1a1a2e 主題，Header/MainContent（三欄面板）/BottomBar（出發＋設定），TransitionOverlay 漸入 0.5s 切 Main.tscn；project.godot 主場景改為 Base.tscn；hud.gd Level5 勝利後改為回 Base.tscn（headless exit 0）
 
 ## 進行中
 - 無
 
-## 待辦
-- 無（GDD Demo 目標 3-5 關全部實作完成）
+## 待辦（確認執行）
+- 陣形系統：最多 4 陣形、一鍵切換（Q/E/Z/X）、主要位置概念、鏡頭跟隨主要位置
+- 其餘 7 種職業：狙擊手 / 盾兵 / 重裝 / 醫療兵 / 散彈兵 / 偵察手 / 爆破手（各有專屬武器、HP、移速）
+- 基地系統：任務板（主線/支線選擇）、武器購買 / 升級（機率制 1–10 級）、隊員管理
+- Roguelite 跨局成長：金錢保留、職業解鎖、武器等級永久、隊員格數擴展（最多 4 格）
+- 素材替換：ColorRect 臨時素材 → 正式像素圖（角色、地圖磚塊、武器、UI）
+
+## 後續選擇項目（未確認，保留設計文件為參考）
+- 匿蹤系統：噪音等級、警戒消退時間、屍體觸發全區搜索
+- 六大素質成長：體力 / 敏捷 / 感知 / 力量 / 技術 / 意志
+- 倒地與救援機制：10 秒倒數、隊友施救、醫療兵加速
+- 故事情報系統：任務前情報文字、任務後解鎖劇情段落
+- 後期怪物關卡：生化實驗體（聽覺偵測）、軍事機械（視覺+雷達）
 
 ## 待確認
 - 無
@@ -63,7 +75,8 @@
 - 2026-06-21：第五輪，cop_sprite top_level 修正、enemy SHOOT 動畫修正、敵人巡邏路線設定、新建 main.gd
 - 2026-06-21：第六輪，霧戰三層系統重新實作（ImageTexture + 牆壁遮擋）、任務目標系統（殲滅）完成
 - 2026-06-21：第七輪，音效系統（槍聲/換彈/死亡三個 WAV）、敵人死亡音效防截斷機制、headless exit 0
-- 2026-06-21：第十輪（本輪），關卡 2-5 全部完成（暗殺/救援/限時防守/最終殲滅），BGM，人質系統，HUD 串接，全 5 關關卡序列，headless exit 0
+- 2026-06-21：第十輪，關卡 2-5 全部完成（暗殺/救援/限時防守/最終殲滅），BGM，人質系統，HUD 串接，全 5 關關卡序列，headless exit 0
+- 2026-06-21：第十一輪，HQ 基地場景（Base.tscn + base_main.gd），主場景改為 Base，Level5 勝利後回 Base，headless exit 0
 
 ## 關卡一覽（全 5 關）
 | 關卡 | 場景 | 主題 | 任務類型 | 敵人數 |

@@ -55,6 +55,7 @@ func _load_wav(path: String) -> AudioStreamWAV:
 
 func _ready():
 	add_to_group("player")
+	cop_sprite.reconfigure("player")  # 玩家使用藍色精靈集
 
 	# 建立槍聲播放器
 	_sfx_gunshot = AudioStreamPlayer.new()
