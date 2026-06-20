@@ -77,8 +77,8 @@ func _go_to_next_level():
 	if current in next_map:
 		get_tree().change_scene_to_file(next_map[current])
 	else:
-		# Level5 或未知場景：重啟
-		get_tree().reload_current_scene()
+		# Level5 完成 → 回到指揮中心（HQ）
+		get_tree().change_scene_to_file("res://scenes/Base.tscn")
 
 func _on_hp_changed(current_hp: int, max_hp: int):
 	if hp_bar:
