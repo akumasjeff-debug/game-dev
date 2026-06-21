@@ -740,6 +740,8 @@ func _update_coins_display() -> void:
 		coins_label.text = "金幣：" + str(SaveManager.coins)
 
 func _update_squad_display() -> void:
+	if squad_slots.is_empty():
+		return
 	var selected = SaveManager.selected_squad
 	for i in range(4):
 		var slot = squad_slots[i]
@@ -759,8 +761,10 @@ func _update_squad_display() -> void:
 			slot.modulate = Color(0.4, 0.4, 0.4)
 
 func _update_class_buttons() -> void:
+	if class_buttons.is_empty():
+		return
 	var selected = SaveManager.selected_squad
-	var owned = SaveManager.owned_characters
+	var owned = SaveManager.get("owned_characters") if SaveManager.get("owned_characters") != null else {}
 	for i in range(ALL_CLASSES.size()):
 		var cls = ALL_CLASSES[i]
 		var btn = class_buttons[i]
