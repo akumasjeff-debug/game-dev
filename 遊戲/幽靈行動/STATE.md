@@ -1,96 +1,56 @@
 # 幽靈行動 狀態
 
 ## 已完成
+
+### v0.5.1（2026-06-22）
+- **關卡架構重構**：獨立房間系統（1-1→1-2→1-3→Boss），全螢幕單房間，移除連續地圖
+- **子彈對射視覺**：character.gd 自主攻擊並發射子彈，enemy.gd 反擊子彈，雙向飛彈
+- **小隊進場動畫**：從螢幕底部走入（0.85s），期間暫停攻擊
+- **戰鬥數值重校**：普通兵 HP 1200/精英 HP 1650/Boss HP 2800，戰鬥 28-41 秒/房
+- **TCG 精靈全套**：6職業站立+蹲伏 SVG（盾兵/醫療兵/突擊手/狙擊手/爆破手/偵察手）
+- **敵人精靈升級**：普通兵/精英/Boss TCG 風格 SVG
+- **HUD 卡片修復**：BottomBar 高度 180→220px，卡片不再被裁切
+- **破門動畫**：點擊畫面可跳過
+- **敵人視覺**：血條加底色+依類型著色，名稱 16px，擊殺飄字放大
+- **Bug 8項修復**：敵人進場攻擊/首次延遲/全滅浮點/DEMO重置路徑/出發順序
+
+### v0.4.x（2026-06-21~22）
+- 隊員不出現修復（卡牌 ID 去等級後綴再查 CHAR_DATA）
+- 事件選擇系統暫時關閉
+- 卡牌管理：4槽陣容 + 下方列表去重過濾
+- 基地「升級管理」移除，整合進陣容管理
+- 主選單按鈕居中修復（絕對座標）
+- 出擊按鈕 WASM crash 修復
+
 ### v0.4.0（2026-06-22）
-- 主選單畫面（夜間城市背景 + 標題 + 開始按鈕）
-- 24 張卡片獨立插畫（6 職業 × R/SR/SSR/QR）
-- 升級管理 UI 全部重寫（新 TCG 邏輯，Lv.X/20，升等數值預覽）
-- 側視角補齊：side_sniper / side_recon / side_boss
-- 基地背景（指揮室風格）、抽卡背景（神秘召喚空間）
-- DEMO 重置按鈕（清空存檔 + 跳主選單）
-
-### TCG 卡牌系統
-- TCG 卡牌系統（24 張：6 職業 × R/SR/SSR/QR 四等級）
-- 抽卡機率：R 75% / SR 18% / SSR 6% / QR 1%，三層保底（10/50/100抽）
-- 卡片數值倍率：R×1.0 / SR×1.6 / SSR×2.8 / QR×5.0
-- 新手10連免費抽（含保底 SR）
-- save_manager.gd：owned_cards / card_levels / selected_squad / gacha_pity / starter_claimed
-- gacha_config.json + cards.json 資料檔
-
-### 視覺素材（新增）
-- 4種稀有度 TCG 卡框 SVG（card_frame_r/sr/ssr/qr.svg）
-- SWAT 破門場景圖（breach_scene.svg，180個rect，3名特種部隊員）
-
-### 過場動畫
-- SWAT 破門過場動畫（取代舊滑門動畫）：黑邊+場景圖+BREACH文字+閃白，總時長 0.84s
-
-### 核心遊戲循環
-- 俯視角戰鬥系統（4 房間 + Boss 房）
-- 6 職業角色（盾兵/突擊/爆破/醫療/狙擊/偵察），各有大招
-- 醫療兵自動回血被動 + Lv.6 戰場復活
-- 蹲伏/站立精靈切換（掩體後蹲姿，射擊時站起）
-- Boss 房震屏 + 紅閃警告效果
-- 敵人死亡動畫（閃白→膨脹→旋轉倒下/縮消失 + 擊殺文字）
-
-### 任務系統
-- 3 個任務：辦公大樓(demo_01)、地下停車場(warehouse_01)、港口(harbor_01)
-- 任務差異化：不同敵人配置、BGM、房間主題色、地板紋理
-- 任務確認面板（難度星級 + 獎勵預覽，取消/出擊）
-- 任務完成後故事片段（黑底淡入，3條台詞隨機）
-- 任務完成記錄存檔（completed_missions）
-- 決策事件任務特化（停車場/港口有專屬描述）
-- 6 個新任務專屬事件（停車場3 + 港口3）
-
-### 基地系統
-- 放置橫帶（側視角，4隊員自動戰鬥，波次制）
-- 任務板（多任務選擇，難度顯示）
-- 離線獎勵彈出通知（5分鐘觸發，上限24小時，50金幣/小時）
-- 存檔系統（金幣/票券/等級/任務進度）
-
-### 視覺素材
-- 全 6 職業俯視角 sprite + 6 蹲伏姿態 + 6 肖像
-- 敵人 3 種：普通兵/精英/Boss（俯視角 SVG）
-- 側視角 sprite（4 玩家 + 2 敵人 + 掩體木箱）
-- 戰場掩體 SVG（玩家大掩體 + 敵人小掩體 ×3）
-- 道具：辦公室/停車場/港口三套（18+ SVG）
-- 地板紋理：辦公室/停車場/港口（含 35% 透明度疊加）
-- 子彈 SVG（玩家黃銅彈頭/敵人深紅彈頭）
-
-### 音效系統
-- BGM：任務主題曲 + warehouse_bgm + harbor_bgm
-- SFX：gunshot/gunshot_enemy/impact_hit/ult_activate/victory_sting
-- 音效串接：玩家射擊/受傷/大招/勝利全部有音效
-
-### HUD & UI
-- 戰鬥 HUD：任務名稱 + 房間進度（N/4）
-- 結算畫面：動態獎勵（依任務顯示金幣/金票/藍票）
-- 中文字型完整支援（chinese_font.ttf 4.7MB）
+- 主選單畫面、基地畫面、任務場景全流程
+- TCG 卡牌系統（24張，6職業×R/SR/SSR/QR）
+- 抽卡系統（Gacha）、音效/BGM、存檔系統
+- Boss AI、結算畫面、HUD
 
 ## 進行中
 - 無
 
 ## 待辦
-- 角色升級面板技能說明
+- [ ] 人工瀏覽器測試：
+  - 子彈飛行在 WebGL 下是否正常
+  - 進場動畫+蹲伏切換視覺
+  - Boss 死亡後結算畫面是否彈出
+  - iPhone Home Indicator 是否遮擋 HUD
+- [ ] 音效補充：enemy_gunshot（敵人射擊音效，目前用 gunshot_enemy 可能缺失）
+- [ ] 關卡系統擴充（目前只有 Level 1，4 個房間）
+- [ ] 勝利條件：Boss 死後進結算
 
 ## 待確認
 - 無
 
 ## 已知問題
-- events.json 新增的 mission_filter 欄位需要 decision_panel.gd 程式端配合讀取才能生效
-- 角色蹲伏模式已實作 set_cover_mode()，但 room.gd 尚未在所有入口點完整呼叫
-- demo_qr 爆破手 ATK 350 可能過高（爆發型，需測試後調整）
-- QR 盾兵 DEF 200 對照敵人傷害上限需確認是否過強
+- 4站位間距略不均（225/300/225px），建議等間距 [162, 378, 594, 810]（小問題）
+- iPhone Home Indicator 可能遮擋 HUD 底部（未實測）
+- headless 無法驗證 WebGL 渲染，子彈/蹲伏動畫需瀏覽器確認
 
 ## 操作紀錄
-- 新增 src/resources/data/missions.json（3個任務配置）
-- 新增 src/resources/data/mission_stories.json（任務故事片段）
-- 新增 src/audio/bgm/warehouse_bgm.wav、harbor_bgm.wav
-- 新增 src/audio/combat/gunshot_enemy.wav、impact_hit.wav
-- 新增 src/audio/ult/ult_activate.wav
-- 新增 src/audio/ui/victory_sting.wav
-- 新增 src/resources/art/sprites/crouch/ 資料夾（6個蹲伏 SVG）
-- 新增 src/resources/art/sprites/side/ 資料夾（7個側視角 SVG）
-- 新增 src/resources/art/sprites/bullet_player.svg、bullet_enemy.svg
-- 新增 src/resources/art/props/（停車場3 + 港口3 + 地板2 + 掩體4 SVG）
-- 新增 src/scripts/story_panel.gd
-- 新增 docs/press/（cover/banner/icon SVG）
+- 2026-06-22 v0.5.1: 多 agent 平行修復，8 bug 修復，TCG 精靈全套，敵人 HP 重校
+- 2026-06-22 v0.5.0: 獨立房間架構上線
+- 2026-06-22 v0.4.7: 戰鬥暫停/節奏/跳過動畫/直走不繞路
+- 2026-06-21 v0.4.6: 隊員不出現修復，事件選擇關閉

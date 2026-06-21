@@ -2962,7 +2962,7 @@ parking_pillar.svg::CompressedTexture2D::147819353475642305::1782051106::1782052
 player_cover.svg::CompressedTexture2D::9113657423997296029::1782051270::1782052144::1::::<><><>0<>0<>314105ca678cef96e5d0acf8a9d2c4ad<>res://.godot/imported/player_cover.svg-e9150da564a15d50569323ec3ba36cfb.ctex::
 server_rack.svg::CompressedTexture2D::907447682609465216::1782048790::1782048836::1::::<><><>0<>0<>afc2ddadc39e34d647d45497ebf55dc1<>res://.godot/imported/server_rack.svg-43704e400646eea99f4929a6b61d5951.ctex::
 wall_crack.svg::CompressedTexture2D::4564075693854348437::1782048781::1782048836::1::::<><><>0<>0<>eac7bb37a5297b3737515c3fff7375c7<>res://.godot/imported/wall_crack.svg-f321f2ed74ae30fabf57818b0de55742.ctex::
-::res://resources/art/sprites/::1782066335
+::res://resources/art/sprites/::1782066401
 assault_sprite.svg::CompressedTexture2D::2042907177101896616::1782065902::1782066401::1::::<><><>0<>0<>2cefb4fbf519a650c3b35b137cea3148<>res://.godot/imported/assault_sprite.svg-0e5ff4bc76527a1c7d182e0b3002ba62.ctex::
 boss_sprite.svg::CompressedTexture2D::3208600075609243415::1782066335::1782066401::1::::<><><>0<>0<>18712c0aa9c9db43462ea5af4de4e33e<>res://.godot/imported/boss_sprite.svg-8376cd559516188f8228018c970cbfa2.ctex::
 bullet_enemy.svg::CompressedTexture2D::2321080813865727588::1782051368::1782052144::1::::<><><>0<>0<>ba04e7ae8c29cbf0cb48fa2a8c90f114<>res://.godot/imported/bullet_enemy.svg-a15f511e2919294b2273090c6adde408.ctex::
@@ -2974,7 +2974,7 @@ medic_sprite.svg::CompressedTexture2D::1980542351397322297::1782065883::17820664
 recon_sprite.svg::CompressedTexture2D::5187761359775813055::1782065966::1782066401::1::::<><><>0<>0<>8140509aa33496ab7a276dbc44b66aa4<>res://.godot/imported/recon_sprite.svg-ac0499a429cba2416e4658b350aed895.ctex::
 shield_sprite.svg::CompressedTexture2D::4808826870667063667::1782065836::1782066401::1::::<><><>0<>0<>a3466d9207e912e98140617a937fbf51<>res://.godot/imported/shield_sprite.svg-b4ea43db2d482c702615042014e3cf13.ctex::
 sniper_sprite.svg::CompressedTexture2D::7473922136758108399::1782065922::1782066401::1::::<><><>0<>0<>2b5d26f2ca973704d0b5483b81fe291d<>res://.godot/imported/sniper_sprite.svg-f40a6dca0ac0c191898e5eb1904e2e9f.ctex::
-::res://resources/art/sprites/crouch/::1782066070
+::res://resources/art/sprites/crouch/::1782066401
 crouch_assault.svg::CompressedTexture2D::5444264863228952311::1782066010::1782066401::1::::<><><>0<>0<>04faa5a2ecf2ecdba9841fcea8cbee2f<>res://.godot/imported/crouch_assault.svg-09ef2add080e18b8a586981f4624666a.ctex::
 crouch_demo.svg::CompressedTexture2D::3842553150343104636::1782066054::1782066401::1::::<><><>0<>0<>3abd47706a43be0d60106412db637169<>res://.godot/imported/crouch_demo.svg-cbea17ad5dd299dd8fcf09fcdcbd7d37.ctex::
 crouch_medic.svg::CompressedTexture2D::9016734540575765545::1782065998::1782066401::1::::<><><>0<>0<>3054fd9c162677195385d9cef2c594e1<>res://.godot/imported/crouch_medic.svg-37543bab5314f2143f8d56fd351e2347.ctex::
@@ -3012,7 +3012,7 @@ Main.tscn::PackedScene::-1::1782004235::0::1::::<><><>0<>0<><>::res://scripts/ma
 MainMenu.tscn::PackedScene::-1::1782061973::0::1::::<><><>0<>0<><>::res://scripts/main_menu.gd
 SquadConfirmPanel.tscn::PackedScene::-1::1782047198::0::1::::<><><>0<>0<><>::res://scripts/squad_confirm_panel.gd
 UpgradePanel.tscn::PackedScene::-1::1782038270::0::1::::<><><>0<>0<><>::res://scripts/upgrade_panel.gd
-::res://scripts/::1782066339
+::res://scripts/::1782066621
 audio_manager.gd::GDScript::3124682798317689935::1782051856::0::1::::<>Node<><>0<>0<><>::
 base.gd::GDScript::3192984383880569308::1782066304::0::1::::<>Node2D<><>0<>0<><>::
 bullet.gd::GDScript::7564048488426712478::1782051390::0::1::::<>Node2D<><>0<>0<><>::
@@ -3024,9 +3024,9 @@ enemy.gd::GDScript::742396604368551504::1782066339::0::1::::<>Node2D<><>0<>0<><>
 gacha_manager.gd::GDScript::2401684737449039859::1782038797::0::1::::<>Node<><>0<>0<><>::
 gacha_panel.gd::GDScript::7490592088675856337::1782054299::0::1::::<>CanvasLayer<><>0<>0<><>::
 game_manager.gd::GDScript::6247711979782412305::1782066276::0::1::::<>Node<><>0<>0<><>::
-hud.gd::GDScript::5752457443024025887::1782066284::0::1::::<>CanvasLayer<><>0<>0<><>::
-main.gd::GDScript::6774399327182822786::1782066259::0::1::::<>Node2D<><>0<>0<><>::
-main_menu.gd::GDScript::5475197669743869228::1782064620::0::1::::<>Control<><>0<>0<><>::
+hud.gd::GDScript::5752457443024025887::1782066621::0::1::::<>CanvasLayer<><>0<>0<><>::
+main.gd::GDScript::6774399327182822786::1782066573::0::1::::<>Node2D<><>0<>0<><>::
+main_menu.gd::GDScript::5475197669743869228::1782066578::0::1::::<>Control<><>0<>0<><>::
 room.gd::GDScript::6949035631564065874::1782065735::0::1::::<>Node2D<><>0<>0<><>::
 save_manager.gd::GDScript::4206352049541440145::1782066291::0::1::::<>Node<><>0<>0<><>::
 squad_confirm_panel.gd::GDScript::9072076109633159371::1782054554::0::1::::<>CanvasLayer<><>0<>0<><>::

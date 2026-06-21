@@ -49,7 +49,7 @@ const ROOM_CONFIGS: Array = [
 # 小隊站位（全螢幕 1080×1920；y=1540 在 HUD 上方）
 const SQUAD_COMBAT_Y   := 1520.0
 const SQUAD_ENTRY_Y    := 2180.0
-const SQUAD_X_SLOTS: Array = [165.0, 390.0, 690.0, 915.0]
+const SQUAD_X_SLOTS: Array = [162.0, 378.0, 594.0, 810.0]
 
 # ─────────────────────────────────────────────────────────────
 #  角色基礎資料（Lv.1 × 稀有度 × 等級 乘率 → SaveManager）

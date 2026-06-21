@@ -60,9 +60,11 @@ func _ready() -> void:
 	GameManager.game_lost.connect(_on_game_lost)
 	_build_recon_toast()
 	_add_top_bar()
-	# 連接重試按鈕
+	# 連接重試 / 返回按鈕
 	if retry_btn:
 		retry_btn.pressed.connect(_on_retry_pressed)
+	if restart_btn:
+		restart_btn.pressed.connect(_on_restart_pressed)
 
 func _add_top_bar() -> void:
 	# 任務名稱（左側，y=20）
