@@ -1,0 +1,23 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 落影 -->
+  <ellipse cx="32" cy="62" rx="26" ry="4" fill="#000000" opacity="0.25"/>
+  <!-- 主體 -->
+  <rect x="4" y="4" width="56" height="58" fill="#4A4A54"/>
+  <!-- 頂面 -->
+  <rect x="4" y="4" width="56" height="6" fill="#5E5E6A"/>
+  <!-- 三個置物格（分割線） -->
+  <rect x="4"  y="22" width="56" height="2" fill="#3A3A44"/>
+  <rect x="4"  y="42" width="56" height="2" fill="#3A3A44"/>
+  <!-- 把手（每格一個） -->
+  <rect x="28" y="14" width="8"  height="4" fill="#888888"/>
+  <rect x="28" y="30" width="8"  height="4" fill="#888888"/>
+  <rect x="28" y="48" width="8"  height="4" fill="#888888"/>
+  <!-- 通風縫 -->
+  <rect x="8"  y="8"  width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="11" width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="14" width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="26" width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="29" width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="44" width="20" height="1" fill="#3A3A44"/>
+  <rect x="8"  y="47" width="20" height="1" fill="#3A3A44"/>
+</svg>

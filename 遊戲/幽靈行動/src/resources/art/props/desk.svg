@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 桌面 -->
+  <rect x="4" y="12" width="56" height="40" fill="#5C3A1E"/>
+  <rect x="4" y="12" width="56" height="3" fill="#7A4E28"/>
+  <!-- 電腦螢幕（靠上方，俯視看螢幕頂部） -->
+  <rect x="18" y="14" width="28" height="16" fill="#1A1A2A"/>
+  <rect x="20" y="15" width="24" height="12" fill="#1A3A5A"/>
+  <rect x="21" y="16" width="22" height="10" fill="#2A6A8A"/>
+  <!-- 鍵盤 -->
+  <rect x="18" y="32" width="22" height="8" fill="#333333"/>
+  <rect x="19" y="33" width="20" height="6" fill="#2A2A2A"/>
+  <!-- 文件（右側） -->
+  <rect x="44" y="28" width="12" height="16" fill="#DDDDDD"/>
+  <rect x="45" y="30" width="10" height="1" fill="#AAAAAA"/>
+  <rect x="45" y="33" width="10" height="1" fill="#AAAAAA"/>
+  <rect x="45" y="36" width="6"  height="1" fill="#AAAAAA"/>
+  <!-- 桌腳（四角） -->
+  <rect x="4"  y="48" width="6" height="4" fill="#3A2010"/>
+  <rect x="54" y="48" width="6" height="4" fill="#3A2010"/>
+</svg>

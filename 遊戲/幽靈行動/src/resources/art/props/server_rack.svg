@@ -1,0 +1,26 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 機架主體 -->
+  <rect x="8" y="2" width="48" height="60" fill="#0E1218"/>
+  <rect x="8" y="2" width="48" height="4" fill="#1A2030"/>
+  <!-- 多排伺服器模組 -->
+  <rect x="10" y="8"  width="44" height="6"  fill="#1A1A2A"/>
+  <rect x="10" y="16" width="44" height="6"  fill="#1A2030"/>
+  <rect x="10" y="24" width="44" height="6"  fill="#1A1A2A"/>
+  <rect x="10" y="32" width="44" height="6"  fill="#1A2030"/>
+  <rect x="10" y="40" width="44" height="6"  fill="#1A1A2A"/>
+  <rect x="10" y="48" width="44" height="6"  fill="#1A2030"/>
+  <!-- 指示燈（每排兩個） -->
+  <rect x="12" y="10" width="3" height="2" fill="#00FF44"/>
+  <rect x="12" y="18" width="3" height="2" fill="#FF4400"/>
+  <rect x="12" y="26" width="3" height="2" fill="#00FF44"/>
+  <rect x="12" y="34" width="3" height="2" fill="#FF4400"/>
+  <rect x="12" y="42" width="3" height="2" fill="#00FF44"/>
+  <rect x="12" y="50" width="3" height="2" fill="#FFFF00"/>
+  <!-- 散熱孔（右側） -->
+  <rect x="44" y="9"  width="8" height="1" fill="#0A0C10"/>
+  <rect x="44" y="17" width="8" height="1" fill="#0A0C10"/>
+  <rect x="44" y="25" width="8" height="1" fill="#0A0C10"/>
+  <rect x="44" y="33" width="8" height="1" fill="#0A0C10"/>
+  <rect x="44" y="41" width="8" height="1" fill="#0A0C10"/>
+  <rect x="44" y="49" width="8" height="1" fill="#0A0C10"/>
+</svg>

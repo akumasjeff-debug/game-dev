@@ -43,6 +43,7 @@ func _ready() -> void:
 	_apply_type_stats()
 	current_hp = max_hp
 	_build_visual()
+	add_to_group("enemies")
 
 func _apply_type_stats() -> void:
 	match enemy_type:
@@ -119,10 +120,33 @@ func _do_attack() -> void:
 	# 偵察手大招 blind 狀態：敵人攻擊無效
 	if gm.enemies_blinded:
 		return
-	var target = _get_frontline_member(gm)
-	if target == null:
+	var best_target = _get_frontline_member(gm)
+	if best_target == null:
 		return
-	gm.apply_damage_to_member(target, attack_power)
+	# 發射子彈（命中後才透過 GameManager 扣血）
+	_fire_bullet(best_target)
+
+func _fire_bullet(target_node: Node) -> void:
+	var bullet_script = load("res://scripts/bullet.gd")
+	if bullet_script == null:
+		# 回退：直接透過 GameManager 扣血
+		var gm = get_node_or_null("/root/GameManager")
+		if gm:
+			gm.apply_damage_to_member(target_node, attack_power)
+		return
+
+	var bullet = Node2D.new()
+	bullet.set_script(bullet_script)
+	# 加到主場景根節點（讓子彈不隨房間移動）
+	var main = get_tree().current_scene if get_tree() else null
+	if main:
+		main.add_child(bullet)
+		bullet.setup(global_position, target_node, attack_power, "enemy")
+	else:
+		# 無法取得主場景，回退直接扣血
+		var gm = get_node_or_null("/root/GameManager")
+		if gm:
+			gm.apply_damage_to_member(target_node, attack_power)
 
 func _get_frontline_member(gm: Node) -> Node:
 	# 盾兵優先作為前線（有盾兵且未死亡）；否則取第一個存活隊員

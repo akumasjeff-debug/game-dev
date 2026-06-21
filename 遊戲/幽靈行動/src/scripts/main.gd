@@ -173,6 +173,34 @@ func _add_room_visual(pos: Vector2, size: Vector2, color: Color, label: String) 
 	rect.color = color
 	add_child(rect)
 	_add_text_label(pos + Vector2(10, 10), label, Color(0.8, 0.8, 0.8))
+	_add_room_props(rect, size, label == "Boss")
+
+func _add_room_props(room_node: Node2D, room_size: Vector2, is_boss: bool) -> void:
+	var prop_paths: Array
+	if is_boss:
+		prop_paths = [
+			["res://resources/art/props/server_rack.svg", Vector2(16, 16)],
+			["res://resources/art/props/server_rack.svg", Vector2(room_size.x - 64, 16)],
+			["res://resources/art/props/crate.svg",       Vector2(16, room_size.y - 60)],
+		]
+	else:
+		prop_paths = [
+			["res://resources/art/props/crate.svg",   Vector2(12, 12)],
+			["res://resources/art/props/locker.svg",  Vector2(room_size.x - 58, 12)],
+			["res://resources/art/props/barrel.svg",  Vector2(12, room_size.y - 58)],
+		]
+
+	for entry in prop_paths:
+		var path: String = entry[0]
+		var prop_pos: Vector2 = entry[1]
+		if not ResourceLoader.exists(path):
+			continue
+		var spr = Sprite2D.new()
+		spr.texture = load(path)
+		spr.centered = false
+		spr.position = prop_pos
+		spr.scale = Vector2(0.75, 0.75)
+		room_node.add_child(spr)
 
 func _add_text_label(pos: Vector2, text: String, color: Color) -> void:
 	var lbl = Label.new()

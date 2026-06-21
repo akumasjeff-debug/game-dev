@@ -23,11 +23,15 @@ var cd_timer: float = 0.0
 var is_ultimate_ready: bool = true
 var is_dead: bool = false
 
+# 自動攻擊計時器
+var _auto_attack_timer: float = 0.0
+var auto_attack_interval: float = 1.5  # 每 1.5 秒攻擊一次（狙擊手覆寫為 3.0）
+
 # 爆破手首次大招 CD 標記（Demo 教學特例：首次 CD 縮短為 20 秒）
 var _first_ult_used: bool = false
 
 # 視覺節點
-var _body: ColorRect
+var _body: Node  # Sprite2D（有 SVG 素材時）或 ColorRect（回退色塊）
 var _name_label: Label
 var _hp_bar: ProgressBar
 
@@ -37,13 +41,27 @@ func _get_gm() -> Node:
 func _ready() -> void:
 	current_hp = max_hp
 	_build_visual()
+	# 狙擊手攻擊間隔較長
+	if char_id == "sniper":
+		auto_attack_interval = 3.0
+	# 初始計時器錯開，避免所有角色同時發射
+	_auto_attack_timer = randf_range(0.0, auto_attack_interval)
 
 func _build_visual() -> void:
-	# 身體（40x40 方塊）
-	_body = ColorRect.new()
-	_body.size = Vector2(40, 40)
-	_body.position = Vector2(-20, -20)
-	_body.color = body_color
+	# 優先載入像素方塊 SVG sprite，無則退回職業色塊
+	var sprite_path = "res://resources/art/sprites/" + char_id + "_sprite.svg"
+	if char_id != "" and ResourceLoader.exists(sprite_path):
+		var sprite = Sprite2D.new()
+		sprite.texture = load(sprite_path)
+		sprite.centered = true
+		sprite.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)  # 64px SVG 縮至 40px 顯示
+		_body = sprite
+	else:
+		var cr = ColorRect.new()
+		cr.size = Vector2(40, 40)
+		cr.position = Vector2(-20, -20)
+		cr.color = body_color
+		_body = cr
 	add_child(_body)
 
 	# 名稱標籤
@@ -74,6 +92,11 @@ func _process(delta: float) -> void:
 			cd_timer = 0.0
 			is_ultimate_ready = true
 			emit_signal("ultimate_ready")
+	# 自動攻擊
+	_auto_attack_timer -= delta
+	if _auto_attack_timer <= 0.0:
+		_auto_attack_timer = auto_attack_interval
+		_try_auto_attack()
 
 func take_damage(amount: float) -> void:
 	if is_dead:
@@ -127,16 +150,36 @@ func _apply_ultimate_effect() -> void:
 			# 全隊攻擊力提升 60%，持續 8 秒
 			gm.activate_assault_buff()
 		"sniper":
-			# 標記一個敵人，下一次攻擊秒殺（HP 歸零）
-			# 標記邏輯：由 game_manager 持有 mark，攻擊時消耗
-			# 此處先設 flag，enemy 或 decision 攻擊時會呼叫 consume_sniper_mark
+			# 精準鎖定：目標 HP < 25% 時瞬殺；否則造成 300% 攻擊力傷害
 			var enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
 			if enemies.size() > 0:
-				gm.set_sniper_mark(enemies[0])
+				var target = enemies[0]
+				# 找血量最低的目標
+				for e in enemies:
+					if e and is_instance_valid(e) and e.get("current_hp") != null:
+						if e.current_hp < target.current_hp:
+							target = e
+				if target and is_instance_valid(target) and target.has_method("take_damage"):
+					var t_hp_ratio = 0.0
+					if target.get("max_hp") != null and target.max_hp > 0:
+						t_hp_ratio = float(target.current_hp) / float(target.max_hp)
+					if t_hp_ratio < 0.25:
+						# 目標 HP < 25%：瞬殺
+						target.take_damage(target.current_hp + 9999.0)
+						if OS.is_debug_build():
+							print("[狙擊手大招] 精準鎖定！目標 HP < 25%，瞬殺！")
+					else:
+						# fallback：300% 攻擊力傷害
+						var dmg = attack_power * 3.0
+						target.take_damage(dmg)
+						if OS.is_debug_build():
+							print("[狙擊手大招] 精準鎖定！目標 HP 不足，造成 %.1f 傷害。" % dmg)
 			else:
 				# 沒有實體敵人時，設一個 pending 標記供下次決策傷害事件使用
 				gm.set_sniper_mark(null)
 				gm.sniper_mark_pending = true
+				if OS.is_debug_build():
+					print("[狙擊手大招] 精準鎖定標記！下次進入房間觸發。")
 		"medic":
 			# 全隊立即恢復 30% 最大 HP
 			for member in gm.squad_members:
@@ -152,13 +195,13 @@ func _apply_ultimate_effect() -> void:
 			if targets.size() == 0:
 				gm.demo_bomb_pending = true
 		"recon":
-			# 電磁脈衝：所有敵人攻擊失效 5 秒
+			# 煙霧封鎖：所有敵人攻擊失效 5 秒
 			gm.activate_recon_blind()
 
 func die() -> void:
 	is_dead = true
 	if _body:
-		_body.color = Color(0.3, 0.3, 0.3)
+		_body.modulate = Color(0.35, 0.35, 0.35)  # 死亡灰化（Sprite2D 和 ColorRect 皆支援 modulate）
 	if _name_label:
 		_name_label.modulate = Color(0.5, 0.5, 0.5)
 	emit_signal("character_died")
@@ -180,3 +223,60 @@ func get_cd_ratio() -> float:
 
 func get_cd_remaining() -> float:
 	return cd_timer
+
+func _try_auto_attack() -> void:
+	var gm = _get_gm()
+	if gm == null:
+		return
+	if gm.get("is_paused") and gm.is_paused:
+		return
+	# 找最近的存活敵人
+	var tree = get_tree()
+	if tree == null:
+		return
+	var enemies = tree.get_nodes_in_group("enemies")
+	var best_target: Node = null
+	var best_dist: float = 9999.0
+	for e in enemies:
+		if e == null or not is_instance_valid(e):
+			continue
+		if e.get("is_dead") and e.is_dead:
+			continue
+		var d = global_position.distance_to(e.global_position)
+		if d < best_dist:
+			best_dist = d
+			best_target = e
+
+	if best_target == null:
+		return
+
+	# 計算最終攻擊力（含突擊手 buff 倍率）
+	var total_atk = attack_power
+	var atk_multiplier = gm.get_attack_multiplier() if gm.has_method("get_attack_multiplier") else 1.0
+	total_atk *= atk_multiplier
+
+	# 觸發射擊音效
+	fire_shot()
+
+	# 發射子彈
+	_fire_player_bullet(best_target, total_atk)
+
+func _fire_player_bullet(target_node: Node, dmg: float) -> void:
+	var bullet_script = load("res://scripts/bullet.gd")
+	if bullet_script == null:
+		# 回退：直接扣血
+		if target_node.has_method("take_damage"):
+			target_node.take_damage(dmg)
+		return
+
+	var bullet = Node2D.new()
+	bullet.set_script(bullet_script)
+	var tree = get_tree()
+	var main = tree.current_scene if tree else null
+	if main:
+		main.add_child(bullet)
+		bullet.setup(global_position, target_node, dmg, "player")
+	else:
+		# 無法取得主場景，回退直接扣血
+		if target_node.has_method("take_damage"):
+			target_node.take_damage(dmg)

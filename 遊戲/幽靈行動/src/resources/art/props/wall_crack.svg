@@ -1,0 +1,15 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <rect width="64" height="64" fill="#1C1E22"/>
+  <!-- 主裂縫 -->
+  <rect x="20" y="0"  width="2" height="20" fill="#0A0C0E"/>
+  <rect x="22" y="16" width="2" height="16" fill="#0A0C0E"/>
+  <rect x="22" y="32" width="12" height="2" fill="#0A0C0E"/>
+  <rect x="32" y="30" width="2" height="20" fill="#0A0C0E"/>
+  <!-- 細裂縫 -->
+  <rect x="8"  y="30" width="1" height="12" fill="#0E1012"/>
+  <rect x="44" y="10" width="1" height="8"  fill="#0E1012"/>
+  <rect x="50" y="40" width="1" height="14" fill="#0E1012"/>
+  <!-- 高光邊（讓裂縫有立體感） -->
+  <rect x="19" y="0"  width="1" height="20" fill="#2E3238"/>
+  <rect x="21" y="16" width="1" height="16" fill="#2E3238"/>
+</svg>
