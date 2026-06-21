@@ -1,0 +1,375 @@
+<svg viewBox="0 0 1080 400" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+
+  <!-- ===== 元素一：走廊背景 ===== -->
+
+  <!-- 主背景底色 -->
+  <rect x="0" y="0" width="1080" height="400" fill="#0A0A0F"/>
+
+  <!-- 天花板帶（頂部 120px） -->
+  <rect x="0" y="0" width="1080" height="120" fill="#0D0D12"/>
+
+  <!-- 地板帶（底部 100px） -->
+  <rect x="0" y="300" width="1080" height="100" fill="#0F0F14"/>
+
+  <!-- 地板反光線條（水平橫條） -->
+  <rect x="0" y="304" width="1080" height="1" fill="#181820"/>
+  <rect x="0" y="316" width="1080" height="1" fill="#141419"/>
+  <rect x="0" y="332" width="1080" height="1" fill="#131318"/>
+  <rect x="0" y="352" width="1080" height="1" fill="#121217"/>
+  <rect x="0" y="376" width="1080" height="1" fill="#111116"/>
+
+  <!-- 走廊左牆陰影（160px 寬） -->
+  <rect x="0" y="0" width="160" height="400" fill="#050508"/>
+
+  <!-- 走廊右牆陰影（160px 寬，門框區域除外） -->
+  <rect x="920" y="0" width="160" height="80" fill="#050508"/>
+  <rect x="920" y="380" width="160" height="20" fill="#050508"/>
+
+  <!-- 螢光燈管（天花板 4 條，y=30） -->
+  <!-- 第 1 條：微亮 -->
+  <rect x="120" y="28" width="160" height="6" fill="#334466"/>
+  <rect x="120" y="34" width="160" height="2" fill="#223355"/>
+  <!-- 第 2 條：損壞（極暗） -->
+  <rect x="360" y="28" width="160" height="6" fill="#111118"/>
+  <!-- 第 3 條：損壞 -->
+  <rect x="600" y="28" width="160" height="6" fill="#0E0E14"/>
+  <!-- 第 4 條：損壞 -->
+  <rect x="840" y="28" width="160" height="6" fill="#0E0E14"/>
+
+  <!-- 天花板與走廊的接縫線 -->
+  <rect x="0" y="118" width="1080" height="2" fill="#070710"/>
+
+  <!-- 地板接縫線 -->
+  <rect x="0" y="300" width="1080" height="2" fill="#080810"/>
+
+  <!-- ===== 元素二：右側門框 + 門（x=780-1020, y=80-380） ===== -->
+
+  <!-- 門框外層陰影 -->
+  <rect x="775" y="75" width="250" height="310" fill="#1A1A22"/>
+
+  <!-- 門板主體 -->
+  <rect x="800" y="80" width="220" height="300" fill="#1A1A22"/>
+
+  <!-- 門框四邊（粗框 20px） -->
+  <!-- 上框 -->
+  <rect x="780" y="80" width="240" height="20" fill="#2A2A35"/>
+  <!-- 下框 -->
+  <rect x="780" y="360" width="240" height="20" fill="#2A2A35"/>
+  <!-- 左框 -->
+  <rect x="780" y="80" width="20" height="300" fill="#2A2A35"/>
+  <!-- 右框 -->
+  <rect x="1000" y="80" width="20" height="300" fill="#2A2A35"/>
+
+  <!-- 門板垂直金屬縫線 -->
+  <rect x="860" y="100" width="2" height="260" fill="#252530"/>
+  <rect x="920" y="100" width="2" height="260" fill="#252530"/>
+  <rect x="980" y="100" width="2" height="260" fill="#252530"/>
+
+  <!-- 門把手（x=795, y=220, 8×20px） -->
+  <rect x="793" y="218" width="8" height="20" fill="#444444"/>
+  <rect x="795" y="216" width="4" height="4" fill="#555555"/>
+
+  <!-- 門縫光線（右框右邊緣 3px 亮線，模擬室內漏光） -->
+  <rect x="1018" y="82" width="3" height="296" fill="#FFCC88"/>
+
+  <!-- 門框下方地板縫亮光 -->
+  <rect x="782" y="358" width="238" height="3" fill="#AA8844"/>
+
+  <!-- 警示指示燈（門框上方，紅色 8×8px） -->
+  <rect x="888" y="68" width="8" height="8" fill="#FF2200"/>
+  <!-- 指示燈外框 -->
+  <rect x="886" y="66" width="12" height="12" fill="none" stroke="#552200" stroke-width="1"/>
+  <!-- 指示燈暈光 -->
+  <rect x="884" y="64" width="16" height="16" fill="#330800" opacity="0.6"/>
+
+  <!-- ===== 元素三：前鋒（x=480-580，側視右向） ===== -->
+
+  <!-- 腳步陰影（橢圓用 rect 模擬） -->
+  <rect x="470" y="295" width="100" height="8" fill="#050508" rx="4"/>
+
+  <!-- 腿（後腿） -->
+  <rect x="500" y="240" width="20" height="60" fill="#151518"/>
+  <!-- 後腳（弓步） -->
+  <rect x="488" y="292" width="32" height="10" fill="#111114"/>
+
+  <!-- 腿（前腿，弓步向前） -->
+  <rect x="520" y="240" width="20" height="55" fill="#1A1A1E"/>
+  <!-- 前腳 -->
+  <rect x="518" y="287" width="36" height="10" fill="#111114"/>
+
+  <!-- 身體/戰術背心 -->
+  <rect x="490" y="130" width="80" height="112" fill="#1C1C20"/>
+
+  <!-- MOLLE 條格（背心正面橫向紋理） -->
+  <rect x="492" y="148" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="160" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="172" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="184" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="196" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="208" width="76" height="3" fill="#252528"/>
+  <rect x="492" y="220" width="76" height="3" fill="#252528"/>
+
+  <!-- MOLLE 縱向分隔 -->
+  <rect x="512" y="148" width="2" height="80" fill="#252528"/>
+  <rect x="532" y="148" width="2" height="80" fill="#252528"/>
+  <rect x="552" y="148" width="2" height="80" fill="#252528"/>
+
+  <!-- 左臂 -->
+  <rect x="482" y="135" width="16" height="55" fill="#181820"/>
+  <!-- 左手 -->
+  <rect x="480" y="185" width="20" height="14" fill="#1A1A22"/>
+
+  <!-- 右臂（平舉持槍） -->
+  <rect x="570" y="152" width="16" height="14" fill="#181820"/>
+
+  <!-- 頭頸 -->
+  <rect x="508" y="110" width="44" height="22" fill="#111114"/>
+
+  <!-- 頭盔（全罩戰術頭盔，黑色） -->
+  <rect x="504" y="82" width="56" height="40" fill="#111114"/>
+  <!-- 頭盔頂弧 -->
+  <rect x="508" y="78" width="48" height="8" fill="#111114"/>
+  <rect x="514" y="74" width="36" height="6" fill="#131316"/>
+
+  <!-- 護目鏡（2個並排 12×8px，反藍光） -->
+  <rect x="512" y="94" width="14" height="8" fill="#1A3A66"/>
+  <rect x="530" y="94" width="14" height="8" fill="#1A3A66"/>
+  <!-- 護目鏡框 -->
+  <rect x="510" y="92" width="18" height="12" fill="none" stroke="#0D2244" stroke-width="1"/>
+  <rect x="528" y="92" width="18" height="12" fill="none" stroke="#0D2244" stroke-width="1"/>
+  <!-- 護目鏡反光 -->
+  <rect x="513" y="95" width="4" height="3" fill="#2255AA"/>
+  <rect x="531" y="95" width="4" height="3" fill="#2255AA"/>
+
+  <!-- 面罩（下半臉，深色呼吸面罩） -->
+  <rect x="506" y="104" width="50" height="18" fill="#1A1A1A"/>
+  <!-- 面罩呼吸格 -->
+  <rect x="514" y="108" width="6" height="8" fill="#141414"/>
+  <rect x="524" y="108" width="6" height="8" fill="#141414"/>
+  <rect x="534" y="108" width="6" height="8" fill="#141414"/>
+  <rect x="544" y="108" width="6" height="8" fill="#141414"/>
+
+  <!-- 衝鋒槍主體（黑色，平舉朝右） -->
+  <rect x="490" y="162" width="120" height="16" fill="#111114"/>
+  <!-- 槍托 -->
+  <rect x="488" y="160" width="22" height="22" fill="#0E0E11"/>
+  <!-- 機匣上蓋 -->
+  <rect x="510" y="158" width="70" height="10" fill="#131316"/>
+  <!-- 彈夾 -->
+  <rect x="540" y="178" width="16" height="28" fill="#111114"/>
+  <!-- 護木（槍管前端） -->
+  <rect x="580" y="164" width="30" height="12" fill="#0D0D10"/>
+  <!-- 槍管延伸 -->
+  <rect x="610" y="166" width="20" height="8" fill="#0A0A0D"/>
+  <!-- 消焰器 -->
+  <rect x="628" y="164" width="10" height="12" fill="#0D0D10"/>
+  <rect x="630" y="162" width="6" height="3" fill="#0A0A0D"/>
+  <rect x="630" y="175" width="6" height="3" fill="#0A0A0D"/>
+
+  <!-- 提把（皮卡汀尼導軌頂部） -->
+  <rect x="520" y="155" width="40" height="5" fill="#141416"/>
+
+  <!-- 瞄具 -->
+  <rect x="525" y="148" width="24" height="10" fill="#1A1A1E"/>
+  <rect x="527" y="150" width="20" height="6" fill="#0D1A33"/>
+
+  <!-- 戰術燈（槍管下方，藍光） -->
+  <rect x="590" y="174" width="12" height="8" fill="#33AAFF"/>
+  <!-- 戰術燈地板光暈 -->
+  <rect x="570" y="298" width="60" height="4" fill="#0A1A2A"/>
+  <rect x="580" y="295" width="40" height="3" fill="#0C1E33"/>
+
+  <!-- 雷射標線（1px 紅色細線，從槍口到門） -->
+  <rect x="638" y="169" width="145" height="1" fill="#FF2200"/>
+  <!-- 雷射散射點（輕微） -->
+  <rect x="780" y="168" width="2" height="3" fill="#FF4422"/>
+
+  <!-- 槍口熱度橙色小亮點（4×4px） -->
+  <rect x="636" y="167" width="4" height="4" fill="#FF6600"/>
+
+  <!-- ===== 元素四：第二個隊員（持撞門錘，x=320-420） ===== -->
+
+  <!-- 腳步陰影 -->
+  <rect x="310" y="295" width="100" height="8" fill="#050508" rx="4"/>
+
+  <!-- 腿（後腿） -->
+  <rect x="330" y="238" width="22" height="62" fill="#151518"/>
+  <rect x="316" y="290" width="36" height="10" fill="#111114"/>
+
+  <!-- 腿（前腿） -->
+  <rect x="355" y="238" width="22" height="58" fill="#1A1A1E"/>
+  <rect x="352" y="286" width="38" height="10" fill="#111114"/>
+
+  <!-- 身體（較壯，背心更厚） -->
+  <rect x="318" y="126" width="90" height="114" fill="#1E1E24"/>
+
+  <!-- 背心 MOLLE 條格 -->
+  <rect x="320" y="144" width="86" height="3" fill="#282830"/>
+  <rect x="320" y="158" width="86" height="3" fill="#282830"/>
+  <rect x="320" y="172" width="86" height="3" fill="#282830"/>
+  <rect x="320" y="186" width="86" height="3" fill="#282830"/>
+  <rect x="320" y="200" width="86" height="3" fill="#282830"/>
+  <rect x="320" y="214" width="86" height="3" fill="#282830"/>
+
+  <!-- POLICE 白條（右肩白色識別帶） -->
+  <rect x="402" y="132" width="24" height="8" fill="#CCCCCC"/>
+  <rect x="404" y="134" width="20" height="4" fill="#DDDDDD"/>
+
+  <!-- 左臂（雙手持錘，左臂抬高） -->
+  <rect x="308" y="128" width="16" height="60" fill="#181820"/>
+  <rect x="305" y="182" width="22" height="14" fill="#1A1A22"/>
+
+  <!-- 右臂（持錘另一側） -->
+  <rect x="406" y="130" width="16" height="55" fill="#181820"/>
+  <rect x="404" y="178" width="22" height="14" fill="#1A1A22"/>
+
+  <!-- 頭頸 -->
+  <rect x="336" y="108" width="48" height="20" fill="#111114"/>
+
+  <!-- 頭盔（與前鋒相同型但護目鏡橙色） -->
+  <rect x="330" y="78" width="64" height="42" fill="#111114"/>
+  <rect x="334" y="74" width="56" height="8" fill="#111114"/>
+  <rect x="340" y="70" width="44" height="6" fill="#131316"/>
+
+  <!-- 護目鏡（橙色反光） -->
+  <rect x="340" y="90" width="14" height="8" fill="#332200"/>
+  <rect x="360" y="90" width="14" height="8" fill="#332200"/>
+  <rect x="338" y="88" width="18" height="12" fill="none" stroke="#221500" stroke-width="1"/>
+  <rect x="358" y="88" width="18" height="12" fill="none" stroke="#221500" stroke-width="1"/>
+  <!-- 橙色反光高光 -->
+  <rect x="342" y="91" width="4" height="3" fill="#553300"/>
+  <rect x="362" y="91" width="4" height="3" fill="#553300"/>
+
+  <!-- 面罩 -->
+  <rect x="332" y="102" width="58" height="18" fill="#1A1A1A"/>
+  <rect x="342" y="106" width="6" height="8" fill="#141414"/>
+  <rect x="352" y="106" width="6" height="8" fill="#141414"/>
+  <rect x="362" y="106" width="6" height="8" fill="#141414"/>
+  <rect x="372" y="106" width="6" height="8" fill="#141414"/>
+
+  <!-- 鐵錘錘柄（8×80px，斜向預備揮擊，略微右傾） -->
+  <rect x="358" y="140" width="8" height="80" fill="#2A2A2A"/>
+  <!-- 錘頭（大圓柱，30×40px 黑色，位於右上準備揮下） -->
+  <rect x="386" y="118" width="44" height="34" fill="#111114"/>
+  <!-- 錘頭金屬質感線 -->
+  <rect x="388" y="122" width="40" height="2" fill="#1A1A1A"/>
+  <rect x="388" y="132" width="40" height="2" fill="#1A1A1A"/>
+  <rect x="388" y="142" width="40" height="2" fill="#1A1A1A"/>
+  <!-- 錘頭端面 -->
+  <rect x="426" y="118" width="6" height="34" fill="#1C1C22"/>
+  <!-- 錘頭握把連接處 -->
+  <rect x="362" y="136" width="28" height="10" fill="#222228"/>
+
+  <!-- ===== 元素五：第三個隊員（最後方，x=180-280） ===== -->
+
+  <!-- 腳步陰影 -->
+  <rect x="145" y="295" width="95" height="8" fill="#050508" rx="4"/>
+
+  <!-- 腿（略蹲姿態） -->
+  <rect x="158" y="248" width="20" height="52" fill="#151518"/>
+  <rect x="144" y="291" width="34" height="10" fill="#0E0E11"/>
+
+  <rect x="184" y="244" width="20" height="56" fill="#1A1A1E"/>
+  <rect x="182" y="289" width="34" height="10" fill="#0E0E11"/>
+
+  <!-- 身體（夜視/森林配色，偏綠） -->
+  <rect x="152" y="132" width="78" height="114" fill="#1A2015"/>
+
+  <!-- 背心 MOLLE 條格（綠色系） -->
+  <rect x="154" y="150" width="74" height="3" fill="#222A1A"/>
+  <rect x="154" y="164" width="74" height="3" fill="#222A1A"/>
+  <rect x="154" y="178" width="74" height="3" fill="#222A1A"/>
+  <rect x="154" y="192" width="74" height="3" fill="#222A1A"/>
+  <rect x="154" y="206" width="74" height="3" fill="#222A1A"/>
+  <rect x="154" y="220" width="74" height="3" fill="#222A1A"/>
+
+  <!-- 左臂（封鎖後方，左臂向左後延伸） -->
+  <rect x="136" y="136" width="18" height="50" fill="#181E14"/>
+  <rect x="116" y="178" width="24" height="14" fill="#1A1E15"/>
+
+  <!-- 右臂 -->
+  <rect x="228" y="136" width="16" height="45" fill="#181E14"/>
+  <rect x="226" y="175" width="20" height="12" fill="#1A1E15"/>
+
+  <!-- 頭頸 -->
+  <rect x="168" y="112" width="46" height="22" fill="#111114"/>
+
+  <!-- 頭盔（不同款，無護面遮蔽，較平坦） -->
+  <rect x="162" y="82" width="58" height="36" fill="#141814"/>
+  <rect x="166" y="78" width="50" height="8" fill="#141814"/>
+  <rect x="172" y="74" width="38" height="6" fill="#161A16"/>
+  <!-- 頭盔側面延伸 -->
+  <rect x="158" y="90" width="8" height="20" fill="#141814"/>
+  <rect x="216" y="90" width="8" height="20" fill="#141814"/>
+
+  <!-- 天線（2px×20px 細矩形，伸出頭頂） -->
+  <rect x="200" y="56" width="2" height="22" fill="#1C1C22"/>
+  <!-- 天線端點 -->
+  <rect x="199" y="54" width="4" height="4" fill="#252528"/>
+
+  <!-- 護目鏡（夜視綠色調） -->
+  <rect x="172" y="92" width="12" height="7" fill="#1A3318"/>
+  <rect x="190" y="92" width="12" height="7" fill="#1A3318"/>
+
+  <!-- 面罩（半遮） -->
+  <rect x="164" y="106" width="54" height="16" fill="#171F14"/>
+
+  <!-- 步槍（較長，指向左後方） -->
+  <!-- 槍托 -->
+  <rect x="105" y="164" width="24" height="18" fill="#0E0E11"/>
+  <!-- 槍機匣 -->
+  <rect x="129" y="162" width="65" height="14" fill="#111114"/>
+  <!-- 機匣上蓋 -->
+  <rect x="132" y="158" width="60" height="7" fill="#131316"/>
+  <!-- 護木 -->
+  <rect x="194" y="163" width="28" height="11" fill="#0D0D10"/>
+  <!-- 槍管（向左，長槍管） -->
+  <rect x="64" y="166" width="44" height="7" fill="#0A0A0D"/>
+  <!-- 槍口制退器 -->
+  <rect x="58" y="164" width="8" height="11" fill="#0D0D10"/>
+  <!-- 彈夾 -->
+  <rect x="162" y="175" width="14" height="26" fill="#111114"/>
+  <!-- 握把 -->
+  <rect x="178" y="170" width="12" height="22" fill="#0E0E11"/>
+
+  <!-- ===== 元素六：動感效果 ===== -->
+
+  <!-- 牆面投影（三人側影輪廓，極暗 #0D0D0D） -->
+  <!-- 第三人投影 -->
+  <rect x="0" y="92" width="6" height="220" fill="#0D0D0D"/>
+  <rect x="6" y="102" width="4" height="200" fill="#0C0C0C"/>
+  <!-- 第二人投影 -->
+  <rect x="0" y="86" width="10" height="226" fill="#0D0D0D"/>
+  <rect x="10" y="96" width="6" height="206" fill="#0C0C0C"/>
+  <!-- 第一人投影（門前最明顯） -->
+  <rect x="0" y="78" width="14" height="234" fill="#0D0D0D"/>
+  <rect x="14" y="88" width="8" height="214" fill="#0C0C0C"/>
+
+  <!-- 走廊遠端消失點（深度感，中央遠端漸暗） -->
+  <rect x="100" y="120" width="580" height="2" fill="#080810"/>
+  <rect x="120" y="298" width="560" height="2" fill="#080810"/>
+
+  <!-- 前鋒戰術燈的地板投影（更強） -->
+  <rect x="555" y="300" width="80" height="6" fill="#0C1C30"/>
+  <rect x="565" y="306" width="60" height="6" fill="#0A1828"/>
+  <rect x="578" y="312" width="36" height="4" fill="#081422"/>
+
+  <!-- 第一人地板倒影（隱約） -->
+  <rect x="488" y="302" width="84" height="4" fill="#131318"/>
+  <rect x="492" y="306" width="76" height="3" fill="#111116"/>
+
+  <!-- 第二人地板倒影 -->
+  <rect x="316" y="302" width="92" height="4" fill="#131318"/>
+  <rect x="320" y="306" width="84" height="3" fill="#111116"/>
+
+  <!-- 第三人地板倒影 -->
+  <rect x="148" y="302" width="78" height="4" fill="#131318"/>
+  <rect x="152" y="306" width="70" height="3" fill="#111116"/>
+
+  <!-- 門框周邊環境光（室內光漫射至走廊） -->
+  <rect x="768" y="80" width="14" height="300" fill="#1A1208" opacity="0.4"/>
+
+  <!-- 氣氛：走廊中段輕微霧化層（深藍灰蒙氣） -->
+  <rect x="160" y="120" width="620" height="180" fill="#080810" opacity="0.3"/>
+
+</svg>

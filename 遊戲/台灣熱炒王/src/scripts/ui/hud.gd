@@ -228,12 +228,13 @@ func _build_toolbar() -> void:
 	toolbar_bg.position = Vector2(0, 252)
 	add_child(toolbar_bg)
 
-	# 四個按鈕定義：[顯示文字, callback 方法名稱]
+	# 五個按鈕定義：[顯示文字, callback 方法名稱]
 	var buttons_def: Array = [
 		["建造", "_on_build_btn_pressed"],
 		["擺桌", "_on_table_btn_pressed"],
 		["雇員", "_on_staff_btn_pressed"],
 		["菜單", "_on_menu_btn_pressed"],
+		["升級", "_on_upgrade_btn_pressed"],
 	]
 
 	# 各按鈕色塊顏色
@@ -242,6 +243,7 @@ func _build_toolbar() -> void:
 		Color(0.55, 0.35, 0.15),  # 擺桌：褐色
 		Color(0.2, 0.4, 0.85),    # 雇員：藍色
 		Color(0.2, 0.75, 0.3),    # 菜單：綠色
+		Color(0.7, 0.2, 0.85),    # 升級：紫色
 	]
 
 	var btn_width: float = 480.0 / buttons_def.size()
@@ -293,8 +295,8 @@ func _build_speed_controls() -> void:
 	# 速度按鈕（右上角，暫停按鈕右側）
 	_speed_btn = Button.new()
 	_speed_btn.text = ">> x1"
-	_speed_btn.size = Vector2(42, 16)
-	_speed_btn.position = Vector2(432, 2)
+	_speed_btn.size = Vector2(48, 18)
+	_speed_btn.position = Vector2(428, 1)
 	_speed_btn.add_theme_font_size_override("font_size", 7)
 	_speed_btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
 	_speed_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.6, 0.1))
@@ -306,8 +308,8 @@ func _build_speed_controls() -> void:
 	# 暫停按鈕（速度按鈕左側）
 	_pause_btn = Button.new()
 	_pause_btn.text = "||"
-	_pause_btn.size = Vector2(20, 16)
-	_pause_btn.position = Vector2(410, 2)
+	_pause_btn.size = Vector2(24, 18)
+	_pause_btn.position = Vector2(402, 1)
 	_pause_btn.add_theme_font_size_override("font_size", 7)
 	_pause_btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
 	_pause_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.6, 0.1))
@@ -838,6 +840,113 @@ func _on_staff_btn_pressed() -> void:
 	_show_info_panel("員工管理", info_items)
 
 
+func _on_upgrade_btn_pressed() -> void:
+	var gm := get_node_or_null("/root/GameManager")
+	var points: int = 0
+	if gm != null:
+		points = gm.upgrade_points
+	var items: Array = [
+		{"label": "廚師速度 +20%%（%d 點）" % 5, "cost": 5, "action": "chef_speed"},
+		{"label": "座位數 +2（%d 點）" % 8, "cost": 8, "action": "seating"},
+		{"label": "菜色品質 +10%%（%d 點）" % 6, "cost": 6, "action": "quality"},
+	]
+	_show_upgrade_panel("升級（現有 %d 點）" % points, items)
+
+
+func _show_upgrade_panel(title: String, items: Array) -> void:
+	_close_active_panel()
+	var cl := CanvasLayer.new()
+	cl.layer = 5
+	get_tree().root.add_child(cl)
+	_active_simple_panel = cl
+
+	const PW: float = 280.0
+	const SCREEN_W: float = 480.0
+	const SCREEN_H: float = 270.0
+	var panel_h: float = 60.0 + items.size() * 24.0
+	var font_path := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
+	var pf: Font = null
+	if ResourceLoader.exists(font_path):
+		pf = load(font_path)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.1, 0.04, 0.2, 0.95)
+	bg.size = Vector2(PW, panel_h)
+	bg.position = Vector2((SCREEN_W - PW) * 0.5, (SCREEN_H - panel_h) * 0.5)
+	cl.add_child(bg)
+
+	var title_lbl := Label.new()
+	title_lbl.text = title
+	title_lbl.position = bg.position + Vector2(10, 6)
+	title_lbl.add_theme_color_override("font_color", Color(0.8, 0.5, 1.0))
+	title_lbl.add_theme_font_size_override("font_size", 10)
+	if pf: title_lbl.add_theme_font_override("font", pf)
+	cl.add_child(title_lbl)
+
+	var sep := ColorRect.new()
+	sep.color = Color(0.7, 0.3, 1.0)
+	sep.size = Vector2(PW - 16, 1)
+	sep.position = bg.position + Vector2(8, 22)
+	cl.add_child(sep)
+
+	for i in range(items.size()):
+		var item: Dictionary = items[i]
+		var row_y: float = bg.position.y + 28 + i * 24.0
+		var lbl := Label.new()
+		lbl.text = item["label"]
+		lbl.position = Vector2(bg.position.x + 10, row_y)
+		lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+		lbl.add_theme_font_size_override("font_size", 9)
+		if pf: lbl.add_theme_font_override("font", pf)
+		cl.add_child(lbl)
+
+		var btn := Button.new()
+		btn.text = "升級"
+		btn.size = Vector2(40, 18)
+		btn.position = Vector2(bg.position.x + PW - 50, row_y)
+		btn.add_theme_font_size_override("font_size", 8)
+		if pf: btn.add_theme_font_override("font", pf)
+		var action: String = item["action"]
+		btn.pressed.connect(func() -> void:
+			var gm2 := get_node_or_null("/root/GameManager")
+			if gm2 == null: return
+			var success: bool = false
+			match action:
+				"chef_speed": success = gm2.upgrade_chef_speed()
+				"seating":
+					success = gm2.upgrade_seating()
+					if success:
+						var sm := get_node_or_null("/root/SeatManager")
+						if sm != null:
+							for ty in [4, 3]:
+								var added: int = 0
+								for tx in range(1, 7):
+									if added >= 2: break
+									if not sm.get_all_seats().has(Vector2i(tx, ty)):
+										sm.register_seat(Vector2i(tx, ty))
+										added += 1
+				"quality": success = gm2.upgrade_dish_quality()
+			if success:
+				_show_message("升級成功！", 2.0)
+				_close_active_panel()
+			else:
+				_flash_money_red()
+				_show_message("升級點數不足！", 2.0)
+		)
+		cl.add_child(btn)
+
+	var close_btn := Button.new()
+	close_btn.text = "x"
+	close_btn.flat = true
+	close_btn.size = Vector2(18, 18)
+	close_btn.position = bg.position + Vector2(PW - 22, 4)
+	close_btn.add_theme_color_override("font_color", Color(0.8, 0.5, 1.0))
+	close_btn.add_theme_font_size_override("font_size", 10)
+	if pf: close_btn.add_theme_font_override("font", pf)
+	close_btn.pressed.connect(_close_active_panel)
+	cl.add_child(close_btn)
+
+
 # ============================================================
 # 簡易 Panel Helper
 # ============================================================
@@ -1120,3 +1229,18 @@ func _hide_pause_overlay() -> void:
 	if _pause_overlay != null and is_instance_valid(_pause_overlay):
 		_pause_overlay.queue_free()
 	_pause_overlay = null
+
+
+# ============================================================
+# 錯誤追蹤（輪18）
+# ============================================================
+
+var _error_log: Dictionary = {}  # {error_key: count}
+
+func log_game_error(error_key: String) -> void:
+	if not _error_log.has(error_key):
+		_error_log[error_key] = 0
+	_error_log[error_key] += 1
+	if _error_log[error_key] >= 3:
+		_show_message("遊戲發生問題，請嘗試重新整理頁面", 5.0)
+		_error_log[error_key] = 0  # 重置，避免反覆顯示

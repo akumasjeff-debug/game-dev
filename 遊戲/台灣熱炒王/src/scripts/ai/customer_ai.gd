@@ -170,7 +170,6 @@ func _ready() -> void:
 	# TODO: 動畫整合後，在此連接 animated_sprite.animation_finished 信號
 	# animated_sprite.animation_finished.connect(_on_animation_finished)
 	_enter_state(State.ENTERING)
-	print("[CustomerAI] 客人生成，初始狀態 ENTERING")
 
 
 # ============================================================
@@ -256,7 +255,6 @@ func _process_entering(delta: float) -> void:
 			tw.tween_property(self, "position", target_pos, 0.8)
 			tw.tween_callback(func(): _transition_to(State.EATING))
 			return
-		print("[CustomerAI] 入座完成，tile=%s pos=%s" % [str(tile), str(position)])
 		# 入座視覺：身體色塊短暫閃爍（0.3秒淡入）
 		if _body_rect != null:
 			_body_rect.modulate = Color(1, 1, 1, 0.3)
@@ -302,7 +300,6 @@ func _process_eating(delta: float) -> void:
 		eating_timer += delta
 		if eating_timer >= eating_duration:
 			finished_eating = true
-			print("[CustomerAI] 客人吃完，準備離開")
 			_transition_to(State.LEAVING)
 
 
@@ -315,9 +312,10 @@ func _process_satisfied(delta: float) -> void:
 
 ## LEAVING：移動至出口
 func _process_leaving(_delta: float) -> void:
-	# TODO: PathfindingManager 整合後，呼叫移動至入口的邏輯
-	# 目前以延遲後移除節點模擬
-	pass
+	# 客人離場：向右移動（走出右側入口）
+	# fallback_timer 負責實際 queue_free，這裡只做視覺移動
+	if position.x < 100:
+		position.x += _delta * 40.0
 
 
 # ============================================================
@@ -410,7 +408,6 @@ func _enter_state(state: State) -> void:
 			# 備用計時器：1.5 秒後強制轉 LEAVING（animation_finished 未連接時的保底）
 			_fallback_timer = 1.5
 			_fallback_timer_active = true
-			print("[CustomerAI] ANGRY 備用計時器啟動（1.5s）：%s" % name)
 
 		State.LEAVING:
 			velocity = Vector2.UP  ## 向上走出（朝入口方向）
@@ -423,7 +420,6 @@ func _enter_state(state: State) -> void:
 			# 備用計時器：1.0 秒後強制移除節點（animation_finished 未連接時的保底）
 			_fallback_timer = 1.0
 			_fallback_timer_active = true
-			print("[CustomerAI] LEAVING 備用計時器啟動（1.0s）：%s" % name)
 
 	# 更新對話泡泡
 	_update_bubble()
@@ -443,18 +439,15 @@ func _try_reserve_seat() -> void:
 		if tile == Vector2i(-1, -1):
 			# 全部座位都被佔用
 			no_seat_available = true
-			print("[CustomerAI] 無空位（%s）" % name)
 			return
 		# 嘗試預留（可能被其他客人搶先，set_seat_waiting 會回傳 false）
 		var reserved: bool = sm.set_seat_waiting(name, tile)
 		if reserved:
 			set_meta("assigned_seat_tile", tile)
-			print("[CustomerAI] 預留座位 %s（%s）" % [str(tile), name])
 			return
 		# 搶位失敗，繼續嘗試下一個（get_available_seat 不會再回傳已 WAITING 的位）
 	# 嘗試 8 次仍失敗，視為無位
 	no_seat_available = true
-	print("[CustomerAI] 搶位多次失敗，視為無位（%s）" % name)
 
 
 ## 離開狀態時的清理
@@ -466,7 +459,7 @@ func _exit_state(_state: State) -> void:
 # 點餐邏輯
 # ============================================================
 
-## 下單（從 MenuManager 取得已解鎖菜色，隨機選擇）
+## 下單（從 MenuManager 取得已解鎖菜色，隨機選擇 1-3 道）
 func _place_order() -> void:
 	var available_dishes: Array[String] = []
 	var mm := get_node_or_null("/root/MenuManager")
@@ -478,19 +471,38 @@ func _place_order() -> void:
 				available_dishes.append(dish_id)
 		# MenuManager 存在但沒有任何已解鎖菜色：客人立刻離場
 		if available_dishes.is_empty():
-			print("[CustomerAI] 今日無菜可點，客人立刻離場")
 			_transition_to(State.LEAVING)
 			return
 	else:
 		# MenuManager 不存在，使用備用菜色（開發早期保底路徑）
 		available_dishes = ["stir_fry_water_spinach", "century_egg_tofu", "three_cup_chicken"]
-	# 後續點餐邏輯
-	current_order = available_dishes[randi() % available_dishes.size()]
-	order_placed.emit(current_order)
-	print("[CustomerAI] 客人點了：%s" % current_order)
+	# 隨機點 1-3 道菜，總價累積；只送第一道的 order_placed 信號
+	var order_count: int = randi_range(1, 3)
+	var total_price: float = 0.0
+	var mm_price := get_node_or_null("/root/MenuManager")
+	for _i in range(order_count):
+		var dish_id: String = available_dishes[randi() % available_dishes.size()]
+		if _i == 0:
+			current_order = dish_id
+			order_placed.emit(dish_id)
+			# 下單音效
+			var am_order := get_node_or_null("/root/AudioManager")
+			if am_order != null and am_order.has_method("play_sfx"):
+				var sfx_order := "res://assets/audio/sfx/order.wav"
+				if ResourceLoader.exists(sfx_order):
+					am_order.play_sfx(load(sfx_order))
+		if mm_price != null and mm_price.has_method("get_dish"):
+			var dish_data: Dictionary = mm_price.get_dish(dish_id)
+			total_price += float(dish_data.get("price", dish_data.get("base_price", 80.0)))
+		else:
+			total_price += 80.0
+	# 把總價存起來，結帳時使用
+	set_meta("total_order_price", total_price)
 	if OrderManager:
 		var table_pos := Vector2i(0, 0)
-		if seat_node != null:
+		if has_meta("assigned_seat_tile"):
+			table_pos = get_meta("assigned_seat_tile")
+		elif seat_node != null:
 			table_pos = Vector2i(int(seat_node.position.x / 16), int(seat_node.position.y / 16))
 		OrderManager.place_order(name, current_order, table_pos)
 
@@ -552,6 +564,22 @@ func play_entrance_animation() -> void:
 	if _bubble != null:
 		_bubble.modulate = Color(1, 1, 1, 0)
 
+	# 進場光暈（淡黃色 20x20px，alpha 0.3→0，0.3秒）
+	var tree := get_tree()
+	if tree != null:
+		var glow_layer := CanvasLayer.new()
+		glow_layer.layer = 3
+		tree.root.add_child(glow_layer)
+		var glow := ColorRect.new()
+		glow.color = Color(1.0, 0.95, 0.6, 0.3)
+		glow.size = Vector2(20, 20)
+		# 轉換到螢幕座標（估算）
+		glow.position = Vector2(200, 150)
+		glow_layer.add_child(glow)
+		var glow_tw := create_tween()
+		glow_tw.tween_property(glow, "modulate:a", 0.0, 0.3)
+		glow_tw.tween_callback(glow_layer.queue_free)
+
 	var tw := create_tween()
 	tw.tween_property(self, "position", position - Vector2(8, 0), 0.5)
 	if _body_rect != null:
@@ -576,19 +604,25 @@ func _on_fallback_timer_expired() -> void:
 func _on_leaving_complete() -> void:
 	if finished_eating:
 		customer_left.emit(1.0)  ## 滿意離場
-		# 滿意離場：增加名聲 +1
+		# 依剩餘耐心決定聲望加成
 		var gm := get_node_or_null("/root/GameManager")
 		if gm != null and gm.has_method("add_reputation"):
-			gm.add_reputation(1)
+			if patience > 0.5:
+				gm.add_reputation(2)  # 快速完食
+			else:
+				gm.add_reputation(1)  # 正常完食
 		# 滿意離場時播放硬幣音效
 		var am_coin := get_node_or_null("/root/AudioManager")
 		if am_coin != null and am_coin.has_method("play_sfx"):
 			var sfx_coin := "res://assets/audio/sfx/coin.wav"
 			if ResourceLoader.exists(sfx_coin):
 				am_coin.play_sfx(load(sfx_coin))
-		print("[CustomerAI] 客人滿意離場（吃完離開）")
-	else:
-		print("[CustomerAI] 客人離場（未吃完）")
+		# 結帳：從 meta 取累積總價（含多道菜），乘上客人類型消費倍率
+		var pay_amount: float = get_meta("total_order_price", 160.0)
+		var spend_mult: float = get_meta("spend_multiplier", 1.0)
+		pay_amount *= spend_mult
+		if OrderManager:
+			OrderManager.complete_payment(name, pay_amount)
 	# 清理食物圓點
 	if _food_dot != null and is_instance_valid(_food_dot):
 		_food_dot.queue_free()
@@ -599,7 +633,6 @@ func _on_leaving_complete() -> void:
 		var tile: Vector2i = get_meta("assigned_seat_tile", Vector2i(-1, -1))
 		if tile != Vector2i(-1, -1):
 			sm.free_seat(tile)
-			print("[CustomerAI] 釋放座位 %s" % str(tile))
 	queue_free()
 
 
@@ -644,6 +677,16 @@ const KENNEY_CHAR_H: int = 16    ## 人物高（單格，16x16px 格子）
 ## 4種客人對應的 y region offset（行索引 * 17）
 const KENNEY_CHAR_Y_OFFSETS: Array[int] = [0, 17, 34, 51]
 
+## 靜態快取（類別層級，只載入一次，所有客人共用）
+static var _kenney_tex_cache: Texture2D = null
+
+## 取得 Kenney tilemap texture（優先用靜態快取，避免重複 load）
+static func _get_kenney_texture() -> Texture2D:
+	if _kenney_tex_cache == null:
+		if ResourceLoader.exists(KENNEY_TILEMAP_PATH):
+			_kenney_tex_cache = load(KENNEY_TILEMAP_PATH)
+	return _kenney_tex_cache
+
 ## 當前客人使用的 sprite（Kenney tilemap region 或 null）
 var _char_sprite: Sprite2D = null
 ## 客人類型（0-3），由 setup_visuals 設定
@@ -659,20 +702,20 @@ func setup_visuals(parent: Node2D) -> void:
 
 	# ── Sprite2D（Kenney tilemap 人物切片）────────────────────
 	var use_sprite: bool = false
-	if ResourceLoader.exists(KENNEY_TILEMAP_PATH):
-		var tilemap_tex = load(KENNEY_TILEMAP_PATH)
-		if tilemap_tex != null:
-			_char_sprite = Sprite2D.new()
-			_char_sprite.texture = tilemap_tex
-			_char_sprite.region_enabled = true
-			var char_y: int = KENNEY_CHAR_Y_OFFSETS[type_index]
-			_char_sprite.region_rect = Rect2(KENNEY_CHAR_X, char_y, KENNEY_CHAR_W, KENNEY_CHAR_H)
-			_char_sprite.centered = true
-			_char_sprite.position = Vector2(0, -8)   # 以角色中心對齊節點原點（16x16格子，偏移8px）
-			_char_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # 像素清晰
-			parent.add_child(_char_sprite)
-			use_sprite = true
-			print("[CustomerAI] 使用 Kenney 角色 sprite（type=%d，y=%d）" % [type_index, char_y])
+	var tilemap_tex: Texture2D = CustomerAI._get_kenney_texture()
+	if tilemap_tex != null:
+		_char_sprite = Sprite2D.new()
+		_char_sprite.texture = tilemap_tex
+		_char_sprite.region_enabled = true
+		var char_y: int = KENNEY_CHAR_Y_OFFSETS[type_index]
+		_char_sprite.region_rect = Rect2(KENNEY_CHAR_X, char_y, KENNEY_CHAR_W, KENNEY_CHAR_H)
+		_char_sprite.centered = true
+		_char_sprite.position = Vector2(0, -8)   # 以角色中心對齊節點原點（16x16格子，偏移8px）
+		_char_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # 像素清晰
+		_char_sprite.z_index = 2                  # 確保在 ColorRect 之上
+		_char_sprite.scale = Vector2(1.5, 1.5)   # 放大 1.5x 與廚師比例一致
+		parent.add_child(_char_sprite)
+		use_sprite = true
 
 	# ── ColorRect fallback（Sprite2D 不可用時）────────────────
 	# 身體（精緻化比例，配合 zoom 2.5：10x14px）
@@ -752,7 +795,20 @@ func setup_visuals(parent: Node2D) -> void:
 	_patience_bar_fill.position = Vector2(-5, -27)
 	parent.add_child(_patience_bar_fill)
 
-	print("[CustomerAI] 色塊視覺已建立（type=%d）" % type_index)
+	# 依客人類型設定耐心值和消費倍率
+	match _type_index:
+		0:  # 上班族：耐心30秒，消費x1.0
+			patience_decay_rate = 1.0 / 30.0
+			set_meta("spend_multiplier", 1.0)
+		1:  # 情侶：耐心60秒，消費x1.5
+			patience_decay_rate = 1.0 / 60.0
+			set_meta("spend_multiplier", 1.5)
+		2:  # 老客人：耐心90秒，消費x0.8
+			patience_decay_rate = 1.0 / 90.0
+			set_meta("spend_multiplier", 0.8)
+		3:  # 學生：耐心20秒，消費x0.7
+			patience_decay_rate = 1.0 / 20.0
+			set_meta("spend_multiplier", 0.7)
 
 
 ## 依目前狀態更新對話泡泡顯示
@@ -795,7 +851,9 @@ func _update_patience_bar() -> void:
 		return
 	_patience_bar_bg.visible = true
 	_patience_bar_fill.visible = true
-	_patience_bar_fill.size.x = 16.0 * patience
+	var new_width: float = 16.0 * patience
+	if abs(_patience_bar_fill.size.x - new_width) > 0.1:  # 只在變化大於 0.1px 時更新
+		_patience_bar_fill.size.x = new_width
 	if patience > 0.5:
 		_patience_bar_fill.color = Color(0.2, 0.9, 0.2)   # 綠
 	elif patience > 0.3:
@@ -815,11 +873,17 @@ func _tick_animation(delta: float) -> void:
 		_anim_timer += delta
 		if _anim_timer >= 1.0 / ANIM_FPS:
 			_anim_timer -= 1.0 / ANIM_FPS
-			_anim_frame = (_anim_frame + 1) % ANIM_WALK_FRAMES.size()
-			_sprite.texture = load(ANIM_WALK_FRAMES[_anim_frame])
+			var next_frame: int = (_anim_frame + 1) % ANIM_WALK_FRAMES.size()
+			if next_frame != _anim_frame:
+				_anim_frame = next_frame
+				var frame_path: String = ANIM_WALK_FRAMES[_anim_frame]
+				if ResourceLoader.exists(frame_path):
+					_sprite.texture = load(frame_path)
 	else:
 		# 非走路狀態：固定顯示 idle（frame 0）
 		if _anim_frame != 0:
 			_anim_frame = 0
 			_anim_timer = 0.0
-			_sprite.texture = load(ANIM_WALK_FRAMES[0])
+			var idle_path: String = ANIM_WALK_FRAMES[0]
+			if ResourceLoader.exists(idle_path):
+				_sprite.texture = load(idle_path)

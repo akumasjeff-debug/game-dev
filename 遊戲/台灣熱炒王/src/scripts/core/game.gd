@@ -17,18 +17,19 @@ var _neon_time: float = 0.0
 
 ## 客人持續生成系統
 var _customer_spawn_timer: float = 0.0
-const CUSTOMER_SPAWN_INTERVAL: float = 8.0  # 每 8 秒生成一個客人
-const MAX_CUSTOMERS: int = 6               # 最多同時 6 個客人
+const CUSTOMER_SPAWN_INTERVAL: float = 6.0  # 每 6 秒生成一個客人
+const MAX_CUSTOMERS: int = 8               # 最多同時 8 個客人
 
 ## DEMO 寬限期：遊戲啟動後 5 分鐘內強制允許生成客人（is_open=false 時也生成）
 var _demo_time_elapsed: float = 0.0
 const DEMO_SPAWN_GRACE_PERIOD: float = 300.0
 
 # 客人入口位置（外場區右側邊緣，讓客人從右方進入）
-# SEATING 區在 y=4 行，像素 y=64；從右側 x=80 進入
+# SEATING 區在 y=4 行，像素 y=64（tile*16=64）；外場範圍 y=64~80
+# 三個進入點都在外場內（y>=64），避免出現在廚房/走道
 const SPAWN_POSITIONS: Array = [
 	Vector2(80, 64),
-	Vector2(80, 48),
+	Vector2(80, 68),
 	Vector2(80, 72),
 ]
 
@@ -63,9 +64,7 @@ func _tick_customer_spawn(delta: float) -> void:
 	if container == null:
 		return
 
-	var current_count: int = container.get_children().filter(
-		func(n): return n.is_in_group("customers")
-	).size()
+	var current_count: int = get_tree().get_nodes_in_group("customers").size()
 
 	if current_count >= MAX_CUSTOMERS:
 		return
@@ -79,7 +78,6 @@ func _tick_customer_spawn(delta: float) -> void:
 	new_customer.setup_visuals(new_customer)
 	if new_customer.has_method("play_entrance_animation"):
 		new_customer.play_entrance_animation()
-	print("[game.gd] 新客人生成，當前總數: %d" % (current_count + 1))
 
 
 func _ready() -> void:
@@ -91,6 +89,8 @@ func _ready() -> void:
 	_draw_table_visuals()
 	_draw_zone_divider()
 	_draw_dining_area_lights()
+	_draw_dining_extra_decor()
+	_draw_kitchen_extra_decor()
 	_connect_game_signals()
 	_spawn_test_customer()
 	_spawn_test_staff()
@@ -116,8 +116,6 @@ func _init_map_zones() -> void:
 	# 外場區（SEATING）：y=4，x in [1..6]
 	for x in range(1, 7):
 		BuildManager.set_zone(Vector2i(x, 4), BuildManager.ZoneType.SEATING)
-
-	print("[game.gd] 地圖 Zone 初始化完成")
 
 
 # ============================================================
@@ -148,8 +146,6 @@ func _draw_floor_visuals() -> void:
 			sprite.position = Vector2(x * TILE, y * TILE)
 			floor_node.add_child(sprite)
 
-	print("[game.gd] 地板視覺繪製完成（像素 tile x%d）" % (4 * 6))
-
 
 # ============================================================
 # 區域彩色地板（ColorRect 覆蓋 Sprite2D 底層）
@@ -166,7 +162,7 @@ func _draw_zone_colored_floor() -> void:
 		1: Color(0.16, 0.14, 0.18),  # 廚房列 1：深暗灰紫（加深對比）
 		2: Color(0.16, 0.14, 0.18),  # 廚房列 2：深暗灰紫（加深對比）
 		3: Color(0.25, 0.25, 0.28),  # 走道：中灰
-		4: Color(0.35, 0.26, 0.16),  # 外場：暖棕（加亮）
+		4: Color(0.42, 0.30, 0.18),  # 外場：明亮暖棕（比之前更亮，增加熱鬧感）
 	}
 
 	for y in range(1, 5):
@@ -184,8 +180,6 @@ func _draw_zone_colored_floor() -> void:
 		grout.size = Vector2(2, 16)
 		grout.position = Vector2((i + 1) * TILE, 4 * TILE)
 		floor_node.add_child(grout)
-
-	print("[game.gd] 區域彩色地板繪製完成")
 
 
 # ============================================================
@@ -233,8 +227,6 @@ func _draw_table_visuals() -> void:
 		chair_bot.position = Vector2(px + 11, py + 22)
 		obj_node.add_child(chair_bot)
 
-	print("[game.gd] 桌面視覺繪製完成（桌A/桌B，含邊框+椅子）")
-
 
 # ============================================================
 # 走道分隔線（外場與走道之間的橘色線）
@@ -269,8 +261,6 @@ func _draw_zone_divider() -> void:
 	shadow_bot.position = Vector2(1 * TILE, 4 * TILE + 1)
 	obj_node.add_child(shadow_bot)
 
-	print("[game.gd] 走道分隔線繪製完成（含上下陰影）")
-
 
 # ============================================================
 # 外場燈泡裝飾
@@ -304,7 +294,23 @@ func _draw_dining_area_lights() -> void:
 	neon_glow.position = Vector2(TILE, TILE * 4)
 	obj_node.add_child(neon_glow)
 
-	print("[game.gd] 外場燈泡裝飾繪製完成（5顆吊燈+光暈+霓虹反光）")
+	# 外場下半部加 3 個暖黃色燈泡（8×8px，均勻分布在外場地板上方）
+	# 並在每個燈泡下方放透明黃色光暈（20×30px，alpha=0.12）模擬燈光投射
+	var light_positions: Array[float] = [24.0, 56.0, 88.0]  # 外場三個燈泡 x 位置
+	for lx in light_positions:
+		# 燈泡本體（暖黃色 8×8px，在外場上方）
+		var lb := ColorRect.new()
+		lb.color = Color(1.0, 0.9, 0.5, 0.95)
+		lb.size = Vector2(8, 8)
+		lb.position = Vector2(lx - 4, TILE * 4 + 2)
+		obj_node.add_child(lb)
+
+		# 燈光投射（20×30px，透明黃，向下擴散）
+		var lp := ColorRect.new()
+		lp.color = Color(1.0, 0.85, 0.3, 0.12)
+		lp.size = Vector2(20, 30)
+		lp.position = Vector2(lx - 10, TILE * 4 + 10)
+		obj_node.add_child(lp)
 
 
 # ============================================================
@@ -338,9 +344,6 @@ func _place_initial_equipment() -> void:
 		sm.register_seat(Vector2i(5, 4))
 		# 桌C：Vector2i(6,4) 右側新桌座位（register_seat 有重複防呆）
 		sm.register_seat(Vector2i(6, 4))
-		print("[game.gd] 已登記 5 個初始座位（三張桌）")
-
-	print("[game.gd] 初始設備放置完成")
 
 
 # ============================================================
@@ -432,8 +435,6 @@ func _draw_equipment_visuals() -> void:
 			table_spr.position = Vector2(table_pos.x * TILE, table_pos.y * TILE)
 			obj_node.add_child(table_spr)
 
-	print("[game.gd] 設備視覺繪製完成（炒菜台ColorRect + 收銀台 + 桌椅）")
-
 
 # ============================================================
 # 信號連接
@@ -446,17 +447,16 @@ func _connect_game_signals() -> void:
 		GameManager.day_ended.connect(_on_day_ended)
 	if not GameManager.money_changed.is_connected(_on_money_changed_for_popup):
 		GameManager.money_changed.connect(_on_money_changed_for_popup)
-	print("[game.gd] GameManager 信號連接完成")
 
 
-func _on_day_started(year: int, day: int) -> void:
-	print("[game.gd] 新的一天開始 — Year %d, Day %d" % [year, day])
+func _on_day_started(_year: int, _day: int) -> void:
 	# 後續可更新場景狀態（開燈、員工就位等）
+	pass
 
 
-func _on_day_ended(income: float) -> void:
-	print("[game.gd] 一天結束 — 今日收入: $%d" % int(income))
+func _on_day_ended(_income: float) -> void:
 	# 後續可觸發結算 UI
+	pass
 
 
 # ============================================================
@@ -487,7 +487,6 @@ func _spawn_test_customer() -> void:
 	customer.setup_visuals(customer)
 	if customer.has_method("play_entrance_animation"):
 		customer.play_entrance_animation()
-	print("[game.gd] 測試客人已生成，位置: ", customer.position)
 
 
 func _spawn_test_staff() -> void:
@@ -550,17 +549,18 @@ func _spawn_test_staff() -> void:
 	waiter.add_child(waiter_head)
 
 	# 載入廚師 Sprite2D
-	# chef_a2.png 內容區域從 x=26, y=14 開始，不適合直接用 region(0,0,24,32)
-	# 改用 char_chef_idle.png（16x24px，整張圖即為廚師待機幀，像素正確）
+	# char_chef_idle.png（16x24px，整張圖即為廚師待機幀，像素正確）
 	var char_chef_path := "res://assets/sprites/characters/char_chef_idle.png"
 	if ResourceLoader.exists(char_chef_path):
-		var chef_spr := Sprite2D.new()
 		var chef_tex = load(char_chef_path)
 		if chef_tex != null:
+			var chef_spr := Sprite2D.new()
 			chef_spr.texture = chef_tex
 			chef_spr.centered = true
-			chef_spr.position = Vector2(0, -12)  # 以角色中心對齊節點原點
+			chef_spr.position = Vector2(0, -5)   # char_chef_idle 高24px，中心偏上 5px 使腳對齊節點
 			chef_spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # 像素清晰
+			chef_spr.z_index = 2                   # 確保在 ColorRect 色塊之上
+			chef_spr.scale = Vector2(1.5, 1.5)    # 放大 1.5x 讓 16x24 的廚師在 zoom=2.5 下更清晰
 			chef.add_child(chef_spr)
 			# 有 sprite 時隱藏 ColorRect
 			chef_body.visible = false
@@ -569,7 +569,6 @@ func _spawn_test_staff() -> void:
 			chef_head.visible = false
 			chef_hat.visible = false
 			chef.set_sprite(chef_spr, true)
-			print("[game.gd] 廚師使用 char_chef_idle.png sprite（16x24px）")
 		else:
 			chef.set_sprite(null, true)
 	else:
@@ -586,8 +585,6 @@ func _spawn_test_staff() -> void:
 	chef.set_home_position(Vector2(20, 36))
 	waiter.set_home_position(Vector2(56, 72))
 
-	print("[game.gd] 測試員工已生成（廚師: %s，外場: %s）" % [chef.position, waiter.position])
-
 
 # ============================================================
 # 攝影機設定
@@ -603,7 +600,6 @@ func _setup_camera() -> void:
 	cam.position = Vector2(60, 50)
 	cam.zoom = Vector2(2.5, 2.5)
 	cam.make_current()
-	print("[game.gd] 攝影機位置設定完成: ", cam.position, " zoom: ", cam.zoom)
 
 
 # ============================================================
@@ -613,7 +609,6 @@ func _setup_camera() -> void:
 ## 嘗試播放 BGM；優先 .wav，其次 .ogg，均無則跳過
 func _start_bgm() -> void:
 	if not AudioManager.has_method("play_bgm"):
-		print("[game.gd] AudioManager 沒有 play_bgm，跳過 BGM")
 		return
 
 	# 優先尋找 .wav，其次 .ogg
@@ -626,15 +621,132 @@ func _start_bgm() -> void:
 		if ResourceLoader.exists(p):
 			bgm_stream = load(p)
 			if bgm_stream != null:
-				print("[game.gd] 載入 BGM：%s" % p)
 				break
 
 	if bgm_stream == null:
-		print("[game.gd] BGM 檔案不存在，跳過 BGM 播放")
 		return
 
 	AudioManager.play_bgm(bgm_stream)
-	print("[game.gd] BGM 開始播放")
+
+
+# ============================================================
+# 外場視覺增強
+# ============================================================
+
+func _draw_dining_extra_decor() -> void:
+	var obj_node := get_node_or_null("object_layer")
+	if obj_node == null:
+		return
+
+	const TILE: int = 16
+
+	# 1. 菜單白板（外場右牆）
+	var whiteboard := ColorRect.new()
+	whiteboard.color = Color(0.92, 0.92, 0.88)  # 米白色
+	whiteboard.size = Vector2(8, 24)
+	whiteboard.position = Vector2(88, 4 * TILE + 4)  # 外場右側 y=68
+	obj_node.add_child(whiteboard)
+	# 白板上的橘色線條（模擬菜單文字，4條）
+	for li in range(4):
+		var line := ColorRect.new()
+		line.color = Color(0.85, 0.45, 0.1, 0.8)
+		line.size = Vector2(6, 1)
+		line.position = Vector2(89, 4 * TILE + 7 + li * 5)
+		obj_node.add_child(line)
+
+	# 2. 電風扇（外場右側）
+	var fan_base := ColorRect.new()
+	fan_base.color = Color(0.35, 0.35, 0.35)  # 深灰色
+	fan_base.size = Vector2(8, 12)
+	fan_base.position = Vector2(86, 4 * TILE + 34)
+	obj_node.add_child(fan_base)
+	# 風扇中心圓
+	var fan_center := ColorRect.new()
+	fan_center.color = Color(0.5, 0.5, 0.5)
+	fan_center.size = Vector2(4, 4)
+	fan_center.position = Vector2(88, 4 * TILE + 38)
+	obj_node.add_child(fan_center)
+
+	# 3. 外場左側牆壁深色邊框
+	var wall_left := ColorRect.new()
+	wall_left.color = Color(0.15, 0.12, 0.08)
+	wall_left.size = Vector2(2, 4 * TILE)  # 從頂部到外場底部
+	wall_left.position = Vector2(1 * TILE, 1 * TILE)
+	obj_node.add_child(wall_left)
+
+	# 4. 外場右側牆壁深色邊框
+	var wall_right := ColorRect.new()
+	wall_right.color = Color(0.15, 0.12, 0.08)
+	wall_right.size = Vector2(2, 4 * TILE)
+	wall_right.position = Vector2(6 * TILE + 14, 1 * TILE)
+	obj_node.add_child(wall_right)
+
+
+# ============================================================
+# 廚房視覺增強
+# ============================================================
+
+func _draw_kitchen_extra_decor() -> void:
+	var obj_node := get_node_or_null("object_layer")
+	if obj_node == null:
+		return
+
+	const TILE: int = 16
+
+	# 1. 廚房後牆「證書」裝飾（白色 12x14px，位於廚房右側 x=70 y=4）
+	var cert_bg := ColorRect.new()
+	cert_bg.color = Color(0.9, 0.9, 0.85)  # 米白證書底色
+	cert_bg.size = Vector2(12, 14)
+	cert_bg.position = Vector2(70, 4)
+	obj_node.add_child(cert_bg)
+	# 證書深藍邊框（頂）
+	var cert_border_t := ColorRect.new()
+	cert_border_t.color = Color(0.1, 0.2, 0.5)
+	cert_border_t.size = Vector2(12, 1)
+	cert_border_t.position = Vector2(70, 4)
+	obj_node.add_child(cert_border_t)
+	# 證書深藍邊框（底）
+	var cert_border_b := ColorRect.new()
+	cert_border_b.color = Color(0.1, 0.2, 0.5)
+	cert_border_b.size = Vector2(12, 1)
+	cert_border_b.position = Vector2(70, 17)
+	obj_node.add_child(cert_border_b)
+
+	# 2. 調料架（炒菜台右側，3個小瓶）
+	for bi in range(3):
+		var bottle := ColorRect.new()
+		bottle.color = Color(0.35, 0.2, 0.08)  # 深棕色瓶子
+		bottle.size = Vector2(4, 8)
+		bottle.position = Vector2(1 * TILE + 30 + bi * 6, 1 * TILE + 6)
+		obj_node.add_child(bottle)
+		# 瓶蓋（稍亮）
+		var cap := ColorRect.new()
+		cap.color = Color(0.6, 0.4, 0.15)
+		cap.size = Vector2(4, 2)
+		cap.position = Vector2(1 * TILE + 30 + bi * 6, 1 * TILE + 4)
+		obj_node.add_child(cap)
+
+	# 3. 廚房地板橫向磁磚縫（每 16px 一條細線）
+	for yi in range(3):
+		var grout_h := ColorRect.new()
+		grout_h.color = Color(0.12, 0.10, 0.14, 0.6)
+		grout_h.size = Vector2(6 * TILE, 1)
+		grout_h.position = Vector2(1 * TILE, (yi + 1) * TILE)
+		obj_node.add_child(grout_h)
+
+	# 4. 廚房天花板排煙管（深灰 96x4px，y=0）
+	var exhaust := ColorRect.new()
+	exhaust.color = Color(0.25, 0.25, 0.28)
+	exhaust.size = Vector2(6 * TILE, 4)
+	exhaust.position = Vector2(1 * TILE, 0)
+	obj_node.add_child(exhaust)
+	# 排煙管接縫
+	for ei in range(5):
+		var seam := ColorRect.new()
+		seam.color = Color(0.18, 0.18, 0.20)
+		seam.size = Vector2(1, 4)
+		seam.position = Vector2(1 * TILE + (ei + 1) * TILE, 0)
+		obj_node.add_child(seam)
 
 
 # ============================================================
@@ -646,31 +758,36 @@ func _draw_neon_sign() -> void:
 	if obj_node == null:
 		return
 	# 霓虹招牌：在廚房上方（y=2px 附近）
-	# 先加紅色邊框底層（74x16px）
+	# 先加紅色邊框底層（72x16px，從 x=16 開始，確保左側不截斷）
 	var sign_border := ColorRect.new()
 	sign_border.color = Color(0.8, 0.1, 0.05)
-	sign_border.size = Vector2(74, 16)
-	sign_border.position = Vector2(15, 1)
+	sign_border.size = Vector2(72, 16)
+	sign_border.position = Vector2(16, 1)
 	obj_node.add_child(sign_border)
 
-	# 深紫背景（72x14px，偏移 1px 製造邊框效果）
+	# 深紫背景（70x14px，偏移 1px 製造邊框效果）
 	var sign_bg := ColorRect.new()
 	sign_bg.color = Color(0.18, 0.04, 0.28, 0.95)
-	sign_bg.size = Vector2(72, 14)
-	sign_bg.position = Vector2(16, 2)
+	sign_bg.size = Vector2(70, 14)
+	sign_bg.position = Vector2(17, 2)
 	obj_node.add_child(sign_bg)
 
+	# 招牌文字 Label（從 x=17 開始，與背景對齊，確保左側不露出空白）
 	var sign_label := Label.new()
 	sign_label.text = "阿嬤熱炒"
-	sign_label.position = Vector2(18, 2)
+	sign_label.position = Vector2(17, 2)
+	sign_label.size = Vector2(70, 14)  # 明確設定 size 確保文字區域對齊背景
+	sign_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sign_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.1))
 	sign_label.add_theme_font_size_override("font_size", 8)
+	# 移除 Label 預設背景（透明）
+	var style := StyleBoxEmpty.new()
+	sign_label.add_theme_stylebox_override("normal", style)
 	var font_path := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
 	if ResourceLoader.exists(font_path):
 		sign_label.add_theme_font_override("font", load(font_path))
 	obj_node.add_child(sign_label)
 	_neon_sign_label = sign_label
-	print("[game.gd] 霓虹招牌繪製完成（深紫背景+紅色邊框）")
 
 
 # ============================================================
@@ -708,7 +825,6 @@ func _spawn_money_popup_deferred(amount: float) -> void:
 	popup_layer.add_child(label)
 
 	var tween := create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 30.0, 1.0)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.0)
+	tween.tween_property(label, "position:y", label.position.y - 40.0, 1.5)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.5)
 	tween.tween_callback(popup_layer.queue_free)
-	print("[game.gd] 金錢飄字：+$%d" % int(amount))

@@ -2864,7 +2864,7 @@ star.svg::CompressedTexture2D::8554340520275755402::1718114800::1782014113::1:::
 star_outline.svg::CompressedTexture2D::5496862992527974816::1718114800::1782014113::1::::<><><>0<>0<>9682d0b830f11f9f822407f0453a52d4<>res://.godot/imported/star_outline.svg-9b449cda85b615acfa5678312353f00d.ctex::
 star_outline_depth.svg::CompressedTexture2D::3159240813521115602::1718114800::1782014113::1::::<><><>0<>0<>233fea48b87b9bc050ddf3daef5702e6<>res://.godot/imported/star_outline_depth.svg-09e441ec7e362ff42a09b20c3b7f8cc1.ctex::
 ::res://audio/::1782040299
-::res://audio/bgm/::1782050995
+::res://audio/bgm/::1782052145
 base_bgm.wav::AudioStreamWAV::49714862824850143::1782040299::1782042330::1::::<><><>0<>0<>351be670b9e182d3478e91e661f16b80<>res://.godot/imported/base_bgm.wav-e436015d1d104ebd2c783d50fd244431.sample::
 boss_bgm.wav::AudioStreamWAV::6103366618114401434::1782040302::1782042330::1::::<><><>0<>0<>ed24adbeaf0f17a86405ed8060e79e93<>res://.godot/imported/boss_bgm.wav-590e87fc74c3cc8f05cddb3a6e564cf5.sample::
 defeat_bgm.wav::AudioStreamWAV::979167528039060198::1782040303::1782042330::1::::<><><>0<>0<>11ad854f3093f60146f5b160d8441e15<>res://.godot/imported/defeat_bgm.wav-1761ae9f2ba5c75d088e444f7f49aa54.sample::
@@ -2873,13 +2873,13 @@ high_alert_bgm.wav::AudioStreamWAV::497698817697947778::1782040301::1782042330::
 mission_bgm.wav::AudioStreamWAV::7444716958414110164::1782040300::1782042330::1::::<><><>0<>0<>1338d4fd0cdd12d363bbd1483f9d65c1<>res://.godot/imported/mission_bgm.wav-c5a60bac1be6367ed668f4c06b2fdde3.sample::
 victory_bgm.wav::AudioStreamWAV::6116452041697886728::1782040302::1782042330::1::::<><><>0<>0<>b4941b2883268c9b7bc7e4bc8acb62be<>res://.godot/imported/victory_bgm.wav-55bc578878a83809a54bd53576b16207.sample::
 warehouse_bgm.wav::AudioStreamWAV::1652376883025485256::1782050995::1782052145::1::::<><><>0<>0<>01cf42001fd7a3d0dd0e2b5a841e4462<>res://.godot/imported/warehouse_bgm.wav-32bfa2b33b93925cc7369e2e756453bb.sample::
-::res://audio/combat/::1782051837
+::res://audio/combat/::1782052145
 explosion.wav::AudioStreamWAV::7957521187777744318::1782005487::1782013749::1::::<><><>0<>0<>aaec534a363755a8d87a49220a1144ae<>res://.godot/imported/explosion.wav-fe01c534ef14e4e8db36c7991a7189a3.sample::
 footstep.wav::AudioStreamWAV::3020363222146722845::1782005486::1782013749::1::::<><><>0<>0<>b7351ce3bda983f572700de1c819faa8<>res://.godot/imported/footstep.wav-bfdf1d4323375d96d81e043cc7b312b7.sample::
 gunshot.wav::AudioStreamWAV::2790008834215285625::1782051837::1782052145::1::::<><><>0<>0<>3bd6c320a8d60305786ca34d5c465bb2<>res://.godot/imported/gunshot.wav-ad11d085d3b89d9738713b2d0d70ecb2.sample::
 gunshot_enemy.wav::AudioStreamWAV::1916260806220515614::1782051837::1782052145::1::::<><><>0<>0<>017ebd77ad57e7c47f2fb562871f289c<>res://.godot/imported/gunshot_enemy.wav-66d808fb4a45a8b0e6a45cddbb262a18.sample::
 impact_hit.wav::AudioStreamWAV::8251776807309780545::1782051837::1782052145::1::::<><><>0<>0<>daae40638452102104d7cc82b707724e<>res://.godot/imported/impact_hit.wav-db829c5d011204515760b48ae1c2a2b5.sample::
-::res://audio/ui/::1782051838
+::res://audio/ui/::1782052145
 btn_click.wav::AudioStreamWAV::2960671243633793689::1782005486::1782013749::1::::<><><>0<>0<>32d3254eee66ef5cc389bb91fadd029a<>res://.godot/imported/btn_click.wav-aef341e6f87c859081daefb0c9f8d68b.sample::
 decision_confirm.wav::AudioStreamWAV::3940707947324113922::1782005486::1782013749::1::::<><><>0<>0<>5051b83bac6c7b1eec9afb4e5a293f50<>res://.godot/imported/decision_confirm.wav-99f810672508d4d69cd82fde6a22af8a.sample::
 decision_open.wav::AudioStreamWAV::7321268221097271611::1782005486::1782013749::1::::<><><>0<>0<>fb58cb68cf08ff9460ea71b1e21cff98<>res://.godot/imported/decision_open.wav-2158ecb75dd57a7658550eaca0812fcd.sample::
@@ -2887,7 +2887,7 @@ defeat.wav::AudioStreamWAV::6657945814697012790::1782005486::1782013749::1::::<>
 ult_ready.wav::AudioStreamWAV::5736144173046044239::1782005486::1782013749::1::::<><><>0<>0<>140b55a847be05060fbcbe4733645f54<>res://.godot/imported/ult_ready.wav-2f0c5c6852f5523cd22a874526cfa270.sample::
 victory.wav::AudioStreamWAV::3382093216440445490::1782005486::1782013749::1::::<><><>0<>0<>962ff7b91837a24e830c817e0e651746<>res://.godot/imported/victory.wav-b40e8ed2f9b34278ecc9c1c5138f3761.sample::
 victory_sting.wav::AudioStreamWAV::1420095737666399612::1782051838::1782052145::1::::<><><>0<>0<>f540a8280be269bcb1399b15ba3e7e98<>res://.godot/imported/victory_sting.wav-d789371958da1ca3fea3637a94fe72ef.sample::
-::res://audio/ult/::1782051837
+::res://audio/ult/::1782052145
 assault_ult.wav::AudioStreamWAV::8258027202944921816::1782005486::1782013749::1::::<><><>0<>0<>355302a076a72f4ededa2808b6c185f5<>res://.godot/imported/assault_ult.wav-bbcde5fc640deffab8ececcc51e4be3b.sample::
 demo_ult.wav::AudioStreamWAV::1971389718591363020::1782005486::1782013749::1::::<><><>0<>0<>718fd30144ae894dd878d85e38e1dd7f<>res://.godot/imported/demo_ult.wav-0c779914880f02a615dd28a4ec310359.sample::
 medic_ult.wav::AudioStreamWAV::1134356180636269123::1782005486::1782013749::1::::<><><>0<>0<>c0dc162efe21b1a1d369715edf5b3a47<>res://.godot/imported/medic_ult.wav-7928a62490b8636304763b151369e8c0.sample::
@@ -2908,7 +2908,7 @@ medic_portrait.svg::CompressedTexture2D::2571851316909260978::1782040640::178204
 recon_portrait.svg::CompressedTexture2D::8625828576330940678::1782040696::1782042330::1::::<><><>0<>0<>02f6a9819abe1736bbda0ac1a404fb29<>res://.godot/imported/recon_portrait.svg-f21110b2e8f58d317c8dc3f642ef3f19.ctex::
 shield_portrait.svg::CompressedTexture2D::3504267271704218746::1782040632::1782042330::1::::<><><>0<>0<>fd333aa0f2b193e20b979c0483d8fddb<>res://.godot/imported/shield_portrait.svg-99f0c95d3ec948905eb2f5f9166891cd.ctex::
 sniper_portrait.svg::CompressedTexture2D::1127736545185257655::1782040672::1782042330::1::::<><><>0<>0<>cc5d10636674e7e3a799cd5a1eb88491<>res://.godot/imported/sniper_portrait.svg-db37c9f155790f479e313a50029c1160.ctex::
-::res://resources/art/props/::1782051434
+::res://resources/art/props/::1782052145
 barrel.svg::CompressedTexture2D::5490575396423320164::1782048774::1782048836::1::::<><><>0<>0<>b6c2a6a84f62d7f7f5daa49e60e37ca1<>res://.godot/imported/barrel.svg-9b860a3c9785d0fe13830557fddcc844.ctex::
 cover_low.svg::CompressedTexture2D::3328951064919657859::1782049249::1782049325::1::::<><><>0<>0<>f49ec93d2ca1912ed3db90a93ed31a8f<>res://.godot/imported/cover_low.svg-7b00258173855c7520fa5ca0e3301715.ctex::
 crate.svg::CompressedTexture2D::7573564876447315719::1782048756::1782048836::1::::<><><>0<>0<>0e27f08f395ee1aac00183d821912cd1<>res://.godot/imported/crate.svg-8c65f84d48951eee76bff7774f46cc43.ctex::
@@ -2929,7 +2929,7 @@ parking_pillar.svg::CompressedTexture2D::147819353475642305::1782051106::1782052
 player_cover.svg::CompressedTexture2D::9113657423997296029::1782051270::1782052144::1::::<><><>0<>0<>314105ca678cef96e5d0acf8a9d2c4ad<>res://.godot/imported/player_cover.svg-e9150da564a15d50569323ec3ba36cfb.ctex::
 server_rack.svg::CompressedTexture2D::907447682609465216::1782048790::1782048836::1::::<><><>0<>0<>afc2ddadc39e34d647d45497ebf55dc1<>res://.godot/imported/server_rack.svg-43704e400646eea99f4929a6b61d5951.ctex::
 wall_crack.svg::CompressedTexture2D::4564075693854348437::1782048781::1782048836::1::::<><><>0<>0<>eac7bb37a5297b3737515c3fff7375c7<>res://.godot/imported/wall_crack.svg-f321f2ed74ae30fabf57818b0de55742.ctex::
-::res://resources/art/sprites/::1782051368
+::res://resources/art/sprites/::1782052144
 assault_sprite.svg::CompressedTexture2D::2042907177101896616::1782041957::1782042330::1::::<><><>0<>0<>2cefb4fbf519a650c3b35b137cea3148<>res://.godot/imported/assault_sprite.svg-0e5ff4bc76527a1c7d182e0b3002ba62.ctex::
 boss_sprite.svg::CompressedTexture2D::3208600075609243415::1782048305::1782048351::1::::<><><>0<>0<>18712c0aa9c9db43462ea5af4de4e33e<>res://.godot/imported/boss_sprite.svg-8376cd559516188f8228018c970cbfa2.ctex::
 bullet_enemy.svg::CompressedTexture2D::2321080813865727588::1782051368::1782052144::1::::<><><>0<>0<>ba04e7ae8c29cbf0cb48fa2a8c90f114<>res://.godot/imported/bullet_enemy.svg-a15f511e2919294b2273090c6adde408.ctex::
@@ -2941,7 +2941,7 @@ medic_sprite.svg::CompressedTexture2D::1980542351397322297::1782041947::17820423
 recon_sprite.svg::CompressedTexture2D::5187761359775813055::1782042001::1782042330::1::::<><><>0<>0<>8140509aa33496ab7a276dbc44b66aa4<>res://.godot/imported/recon_sprite.svg-ac0499a429cba2416e4658b350aed895.ctex::
 shield_sprite.svg::CompressedTexture2D::4808826870667063667::1782041935::1782042330::1::::<><><>0<>0<>a3466d9207e912e98140617a937fbf51<>res://.godot/imported/shield_sprite.svg-b4ea43db2d482c702615042014e3cf13.ctex::
 sniper_sprite.svg::CompressedTexture2D::7473922136758108399::1782041971::1782042330::1::::<><><>0<>0<>2b5d26f2ca973704d0b5483b81fe291d<>res://.godot/imported/sniper_sprite.svg-f40a6dca0ac0c191898e5eb1904e2e9f.ctex::
-::res://resources/art/sprites/crouch/::1782051394
+::res://resources/art/sprites/crouch/::1782052144
 crouch_assault.svg::CompressedTexture2D::5444264863228952311::1782051333::1782052144::1::::<><><>0<>0<>04faa5a2ecf2ecdba9841fcea8cbee2f<>res://.godot/imported/crouch_assault.svg-09ef2add080e18b8a586981f4624666a.ctex::
 crouch_demo.svg::CompressedTexture2D::3842553150343104636::1782051346::1782052144::1::::<><><>0<>0<>3abd47706a43be0d60106412db637169<>res://.godot/imported/crouch_demo.svg-cbea17ad5dd299dd8fcf09fcdcbd7d37.ctex::
 crouch_medic.svg::CompressedTexture2D::9016734540575765545::1782051359::1782052144::1::::<><><>0<>0<>3054fd9c162677195385d9cef2c594e1<>res://.godot/imported/crouch_medic.svg-37543bab5314f2143f8d56fd351e2347.ctex::
@@ -2969,9 +2969,9 @@ HUD.tscn::PackedScene::-1::1782013887::0::1::::<><><>0<>0<><>::res://scripts/hud
 Main.tscn::PackedScene::-1::1782004235::0::1::::<><><>0<>0<><>::res://scripts/main.gd<>res://scenes/HUD.tscn<>res://scenes/DecisionPanel.tscn
 SquadConfirmPanel.tscn::PackedScene::-1::1782047198::0::1::::<><><>0<>0<><>::res://scripts/squad_confirm_panel.gd
 UpgradePanel.tscn::PackedScene::-1::1782038270::0::1::::<><><>0<>0<><>::res://scripts/upgrade_panel.gd
-::res://scripts/::1782052002
+::res://scripts/::1782053235
 audio_manager.gd::GDScript::3124682798317689935::1782051856::0::1::::<>Node<><>0<>0<><>::
-base.gd::GDScript::3192984383880569308::1782051759::0::1::::<>Node2D<><>0<>0<><>::
+base.gd::GDScript::3192984383880569308::1782052994::0::1::::<>Node2D<><>0<>0<><>::
 bullet.gd::GDScript::7564048488426712478::1782051390::0::1::::<>Node2D<><>0<>0<><>::
 character.gd::GDScript::369751022273438203::1782051989::0::1::::<>Node2D<><>0<>0<><>::
 decision_panel.gd::GDScript::2799764674967977961::1782051022::0::1::::<>Control<><>0<>0<><>::
@@ -2981,7 +2981,7 @@ gacha_manager.gd::GDScript::2401684737449039859::1782038797::0::1::::<>Node<><>0
 gacha_panel.gd::GDScript::7490592088675856337::1782047244::0::1::::<>CanvasLayer<><>0<>0<><>::
 game_manager.gd::GDScript::6247711979782412305::1782051812::0::1::::<>Node<><>0<>0<><>::
 hud.gd::GDScript::5752457443024025887::1782052002::0::1::::<>CanvasLayer<><>0<>0<><>::
-main.gd::GDScript::6774399327182822786::1782051741::0::1::::<>Node2D<><>0<>0<><>::
+main.gd::GDScript::6774399327182822786::1782053235::0::1::::<>Node2D<><>0<>0<><>::
 room.gd::GDScript::6949035631564065874::1782051818::0::1::::<>Node2D<><>0<>0<><>::
 save_manager.gd::GDScript::4206352049541440145::1782051683::0::1::::<>Node<><>0<>0<><>::
 squad_confirm_panel.gd::GDScript::9072076109633159371::1782047513::0::1::::<>CanvasLayer<><>0<>0<><>::

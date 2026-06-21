@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="180" shape-rendering="crispEdges">
+
+  <!-- ===== OUTER FRAME ===== -->
+  <!-- Top bar -->
+  <rect x="0" y="0" width="120" height="2" fill="#1A2A4A"/>
+  <!-- Bottom bar -->
+  <rect x="0" y="178" width="120" height="2" fill="#1A2A4A"/>
+  <!-- Left bar -->
+  <rect x="0" y="0" width="2" height="180" fill="#1A2A4A"/>
+  <!-- Right bar -->
+  <rect x="118" y="0" width="2" height="180" fill="#1A2A4A"/>
+
+  <!-- ===== BRIGHT EDGE HIGHLIGHT ===== -->
+  <!-- Top highlight -->
+  <rect x="2" y="2" width="116" height="1" fill="#3366AA"/>
+  <!-- Left highlight -->
+  <rect x="2" y="2" width="1" height="176" fill="#3366AA"/>
+  <!-- Right highlight -->
+  <rect x="117" y="2" width="1" height="176" fill="#3366AA"/>
+  <!-- Bottom highlight -->
+  <rect x="2" y="177" width="116" height="1" fill="#3366AA"/>
+
+  <!-- ===== IMAGE AREA (y=3 to y=101, h=99px) ===== -->
+  <rect x="3" y="3" width="114" height="99" fill="#0F1A30"/>
+
+  <!-- ===== DIVIDER LINE (y=102) ===== -->
+  <rect x="2" y="102" width="116" height="2" fill="#1A2A4A"/>
+  <rect x="2" y="103" width="116" height="1" fill="#3366AA"/>
+
+  <!-- ===== INFO AREA BACKGROUND (y=104 to y=167) ===== -->
+  <rect x="3" y="104" width="114" height="64" fill="#162040"/>
+
+  <!-- ===== CLASS NAME PLACEHOLDER (y=104, h=20) ===== -->
+  <rect x="5" y="106" width="110" height="16" fill="#1A2A4A"/>
+  <!-- Inner glow line on name bar -->
+  <rect x="5" y="106" width="110" height="1" fill="#3366AA"/>
+
+  <!-- ===== LEVEL SLOT (left) and ENHANCEMENT SLOT (right) (y=126, h=16) ===== -->
+  <rect x="5" y="124" width="52" height="16" fill="#0A1228"/>
+  <rect x="63" y="124" width="52" height="16" fill="#0A1228"/>
+  <!-- Inner top edge on slots -->
+  <rect x="5" y="124" width="52" height="1" fill="#3366AA"/>
+  <rect x="63" y="124" width="52" height="1" fill="#3366AA"/>
+  <!-- Slot separator dot -->
+  <rect x="59" y="130" width="2" height="4" fill="#3366AA"/>
+
+  <!-- ===== RARITY BADGE BAR (y=144, h=22) ===== -->
+  <rect x="3" y="144" width="114" height="22" fill="#0A1228"/>
+  <!-- Rarity color accent stripe (R = blue) -->
+  <rect x="3" y="144" width="114" height="3" fill="#3366AA"/>
+  <rect x="3" y="163" width="114" height="3" fill="#1A2A4A"/>
+  <!-- R letter placeholder dots (3 blocks) -->
+  <rect x="50" y="149" width="4" height="10" fill="#3366AA"/>
+  <rect x="56" y="149" width="4" height="5"  fill="#3366AA"/>
+  <rect x="56" y="156" width="4" height="3"  fill="#3366AA"/>
+  <rect x="62" y="149" width="4" height="3"  fill="#3366AA"/>
+
+  <!-- ===== CORNER ACCENTS (R = simple 2x2 squares) ===== -->
+  <rect x="2" y="2" width="3" height="3" fill="#6699CC"/>
+  <rect x="115" y="2" width="3" height="3" fill="#6699CC"/>
+  <rect x="2" y="175" width="3" height="3" fill="#6699CC"/>
+  <rect x="115" y="175" width="3" height="3" fill="#6699CC"/>
+
+</svg>

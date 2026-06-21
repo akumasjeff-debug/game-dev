@@ -1,441 +1,501 @@
 extends CanvasLayer
 
-# 招募中心面板 — 掛在 GachaPanel.tscn (CanvasLayer layer=15)
+# 招募中心面板 — 聚光燈揭示抽卡動畫
+# 掛在 GachaPanel.tscn (CanvasLayer layer=15)
 
-var _bg: ColorRect
-var _blue_ticket_label: Label
-var _gold_ticket_label: Label
-var _result_container: VBoxContainer
-var _fragment_label: Label
+signal panel_closed
 
-# 翻牌動畫節點
-var _anim_card: Panel = null
-var _anim_card_content: Label = null
-var _pending_results: Array = []
-
-# 角色名稱對照
-const CHAR_NAMES = {
-	"shield": "盾兵",
-	"medic": "醫療兵",
-	"assault": "突擊手",
-	"sniper": "狙擊手",
-	"demo": "爆破手",
-	"recon": "偵察手",
-}
+var _cards_json: Dictionary = {}
+var _gacha_config: Dictionary = {}
 
 func _ready() -> void:
+	layer = 15
+	_load_data()
 	_build_ui()
 
+# ─────────────────────────────────────────
+#  資料載入
+# ─────────────────────────────────────────
+
+func _load_data() -> void:
+	var cf = FileAccess.open("res://resources/data/cards.json", FileAccess.READ)
+	if cf:
+		var raw = JSON.parse_string(cf.get_as_text())
+		cf.close()
+		if raw is Dictionary and raw.has("cards"):
+			for c in raw["cards"]:
+				if c is Dictionary and c.has("id"):
+					_cards_json[c["id"]] = c
+		elif raw is Array:
+			for c in raw:
+				if c is Dictionary and c.has("id"):
+					_cards_json[c["id"]] = c
+
+	var gc = FileAccess.open("res://resources/data/gacha_config.json", FileAccess.READ)
+	if gc:
+		var raw = JSON.parse_string(gc.get_as_text())
+		gc.close()
+		if raw is Dictionary:
+			_gacha_config = raw
+
+# ─────────────────────────────────────────
+#  UI 建構
+# ─────────────────────────────────────────
+
 func _build_ui() -> void:
-	# 半透明遮罩背景（全螢幕）
-	_bg = ColorRect.new()
-	_bg.anchor_right = 1.0
-	_bg.anchor_bottom = 1.0
-	_bg.color = Color(0.0, 0.0, 0.0, 0.85)
-	add_child(_bg)
-
-	# 主面板容器
-	var panel = ColorRect.new()
-	panel.position = Vector2(40, 80)
-	panel.size = Vector2(1000, 1760)
-	panel.color = Color(0.05, 0.08, 0.12, 0.97)
-	add_child(panel)
-
-	# 邊框
-	var border_style = StyleBoxFlat.new()
-	border_style.border_color = Color(0.8, 0.7, 0.2, 0.9)
-	border_style.set_border_width_all(3)
+	# 黑色底層遮罩
+	var overlay = ColorRect.new()
+	overlay.name = "Overlay"
+	overlay.color = Color(0.0, 0.0, 0.0, 0.92)
+	overlay.anchor_right = 1.0
+	overlay.anchor_bottom = 1.0
+	add_child(overlay)
 
 	# 標題
 	var title = Label.new()
+	title.name = "Title"
 	title.text = "招募中心"
-	title.position = Vector2(370, 100)
-	title.add_theme_font_size_override("font_size", 36)
-	title.modulate = Color(1.0, 0.9, 0.3)
+	title.add_theme_font_size_override("font_size", 48)
+	title.modulate = Color(1.0, 0.85, 0.3)
+	title.position = Vector2(0, 60)
+	title.size = Vector2(1080, 80)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
 
-	# 分隔線
-	var sep1 = ColorRect.new()
-	sep1.position = Vector2(60, 158)
-	sep1.size = Vector2(960, 2)
-	sep1.color = Color(0.5, 0.4, 0.1, 0.8)
-	add_child(sep1)
-
-	# ── 票券顯示 ──
-	_blue_ticket_label = Label.new()
-	_blue_ticket_label.position = Vector2(80, 175)
-	_blue_ticket_label.add_theme_font_size_override("font_size", 26)
-	_blue_ticket_label.modulate = Color(0.4, 0.7, 1.0)
-	add_child(_blue_ticket_label)
-
-	_gold_ticket_label = Label.new()
-	_gold_ticket_label.position = Vector2(80, 215)
-	_gold_ticket_label.add_theme_font_size_override("font_size", 26)
-	_gold_ticket_label.modulate = Color(1.0, 0.85, 0.2)
-	add_child(_gold_ticket_label)
-
-	# ── 機率說明 ──
-	var prob_bg = ColorRect.new()
-	prob_bg.position = Vector2(60, 265)
-	prob_bg.size = Vector2(960, 120)
-	prob_bg.color = Color(0.08, 0.10, 0.15, 0.9)
-	add_child(prob_bg)
-
-	var prob_title = Label.new()
-	prob_title.text = "卡池機率"
-	prob_title.position = Vector2(80, 272)
-	prob_title.add_theme_font_size_override("font_size", 20)
-	prob_title.modulate = Color(0.8, 0.8, 0.8)
-	add_child(prob_title)
-
-	var prob_equal = Label.new()
-	prob_equal.text = "各職業出現機率相同（約 16.7%）"
-	prob_equal.position = Vector2(80, 300)
-	prob_equal.add_theme_font_size_override("font_size", 18)
-	prob_equal.modulate = Color(0.9, 0.9, 0.9)
-	add_child(prob_equal)
-
-	# 保底說明
-	var pity_lbl = Label.new()
-	pity_lbl.text = "保底：連續 6 抽無新角色 → 下一抽必得未解鎖職業"
-	pity_lbl.position = Vector2(80, 330)
-	pity_lbl.add_theme_font_size_override("font_size", 16)
-	pity_lbl.modulate = Color(0.6, 0.9, 0.6)
-	add_child(pity_lbl)
-
-	# ── 抽卡按鈕 ──
-	var btn_y: float = 415.0
-	var btn_configs = [
-		{"text": "藍票 x1 單抽", "ticket": "blue", "count": 1, "color": Color(0.1, 0.2, 0.5)},
-		{"text": "藍票 x10 連抽", "ticket": "blue", "count": 10, "color": Color(0.1, 0.3, 0.6)},
-		{"text": "金票 x1 單抽", "ticket": "gold", "count": 1, "color": Color(0.4, 0.3, 0.0)},
-		{"text": "金票 x10 連抽", "ticket": "gold", "count": 10, "color": Color(0.5, 0.4, 0.0)},
-	]
-
-	for cfg_item in btn_configs:
-		var btn = Button.new()
-		btn.text = cfg_item["text"]
-		btn.position = Vector2(80, btn_y)
-		btn.custom_minimum_size = Vector2(920, 70)
-		btn.add_theme_font_size_override("font_size", 24)
-		btn.name = "PullBtn_" + cfg_item["ticket"] + "_" + str(cfg_item["count"])
-		_style_button(btn, cfg_item["color"])
-		btn.pressed.connect(_on_pull_pressed.bind(cfg_item["ticket"], cfg_item["count"]))
-		add_child(btn)
-		btn_y += 80.0
-
-	# ── 結果顯示區 ──
-	var result_title = Label.new()
-	result_title.text = "抽卡結果："
-	result_title.position = Vector2(80, 745)
-	result_title.add_theme_font_size_override("font_size", 22)
-	result_title.modulate = Color(0.8, 0.8, 0.8)
-	add_child(result_title)
-
-	var result_bg = ColorRect.new()
-	result_bg.position = Vector2(60, 778)
-	result_bg.size = Vector2(960, 500)
-	result_bg.color = Color(0.03, 0.05, 0.08, 0.9)
-	add_child(result_bg)
-
-	var scroll = ScrollContainer.new()
-	scroll.position = Vector2(60, 778)
-	scroll.size = Vector2(960, 500)
-	add_child(scroll)
-
-	_result_container = VBoxContainer.new()
-	_result_container.custom_minimum_size = Vector2(940, 0)
-	_result_container.add_theme_constant_override("separation", 6)
-	scroll.add_child(_result_container)
-
-	# ── 稀有度總覽 ──
-	var rarity_sep = ColorRect.new()
-	rarity_sep.position = Vector2(60, 1295)
-	rarity_sep.size = Vector2(960, 2)
-	rarity_sep.color = Color(0.3, 0.3, 0.3, 0.7)
-	add_child(rarity_sep)
-
-	var rarity_title = Label.new()
-	rarity_title.text = "角色稀有度總覽："
-	rarity_title.position = Vector2(80, 1305)
-	rarity_title.add_theme_font_size_override("font_size", 22)
-	rarity_title.modulate = Color(0.8, 0.8, 0.8)
-	add_child(rarity_title)
-
-	_fragment_label = Label.new()
-	_fragment_label.position = Vector2(80, 1335)
-	_fragment_label.add_theme_font_size_override("font_size", 18)
-	_fragment_label.modulate = Color(0.9, 0.9, 0.9)
-	_fragment_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_fragment_label.custom_minimum_size = Vector2(920, 0)
-	add_child(_fragment_label)
-
-	# ── 關閉按鈕 ──
+	# 關閉按鈕（右上角）
 	var close_btn = Button.new()
-	close_btn.text = "關閉"
-	close_btn.position = Vector2(340, 1700)
-	close_btn.custom_minimum_size = Vector2(400, 70)
-	close_btn.add_theme_font_size_override("font_size", 26)
-	_style_button(close_btn, Color(0.3, 0.1, 0.1))
-	close_btn.pressed.connect(_on_close_pressed)
+	close_btn.name = "CloseBtn"
+	close_btn.text = "X"
+	close_btn.custom_minimum_size = Vector2(80, 80)
+	close_btn.position = Vector2(970, 30)
+	close_btn.add_theme_font_size_override("font_size", 32)
+	_style_button(close_btn, Color(0.35, 0.08, 0.08))
+	close_btn.pressed.connect(_on_close)
 	add_child(close_btn)
 
-	_update_ticket_display()
-	_update_fragment_display()
+	# 金幣顯示
+	var coins_lbl = Label.new()
+	coins_lbl.name = "CoinsLabel"
+	coins_lbl.text = "金幣：%d" % SaveManager.coins
+	coins_lbl.add_theme_font_size_override("font_size", 30)
+	coins_lbl.modulate = Color(1.0, 0.85, 0.3)
+	coins_lbl.position = Vector2(40, 160)
+	add_child(coins_lbl)
 
-	# 翻牌動畫卡片（疊在最上層）
-	_build_anim_card()
+	# 機率說明
+	_build_pool_info()
 
-# ── 翻牌動畫卡片 ──
-func _build_anim_card() -> void:
-	_anim_card = Panel.new()
-	_anim_card.position = Vector2(240, 950)
-	_anim_card.size = Vector2(600, 300)
-	_anim_card.pivot_offset = Vector2(300, 150)
-	_anim_card.visible = false
+	# 抽卡按鈕
+	var btn_single = Button.new()
+	btn_single.name = "BtnSingle"
+	btn_single.text = "單抽（100 金幣）"
+	btn_single.custom_minimum_size = Vector2(430, 90)
+	btn_single.position = Vector2(40, 1790)
+	btn_single.add_theme_font_size_override("font_size", 28)
+	_style_button(btn_single, Color(0.12, 0.18, 0.38))
+	btn_single.pressed.connect(func(): _do_pull(1))
+	add_child(btn_single)
 
-	var card_style = StyleBoxFlat.new()
-	card_style.bg_color = Color(0.08, 0.10, 0.18, 0.98)
-	card_style.border_color = Color(0.8, 0.7, 0.2, 0.9)
-	card_style.set_border_width_all(3)
-	card_style.set_corner_radius_all(12)
-	_anim_card.add_theme_stylebox_override("panel", card_style)
+	var btn_ten = Button.new()
+	btn_ten.name = "BtnTen"
+	btn_ten.text = "十連（900 金幣）"
+	btn_ten.custom_minimum_size = Vector2(430, 90)
+	btn_ten.position = Vector2(610, 1790)
+	btn_ten.add_theme_font_size_override("font_size", 28)
+	_style_button(btn_ten, Color(0.30, 0.20, 0.0))
+	btn_ten.pressed.connect(func(): _do_pull(10))
+	add_child(btn_ten)
 
-	_anim_card_content = Label.new()
-	_anim_card_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_anim_card_content.add_theme_font_size_override("font_size", 28)
-	_anim_card_content.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_anim_card_content.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_anim_card_content.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_anim_card.add_child(_anim_card_content)
+	# 新手10連按鈕（未領取時顯示）
+	if not SaveManager.starter_claimed:
+		var btn_starter = Button.new()
+		btn_starter.name = "StarterBtn"
+		btn_starter.text = "新手 10 連（免費）"
+		btn_starter.custom_minimum_size = Vector2(900, 90)
+		btn_starter.position = Vector2(90, 1690)
+		btn_starter.add_theme_font_size_override("font_size", 30)
+		_style_button(btn_starter, Color(0.08, 0.35, 0.10))
+		btn_starter.modulate = Color(0.4, 1.0, 0.55)
+		btn_starter.pressed.connect(_do_starter_pull)
+		add_child(btn_starter)
 
-	add_child(_anim_card)
+func _build_pool_info() -> void:
+	var rates = _gacha_config.get("rates", {"R": 0.75, "SR": 0.18, "SSR": 0.06, "QR": 0.01})
+	var rate_lbl = Label.new()
+	rate_lbl.name = "RateInfo"
+	rate_lbl.text = "機率：R %.0f%%  SR %.0f%%  SSR %.0f%%  QR %.0f%%" % [
+		rates.get("R", 0.75) * 100,
+		rates.get("SR", 0.18) * 100,
+		rates.get("SSR", 0.06) * 100,
+		rates.get("QR", 0.01) * 100
+	]
+	rate_lbl.add_theme_font_size_override("font_size", 24)
+	rate_lbl.modulate = Color(0.75, 0.75, 0.75)
+	rate_lbl.position = Vector2(40, 210)
+	rate_lbl.size = Vector2(1000, 40)
+	add_child(rate_lbl)
 
-# 翻牌動畫：scale.x 1→0→1，中間呼叫 on_flip_mid 換內容
-func _play_card_flip_animation(on_flip_mid: Callable, on_complete: Callable) -> void:
-	_anim_card.scale = Vector2(1.0, 1.0)
-	_anim_card.visible = true
+	var pity_lbl = Label.new()
+	pity_lbl.name = "PityInfo"
+	pity_lbl.text = "保底：10 抽 SR ／ 50 抽 SSR ／ 100 抽 QR"
+	pity_lbl.add_theme_font_size_override("font_size", 22)
+	pity_lbl.modulate = Color(0.6, 0.6, 0.85)
+	pity_lbl.position = Vector2(40, 248)
+	pity_lbl.size = Vector2(1000, 36)
+	add_child(pity_lbl)
 
-	var tween = create_tween()
-	# Phase 1：正面翻到邊緣
-	tween.tween_property(_anim_card, "scale", Vector2(0.0, 1.0), 0.25).set_ease(Tween.EASE_IN)
-	tween.tween_callback(on_flip_mid)
-	# Phase 2：邊緣翻到背面（現在是結果面）
-	tween.tween_property(_anim_card, "scale", Vector2(1.0, 1.0), 0.25).set_ease(Tween.EASE_OUT)
-	tween.tween_callback(on_complete)
+# ─────────────────────────────────────────
+#  抽卡邏輯
+# ─────────────────────────────────────────
 
-# SSR 首次解鎖的金色邊框閃光效果
-func _play_ssr_flash() -> void:
-	var flash_tween = create_tween()
-	flash_tween.set_loops(3)
-	var ssr_style = StyleBoxFlat.new()
-	ssr_style.bg_color = Color(0.08, 0.10, 0.18, 0.98)
-	ssr_style.border_color = Color(1.0, 0.9, 0.1, 1.0)
-	ssr_style.set_border_width_all(6)
-	ssr_style.set_corner_radius_all(12)
-	flash_tween.tween_callback(func():
-		_anim_card.add_theme_stylebox_override("panel", ssr_style)
-	)
-	flash_tween.tween_interval(0.15)
-	var dim_style = StyleBoxFlat.new()
-	dim_style.bg_color = Color(0.08, 0.10, 0.18, 0.98)
-	dim_style.border_color = Color(0.8, 0.7, 0.2, 0.9)
-	dim_style.set_border_width_all(3)
-	dim_style.set_corner_radius_all(12)
-	flash_tween.tween_callback(func():
-		_anim_card.add_theme_stylebox_override("panel", dim_style)
-	)
-	flash_tween.tween_interval(0.15)
-
-# 設定動畫卡片顯示卡背（神秘狀態）
-func _set_card_back() -> void:
-	_anim_card_content.text = "？？？"
-	_anim_card_content.modulate = Color(0.5, 0.5, 0.6)
-	var back_style = StyleBoxFlat.new()
-	back_style.bg_color = Color(0.05, 0.06, 0.12, 0.98)
-	back_style.border_color = Color(0.4, 0.35, 0.1, 0.9)
-	back_style.set_border_width_all(3)
-	back_style.set_corner_radius_all(12)
-	_anim_card.add_theme_stylebox_override("panel", back_style)
-
-# 設定動畫卡片顯示結果內容（單抽用，從 pending_results 第一筆）
-func _set_card_result_single(result: Dictionary) -> void:
-	var char_id = result.get("char_id", "")
-	var is_new = result.get("is_new", false)
-	var copies_gained = result.get("copies_gained", 0)
-	var current_copies = result.get("current_copies", 0)
-	var char_name = CHAR_NAMES.get(char_id, char_id)
-
-	if is_new:
-		_anim_card_content.text = "✨ " + char_name + "\n加入！"
-		_anim_card_content.modulate = Color(1.0, 0.65, 0.1)
-		var new_style = StyleBoxFlat.new()
-		new_style.bg_color = Color(0.15, 0.10, 0.02, 0.98)
-		new_style.border_color = Color(1.0, 0.85, 0.2, 1.0)
-		new_style.set_border_width_all(4)
-		new_style.set_corner_radius_all(12)
-		_anim_card.add_theme_stylebox_override("panel", new_style)
-	elif copies_gained == 0:
-		_anim_card_content.text = char_name + "\n已達 SSR！\n+1 藍票"
-		_anim_card_content.modulate = Color(1.0, 0.85, 0.1)
-		var ssr_style = StyleBoxFlat.new()
-		ssr_style.bg_color = Color(0.12, 0.10, 0.02, 0.98)
-		ssr_style.border_color = Color(1.0, 0.9, 0.1, 0.9)
-		ssr_style.set_border_width_all(4)
-		ssr_style.set_corner_radius_all(12)
-		_anim_card.add_theme_stylebox_override("panel", ssr_style)
-	else:
-		_anim_card_content.text = char_name + "\n備份 +1（已 " + str(current_copies) + " 張）"
-		_anim_card_content.modulate = Color(0.5, 0.8, 1.0)
-		var dup_style = StyleBoxFlat.new()
-		dup_style.bg_color = Color(0.04, 0.08, 0.16, 0.98)
-		dup_style.border_color = Color(0.3, 0.5, 0.9, 0.9)
-		dup_style.set_border_width_all(3)
-		dup_style.set_corner_radius_all(12)
-		_anim_card.add_theme_stylebox_override("panel", dup_style)
-
-func _update_ticket_display() -> void:
-	if _blue_ticket_label:
-		_blue_ticket_label.text = "藍色票：" + str(SaveManager.blue_tickets) + " 張"
-	if _gold_ticket_label:
-		_gold_ticket_label.text = "金色票：" + str(SaveManager.gold_tickets) + " 張"
-
-func _update_fragment_display() -> void:
-	if not _fragment_label:
+func _do_starter_pull() -> void:
+	if SaveManager.starter_claimed:
 		return
-	const RARITY_NAMES_DISP = ["灰", "銀SR", "金SSR"]
-	const RARITY_COLORS_DISP = [Color(0.6, 0.6, 0.65), Color(0.82, 0.87, 1.0), Color(1.0, 0.85, 0.2)]
-	var parts: Array = []
-	for char_id in ["shield", "medic", "assault", "sniper", "demo", "recon"]:
-		var name = CHAR_NAMES.get(char_id, char_id)
-		if char_id in SaveManager.owned_characters:
-			var r = SaveManager.character_rarity.get(char_id, 0)
-			var c = SaveManager.character_copies.get(char_id, 0)
-			var suffix = " 備份:" + str(c)
-			if r >= 2:
-				suffix = " SSR"
-			parts.append(name + "(" + RARITY_NAMES_DISP[r] + ")" + suffix)
-		else:
-			parts.append(name + "(未解鎖)")
-	_fragment_label.text = "  ".join(parts)
+	var results = SaveManager.claim_starter_pulls()
+	var starter_btn = get_node_or_null("StarterBtn")
+	if starter_btn:
+		starter_btn.queue_free()
+	_show_pull_results(results)
 
-func _on_pull_pressed(ticket_type: String, count: int) -> void:
-	var results: Array = []
-	if count == 1:
-		var r = GachaManager.pull(ticket_type)
-		if not r.is_empty():
-			results.append(r)
-	else:
-		results = GachaManager.pull_10(ticket_type)
-
-	if results.is_empty():
-		_show_error("票券不足！")
+func _do_pull(count: int) -> void:
+	var cost = 100 if count == 1 else 900
+	if SaveManager.coins < cost:
+		_show_no_coins()
 		return
 
-	_pending_results = results
-	_update_ticket_display()
-	_update_fragment_display()
+	SaveManager.coins -= cost
+	SaveManager.save_game()
+	_refresh_coins_label()
 
-	if count == 1:
-		# 單抽：翻牌動畫後顯示結果
-		_set_card_back()
-		var result = results[0]
-		_play_card_flip_animation(
-			func(): _set_card_result_single(result),
-			func():
-				# 若首次解鎖，翻完後加 SSR 閃光
-				if result.get("is_new", false):
-					_play_ssr_flash()
-				# 動畫結束後把結果填入下方列表
-				_display_results(_pending_results)
-				# 延遲隱藏動畫卡（讓玩家看到效果後再消失）
-				get_tree().create_timer(1.2).timeout.connect(func():
-					if is_instance_valid(_anim_card):
-						_anim_card.visible = false
-				)
-		)
+	# 執行抽卡並立刻 add_card（記錄結果供顯示用）
+	var card_ids: Array = []
+	for i in range(count):
+		var force_sr = (i == count - 1 and count == 10)
+		var card_id = SaveManager._do_single_pull(force_sr)
+		card_ids.append(card_id)
+		var max_plus = _get_max_plus(card_id)
+		SaveManager.add_card(card_id, max_plus)
+
+	SaveManager.save_game()
+	_show_pull_results(card_ids)
+
+func _get_max_plus(card_id: String) -> int:
+	if _cards_json.has(card_id):
+		return _cards_json[card_id].get("max_plus", 3)
+	return SaveManager._get_max_plus(card_id)
+
+func _refresh_coins_label() -> void:
+	var lbl = get_node_or_null("CoinsLabel")
+	if lbl:
+		lbl.text = "金幣：%d" % SaveManager.coins
+
+# ─────────────────────────────────────────
+#  揭示動畫主入口
+# ─────────────────────────────────────────
+
+func _show_pull_results(card_ids: Array) -> void:
+	# 移除前一輪結果節點
+	_clear_result_nodes()
+
+	if card_ids.is_empty():
+		return
+
+	if card_ids.size() == 1:
+		_show_single_spotlight(card_ids[0])
 	else:
-		# 十連抽：快速翻牌動畫後一次顯示所有結果
-		_set_card_back()
-		_play_card_flip_animation(
-			func():
-				_anim_card_content.text = "x" + str(results.size()) + " 抽完成！"
-				_anim_card_content.modulate = Color(1.0, 0.9, 0.5)
-				var multi_style = StyleBoxFlat.new()
-				multi_style.bg_color = Color(0.10, 0.10, 0.05, 0.98)
-				multi_style.border_color = Color(0.9, 0.8, 0.2, 0.9)
-				multi_style.set_border_width_all(3)
-				multi_style.set_corner_radius_all(12)
-				_anim_card.add_theme_stylebox_override("panel", multi_style),
-			func():
-				_display_results(_pending_results)
-				get_tree().create_timer(0.8).timeout.connect(func():
-					if is_instance_valid(_anim_card):
-						_anim_card.visible = false
-				)
-		)
+		_show_multi_result(card_ids)
 
-func _display_results(results: Array) -> void:
-	# 清除舊結果
-	for child in _result_container.get_children():
-		child.queue_free()
+func _clear_result_nodes() -> void:
+	for child in get_children():
+		if child.name.begins_with("RC_"):
+			child.queue_free()
 
-	for result in results:
-		var char_id = result.get("char_id", "")
-		var is_new = result.get("is_new", false)
-		var copies_gained = result.get("copies_gained", 0)
-		var current_copies = result.get("current_copies", 0)
-		var current_rarity = result.get("current_rarity", 0)
-		var char_name = CHAR_NAMES.get(char_id, char_id)
+# ─────────────────────────────────────────
+#  單抽：聚光燈揭示
+# ─────────────────────────────────────────
 
-		var row = Label.new()
-		row.add_theme_font_size_override("font_size", 22)
+func _show_single_spotlight(card_id: String) -> void:
+	var card_info = _cards_json.get(card_id, {})
+	var grade = card_info.get("grade", "R")
 
-		const RARITY_NAMES_LOCAL = ["灰色", "SR銀", "SSR金"]
+	# 聚光燈光束（梯形近似 — 全高寬帶漸層）
+	var light_colors = {
+		"R":   Color(0.27, 0.53, 0.80, 0.28),
+		"SR":  Color(0.60, 0.20, 0.90, 0.32),
+		"SSR": Color(0.90, 0.75, 0.00, 0.38),
+		"QR":  Color(0.90, 0.20, 0.00, 0.44)
+	}
+	var light = ColorRect.new()
+	light.name = "RC_Light"
+	light.color = light_colors.get(grade, Color(0.5, 0.5, 0.5, 0.22))
+	light.size = Vector2(420, 1100)
+	light.position = Vector2(330, 0)
+	light.modulate.a = 0.0
+	add_child(light)
 
-		if is_new:
-			# 首次解鎖：橙色，強調感
-			row.text = "  ✨ [首次解鎖] " + char_name + " 加入！"
-			row.modulate = Color(1.0, 0.65, 0.1)
-		elif copies_gained == 0:
-			# SSR 補償（備份轉藍票）：金色
-			row.text = "  " + char_name + "  已達 SSR！+1 藍票"
-			row.modulate = Color(1.0, 0.85, 0.1)
+	# 輻射暈光（圓形柔邊 — 用較大 ColorRect 模擬）
+	var glow = ColorRect.new()
+	glow.name = "RC_Glow"
+	glow.color = light_colors.get(grade, Color(0.5, 0.5, 0.5, 0.10))
+	glow.color.a = 0.12
+	glow.size = Vector2(700, 700)
+	glow.position = Vector2(190, 550)
+	glow.modulate.a = 0.0
+	add_child(glow)
+
+	# 卡片容器：從畫面下方滑入
+	var card_container = Control.new()
+	card_container.name = "RC_Main"
+	card_container.size = Vector2(320, 480)
+	card_container.position = Vector2(380, 1920)
+	card_container.pivot_offset = Vector2(160, 240)
+	add_child(card_container)
+	_build_result_card(card_container, card_id, card_info, grade, 320, 480)
+
+	# 動畫序列
+	var tw = create_tween()
+	tw.set_parallel(false)
+
+	# 1. 光束淡入
+	tw.tween_property(light, "modulate:a", 1.0, 0.25).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(glow, "modulate:a", 1.0, 0.35)
+
+	# 2. 卡片從下方滑入（Back Ease 彈跳）
+	tw.tween_property(card_container, "position:y", 680.0, 0.40) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+	# 3. 輕微縮放彈動
+	tw.tween_property(card_container, "scale", Vector2(1.06, 1.06), 0.10)
+	tw.tween_property(card_container, "scale", Vector2(1.0, 1.0), 0.10)
+
+	# SSR / QR 額外閃光
+	if grade == "SSR" or grade == "QR":
+		tw.tween_callback(func(): _play_grade_flash(card_container, grade))
+
+# ─────────────────────────────────────────
+#  十連：3×3 + 1 逐一淡入
+# ─────────────────────────────────────────
+
+func _show_multi_result(card_ids: Array) -> void:
+	var count = card_ids.size()
+
+	# 佈局：3 欄，每欄 3 張，最後一張（第 10 張）置中在最後一列
+	var cols = 3
+	var card_w = 230
+	var card_h = 345
+	var spacing_x = 45
+	var spacing_y = 28
+	var total_w = cols * card_w + (cols - 1) * spacing_x
+	var start_x = (1080 - total_w) / 2
+	var start_y = 285
+
+	for i in range(count):
+		var card_id = card_ids[i]
+		var card_info = _cards_json.get(card_id, {})
+		var grade = card_info.get("grade", "R")
+
+		var col: int
+		var row: int
+
+		if i < 9:
+			col = i % cols
+			row = i / cols
 		else:
-			# 重複（備份 +1）：藍色
-			var copies_needed = SaveManager.copies_needed_for_rarity_up(char_id)
-			var needed_str = ""
-			if copies_needed > 0:
-				needed_str = "  距升稀有度還需 " + str(copies_needed) + " 張"
-			else:
-				needed_str = "  可提升稀有度！"
-			row.text = "  " + char_name + "  備份 +1（已 " + str(current_copies) + " 張）" + needed_str
-			row.modulate = Color(0.5, 0.75, 1.0)
+			# 第 10 張置中
+			col = 0
+			row = 3
+			# 水平置中計算
+			var single_start_x = (1080 - card_w) / 2
+			var slot = Control.new()
+			slot.name = "RC_%d" % i
+			slot.size = Vector2(card_w, card_h)
+			slot.position = Vector2(single_start_x, start_y + row * (card_h + spacing_y))
+			slot.modulate.a = 0.0
+			slot.pivot_offset = Vector2(card_w / 2.0, card_h / 2.0)
+			add_child(slot)
+			_build_result_card(slot, card_id, card_info, grade, card_w, card_h)
+			_tween_card_in(slot, i)
+			continue
 
-		_result_container.add_child(row)
+		var slot = Control.new()
+		slot.name = "RC_%d" % i
+		slot.size = Vector2(card_w, card_h)
+		slot.position = Vector2(start_x + col * (card_w + spacing_x), start_y + row * (card_h + spacing_y))
+		slot.modulate.a = 0.0
+		slot.pivot_offset = Vector2(card_w / 2.0, card_h / 2.0)
+		add_child(slot)
+		_build_result_card(slot, card_id, card_info, grade, card_w, card_h)
+		_tween_card_in(slot, i)
 
-func _show_error(msg: String) -> void:
-	var err = Label.new()
-	err.text = msg
-	err.add_theme_font_size_override("font_size", 22)
-	err.modulate = Color(1.0, 0.3, 0.3)
-	_result_container.add_child(err)
-	get_tree().create_timer(2.0).timeout.connect(func(): if is_instance_valid(err): err.queue_free())
+func _tween_card_in(slot: Control, index: int) -> void:
+	var tw = create_tween()
+	tw.tween_interval(index * 0.07)
+	tw.tween_property(slot, "modulate:a", 1.0, 0.18)
+	tw.parallel().tween_property(slot, "scale", Vector2(1.0, 1.0), 0.18).from(Vector2(0.85, 0.85))
 
-func _on_close_pressed() -> void:
+# ─────────────────────────────────────────
+#  卡片節點建構
+# ─────────────────────────────────────────
+
+func _build_result_card(container: Control, card_id: String, card_info: Dictionary, grade: String, w: int, h: int) -> void:
+	# 稀有度背景色（無圖框 SVG 時回退）
+	var grade_colors = {
+		"R":   Color(0.08, 0.16, 0.30),
+		"SR":  Color(0.20, 0.08, 0.35),
+		"SSR": Color(0.32, 0.25, 0.00),
+		"QR":  Color(0.38, 0.06, 0.02)
+	}
+	var grade_border_colors = {
+		"R":   Color(0.27, 0.53, 0.80),
+		"SR":  Color(0.70, 0.40, 1.00),
+		"SSR": Color(1.00, 0.85, 0.10),
+		"QR":  Color(1.00, 0.35, 0.05)
+	}
+
+	# 嘗試載入卡框 SVG；否則用 ColorRect
+	var frame_path = "res://resources/art/cards/card_frame_%s.svg" % grade.to_lower()
+	if ResourceLoader.exists(frame_path):
+		var frame = TextureRect.new()
+		frame.texture = load(frame_path)
+		frame.size = Vector2(w, h)
+		frame.stretch_mode = TextureRect.STRETCH_SCALE
+		container.add_child(frame)
+	else:
+		var bg = ColorRect.new()
+		bg.size = Vector2(w, h)
+		bg.color = grade_colors.get(grade, Color(0.10, 0.10, 0.15))
+		container.add_child(bg)
+
+		# 稀有度色邊框
+		var border = Panel.new()
+		border.size = Vector2(w, h)
+		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bp = StyleBoxFlat.new()
+		bp.bg_color = Color(0, 0, 0, 0)
+		bp.border_color = grade_border_colors.get(grade, Color(0.3, 0.3, 0.4))
+		bp.set_border_width_all(3)
+		bp.set_corner_radius_all(6)
+		border.add_theme_stylebox_override("panel", bp)
+		container.add_child(border)
+
+	# 角色肖像
+	var portrait_path = card_info.get("portrait_path", "")
+	if portrait_path != "" and ResourceLoader.exists(portrait_path):
+		var portrait = TextureRect.new()
+		portrait.texture = load(portrait_path)
+		portrait.size = Vector2(w, h - 90)
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		container.add_child(portrait)
+
+	# 稀有度標籤（左下）
+	var grade_text_colors = {
+		"R":   Color(0.45, 0.72, 1.00),
+		"SR":  Color(0.82, 0.45, 1.00),
+		"SSR": Color(1.00, 0.88, 0.22),
+		"QR":  Color(1.00, 0.42, 0.05)
+	}
+	var grade_lbl = Label.new()
+	grade_lbl.text = grade
+	grade_lbl.modulate = grade_text_colors.get(grade, Color.WHITE)
+	grade_lbl.add_theme_font_size_override("font_size", maxi(14, w / 12))
+	grade_lbl.position = Vector2(8, h - 82)
+	container.add_child(grade_lbl)
+
+	# 名稱（左下第二行）
+	var name_lbl = Label.new()
+	name_lbl.text = card_info.get("name", card_id)
+	name_lbl.add_theme_font_size_override("font_size", maxi(14, w / 14))
+	name_lbl.position = Vector2(8, h - 56)
+	name_lbl.size = Vector2(w - 16, 32)
+	name_lbl.clip_text = true
+	container.add_child(name_lbl)
+
+	# 強化 / 溢出狀態（左下第三行）
+	var plus = SaveManager.get_card_plus(card_id)
+	var max_plus = card_info.get("max_plus", 3)
+	var status_lbl = Label.new()
+	if plus > max_plus:
+		status_lbl.text = "→ 50 金幣"
+		status_lbl.modulate = Color(1.00, 0.85, 0.20)
+	elif plus >= max_plus:
+		status_lbl.text = "→ 50 金幣"
+		status_lbl.modulate = Color(1.00, 0.85, 0.20)
+	elif plus > 0:
+		status_lbl.text = "+%d" % plus
+		status_lbl.modulate = Color(0.40, 1.00, 0.55)
+	else:
+		status_lbl.text = "NEW"
+		status_lbl.modulate = Color(0.40, 1.00, 0.55)
+	status_lbl.add_theme_font_size_override("font_size", maxi(12, w / 16))
+	status_lbl.position = Vector2(8, h - 26)
+	container.add_child(status_lbl)
+
+# ─────────────────────────────────────────
+#  SSR / QR 邊框閃光
+# ─────────────────────────────────────────
+
+func _play_grade_flash(container: Control, grade: String) -> void:
+	var flash_color = Color(1.0, 0.85, 0.10) if grade == "SSR" else Color(1.0, 0.42, 0.05)
+	var tw = create_tween()
+	tw.set_loops(3)
+	tw.tween_property(container, "modulate", Color(flash_color.r, flash_color.g, flash_color.b, 1.2), 0.12)
+	tw.tween_property(container, "modulate", Color.WHITE, 0.12)
+
+# ─────────────────────────────────────────
+#  金幣不足提示
+# ─────────────────────────────────────────
+
+func _show_no_coins() -> void:
+	var old = get_node_or_null("RC_NoCoins")
+	if old:
+		old.queue_free()
+
+	var lbl = Label.new()
+	lbl.name = "RC_NoCoins"
+	lbl.text = "金幣不足！"
+	lbl.add_theme_font_size_override("font_size", 44)
+	lbl.modulate = Color(1.0, 0.28, 0.28)
+	lbl.position = Vector2(0, 880)
+	lbl.size = Vector2(1080, 80)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(lbl)
+
+	var tw = create_tween()
+	tw.tween_interval(1.8)
+	tw.tween_callback(lbl.queue_free)
+
+# ─────────────────────────────────────────
+#  關閉
+# ─────────────────────────────────────────
+
+func _on_close() -> void:
+	emit_signal("panel_closed")
 	queue_free()
+
+# ─────────────────────────────────────────
+#  輔助：按鈕樣式
+# ─────────────────────────────────────────
 
 func _style_button(btn: Button, bg_color: Color) -> void:
 	var style = StyleBoxFlat.new()
 	style.bg_color = bg_color
-	style.border_color = Color(bg_color.r + 0.2, bg_color.g + 0.2, bg_color.b + 0.2, 0.8)
+	style.border_color = Color(
+		minf(bg_color.r + 0.25, 1.0),
+		minf(bg_color.g + 0.25, 1.0),
+		minf(bg_color.b + 0.25, 1.0),
+		0.85
+	)
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
+	style.set_corner_radius_all(8)
 	btn.add_theme_stylebox_override("normal", style)
 
-	var hover_style = StyleBoxFlat.new()
-	hover_style.bg_color = Color(bg_color.r + 0.1, bg_color.g + 0.1, bg_color.b + 0.1)
-	hover_style.border_color = Color(bg_color.r + 0.3, bg_color.g + 0.3, bg_color.b + 0.3, 0.9)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("hover", hover_style)
+	var hover = StyleBoxFlat.new()
+	hover.bg_color = Color(
+		minf(bg_color.r + 0.12, 1.0),
+		minf(bg_color.g + 0.12, 1.0),
+		minf(bg_color.b + 0.12, 1.0)
+	)
+	hover.border_color = style.border_color
+	hover.set_border_width_all(2)
+	hover.set_corner_radius_all(8)
+	btn.add_theme_stylebox_override("hover", hover)

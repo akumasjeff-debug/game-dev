@@ -303,6 +303,111 @@
 ### 最終驗證
 - [2026-06-20] **[十輪整合]** headless 最終驗證：0 ERROR 0 WARNING，30道菜/40個事件/7個AutoLoad正常
 
+## 再十輪視覺優化（v0.9.1 → v1.0，2026-06-21）
+
+### 第1輪：廚師 sprite 修正
+- [2026-06-21] **[廚師 sprite]** game.gd：char_chef_idle.png Sprite2D 加 z_index=2（確保在 ColorRect 之上）、scale=1.5（放大 1.5x）、position.y 從 -12 改為 -5（腳部對齊節點原點）
+
+### 第2輪：Kenney 客人 sprite 一致性
+- [2026-06-21] **[客人 sprite]** customer_ai.gd：加入靜態快取 `_kenney_tex_cache`，改用 `CustomerAI._get_kenney_texture()` 只載入一次；Sprite2D 加 z_index=2、scale=1.5；PIL 確認 x=408 y=0/17/34/51 均有 136-141 非透明像素，座標正確
+
+### 第3輪：客人出現區域
+- [2026-06-21] **[外場限制]** game.gd：SPAWN_POSITIONS 中 y=48（走道區）改為 y=68（外場內），三個進入點全部在 y=64~72 的外場範圍
+
+### 第4輪：「烹飪中」位置修正
+- [2026-06-21] **[進度條]** staff_ai.gd：BAR_X 從 120 改為 100、BAR_Y 從 32 改為 80（根據廚師世界座標換算螢幕位置）；「烹飪中」Label 改為進度條正上方 12px（垂直排列替代原本左側排列）
+
+### 第5輪：招牌左側藍色方塊修正
+- [2026-06-21] **[招牌]** game.gd：sign_border 從 x=15 改為 x=16，確保左側不截斷；sign_label 改為明確設定 size=(70,14) 並 horizontal_alignment=CENTER；加 StyleBoxEmpty 移除 Label 預設背景，消除藍色視覺噪音
+
+### 第6輪：外場亮度提升
+- [2026-06-21] **[外場]** game.gd：外場地板顏色從 Color(0.35,0.26,0.16) 改為 Color(0.42,0.30,0.18)（更明亮的暖棕）；_draw_dining_area_lights() 新增 3 個地面燈光（8×8 暖黃燈泡 + 20×30 透明光暈），均勻分布在外場
+
+### 第7-9輪：動畫確認
+- [2026-06-21] **[動畫確認]** PIL 確認 char_chef_idle.png (16x24, 148非透明px)；chef_cook_f1-f6 均為 16x24px 有效（150-158 非透明px）；動畫幀切換邏輯在 staff_ai.gd _tick_animation() 已正確實作（WORKING→cook 6幀 8FPS）；Kenney tilemap 人物座標 x=408 y=0/17/34/51 確認正確，無需更新
+
+### 第10輪：清理 + 版本號
+- [2026-06-21] **[清理]** customer_ai.gd：移除 13 個 debug print；staff_ai.gd：移除 3 個 debug print；game.gd：移除 20 個 debug print（push_warning 保留）
+- [2026-06-21] **[版本號]** main_menu.gd：v0.9 DEMO → v1.0 DEMO
+- [2026-06-21] **[驗證]** 所有 Sprite2D 確認有 TEXTURE_FILTER_NEAREST；headless 最終驗證 0 ERROR 0 WARNING
+
+## 二十輪全面優化（2026-06-21，v1.0 → v1.1 DEMO）
+
+### 輪1：Sprite 顯示修復
+- customer_ai.gd _tick_animation() 加 ResourceLoader.exists() 防呆，只在幀號變更時 load
+- staff_ai.gd _tick_animation() 全部 load 呼叫加防呆
+
+### 輪2：客人行為循環
+- customer_ai.gd _process_leaving() 加入向右移動視覺
+- _place_order() 改為點 1-3 道菜，總價存 meta
+- _on_leaving_complete() 結帳改從 meta 取總價
+
+### 輪3：員工 AI
+- staff_ai.gd 廚師佇列上限 2 個任務
+- _complete_current_task() cook 分支加 _show_deliver_popup() 飄字
+
+### 輪4：數值平衡
+- dishes.json 6 道菜調漲定價
+- 客人生成間隔 8→6 秒，上限 4→8 人
+
+### 輪5：升級系統
+- game_manager.gd 加入 upgrade_points（每 $1000 得 1 點）
+- hud.gd 工具列第 5 個按鈕「升級」，含升級面板
+
+### 輪6：事件完整化
+- EventManager.gd apply_option 後呼叫 _resume_game_if_idle()
+- _flush_queue() pause_time 改 null 安全
+
+### 輪7：年度目標
+- YearEndingManager.gd 加入年度目標面板 + confetti 動畫
+
+### 輪8：音效整合
+- 生成 order.wav、level_up.wav
+- customer_ai.gd 下單時播放 order.wav
+
+### 輪9：主選單強化
+- main_menu.gd 加窗戶燈光、霓虹招牌、路人動畫（2個 Tween 路人）
+
+### 輪10：Tutorial 修復
+- dialog_ui.gd 步驟1自動 3 秒推進
+- 所有步驟點擊均可推進
+
+### 輪11：外場視覺
+- game.gd _draw_dining_extra_decor()：菜單白板、電風扇、牆壁邊框
+
+### 輪12：廚房視覺
+- game.gd _draw_kitchen_extra_decor()：證書、調料架、磁磚縫、排煙管
+
+### 輪13：客人多樣化
+- customer_ai.gd 4種客人不同耐心值（20/30/60/90秒）和消費倍率
+- 聲望依滿意度：+1（正常）/ +2（快速）/ -1（憤怒離場）
+
+### 輪14：存檔完整化
+- main_menu.gd 繼續遊戲前驗證存檔，損壞自動重置
+
+### 輪15：效能優化
+- game.gd 客人計數改 get_nodes_in_group
+- customer_ai.gd 耐心條只在值變化 >0.1px 時更新
+
+### 輪16：內容擴充
+- events.json 加入 3 個節日事件（中秋/尾牙/農曆新年），共 43 個事件
+
+### 輪17：UI 打磨
+- hud.gd 速度/暫停按鈕加大（touch 區域更大）：速度 42x16→48x18，暫停 20x16→24x18
+
+### 輪18：錯誤處理
+- hud.gd 加入 log_game_error() 方法（錯誤計數，3次觸發 HUD 警告）
+- OrderManager place_order 加入空值防呆（customer_id/dish_id 為空時 warning+return）
+
+### 輪19：視覺特效
+- staff_ai.gd 廚師烹飪時每 0.5s 生成冒煙粒子（白色 4x4 ColorRect，向上飄移 20px/0.8s 淡出）
+- customer_ai.gd 進場光暈效果（淡黃色 20x20 ColorRect，alpha 0.3→0 / 0.3s）
+- game.gd 金錢飄字改為 40px/1.5s（原 30px/1.0s，更顯眼）
+
+### 輪20：版本號
+- main_menu.gd v1.0 DEMO → v1.1 DEMO
+- [2026-06-21] 最終 headless 驗證：0 ERROR 0 WARNING
+
 ## 待辦（需使用者操作）
 - [ ] 字體：下載 Fusion Pixel Font .ttf 放入 src/assets/fonts/（https://github.com/TakWolf/fusion-pixel-font/releases）
 - [ ] itch.io：封面圖和截圖已備妥（content\），照 content\itch-io-listing.md 建立頁面並上傳
@@ -310,12 +415,12 @@
 ## 待確認
 - 無
 
-## 已知問題
+## 已知問題（v1.1）
 - 字體缺失：src/assets/fonts/ 只有 README.md，HUD 目前 fallback 系統字，需使用者下載 Fusion Pixel Font
 - BGM/音效為 Python 合成正弦波，可玩性 OK 但音質簡單；可後續替換為真實音源
 - 地板視覺目前用像素 Sprite2D（不是 TileMapLayer + TileSet），擴張地圖時需重構（技術債）
-- 炒菜台座標硬編碼 Vector2(16,16)，地圖改動後需同步（技術債）
-- 付錢飄字固定在 Vector2(200,180)，未能從客人 global_position 計算（技術債）
+- 炒菜台座標硬編碼 Vector2(16,16)（技術債）
+- Tutorial 步驟 2-9 的自動推進依賴遊戲事件信號，部分信號尚未與 TutorialManager 完整連接（步驟目前需手動點擊推進）
 
 ## 操作紀錄
 - [2026-06-20] 新增遊戲專案資料夾：d:\開發遊戲\台灣熱炒王\

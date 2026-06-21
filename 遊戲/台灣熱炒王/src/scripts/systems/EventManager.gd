@@ -247,6 +247,9 @@ func apply_option(event_id: String, option_index: int) -> void:
 	_is_showing_event = false
 	option_selected.emit(event_id, option_index)
 
+	# 若佇列已空，恢復遊戲時間推進
+	_resume_game_if_idle()
+
 	# 繼續處理佇列中的下一個事件
 	_flush_queue()
 
@@ -383,8 +386,9 @@ func _flush_queue() -> void:
 		_event_last_triggered_day[next_id] = gm_flush.current_day
 
 	# 暫停遊戲時間推進，讓玩家有時間閱讀事件對話
-	if GameManager.has_method("pause_time"):
-		GameManager.pause_time()
+	var gm_pause := get_node_or_null("/root/GameManager")
+	if gm_pause != null and gm_pause.has_method("pause_time"):
+		gm_pause.pause_time()
 	else:
 		get_tree().paused = true
 		push_warning("[EventManager] GameManager 沒有 pause_time 方法，改用 get_tree().paused")

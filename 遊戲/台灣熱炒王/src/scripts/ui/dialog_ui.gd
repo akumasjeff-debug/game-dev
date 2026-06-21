@@ -164,6 +164,13 @@ func _on_step_changed(step_number: int, step_data: Dictionary) -> void:
 
 	print("[dialog_ui.gd] 步驟 %d：%s — %s（lock=%s）" % [step_number, speaker, text, lock_input])
 
+	# 步驟1自動推進（3秒後），讓新玩家不需操作就能繼續
+	if step_data.get("step", 0) == 1:
+		get_tree().create_timer(3.0).timeout.connect(
+			func(): TutorialManager.complete_current_step("on_screen_tapped"),
+			CONNECT_ONE_SHOT
+		)
+
 
 func _on_tutorial_complete() -> void:
 	visible = false

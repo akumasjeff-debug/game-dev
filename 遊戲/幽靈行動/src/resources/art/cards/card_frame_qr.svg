@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="180" shape-rendering="crispEdges">
+
+  <!-- ===== QR LEGENDARY: RED-GOLD GRADIENT SIMULATION ===== -->
+  <!-- Top 4px dual-color line (red left, gold right) -->
+  <rect x="0"  y="0" width="60" height="4" fill="#CC3300"/>
+  <rect x="60" y="0" width="60" height="4" fill="#FFCC00"/>
+  <!-- Sub-line for depth -->
+  <rect x="0"  y="4" width="60" height="1" fill="#6A1A00"/>
+  <rect x="60" y="4" width="60" height="1" fill="#4A3000"/>
+
+  <!-- ===== OUTER FRAME (multi-layer red-to-gold left/right) ===== -->
+  <!-- Left outer bar (red) -->
+  <rect x="0" y="5" width="2" height="170" fill="#6A1A00"/>
+  <rect x="2" y="5" width="1" height="170" fill="#CC3300"/>
+  <!-- Right outer bar (gold) -->
+  <rect x="117" y="5" width="3" height="170" fill="#4A3000"/>
+  <rect x="117" y="5" width="1" height="170" fill="#FFCC00"/>
+
+  <!-- ===== BOTTOM LINE (dual-color) ===== -->
+  <rect x="0"  y="175" width="60" height="1" fill="#CC3300"/>
+  <rect x="60" y="175" width="60" height="1" fill="#FFCC00"/>
+  <rect x="0"  y="176" width="60" height="4" fill="#6A1A00"/>
+  <rect x="60" y="176" width="60" height="4" fill="#4A3000"/>
+
+  <!-- ===== INNER HIGHLIGHT LINES ===== -->
+  <!-- Top -->
+  <rect x="3" y="5" width="114" height="1" fill="#FF6600"/>
+  <!-- Bottom -->
+  <rect x="3" y="174" width="57" height="1" fill="#FF6600"/>
+  <rect x="60" y="174" width="57" height="1" fill="#DDAA00"/>
+  <!-- Left inner -->
+  <rect x="3" y="5" width="1" height="170" fill="#FF4400"/>
+  <!-- Right inner -->
+  <rect x="116" y="5" width="1" height="170" fill="#DDAA00"/>
+
+  <!-- ===== LEFT SIDE SERRATED NOTCHES (every 8px, red side) ===== -->
+  <rect x="0" y="13" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="21" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="29" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="37" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="45" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="53" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="61" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="69" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="77" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="85" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="93" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="101" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="109" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="117" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="125" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="133" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="141" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="149" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="157" width="4" height="2" fill="#FF4400"/>
+  <rect x="0" y="165" width="4" height="2" fill="#FF4400"/>
+
+  <!-- ===== RIGHT SIDE SERRATED NOTCHES (gold side) ===== -->
+  <rect x="116" y="13" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="21" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="29" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="37" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="45" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="53" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="61" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="69" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="77" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="85" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="93" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="101" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="109" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="117" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="125" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="133" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="141" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="149" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="157" width="4" height="2" fill="#DDAA00"/>
+  <rect x="116" y="165" width="4" height="2" fill="#DDAA00"/>
+
+  <!-- ===== IMAGE AREA (y=6 to y=102) ===== -->
+  <rect x="4" y="6" width="112" height="96" fill="#1A0A00"/>
+
+  <!-- ===== DIVIDER LINE ===== -->
+  <rect x="3" y="102" width="57" height="2" fill="#6A1A00"/>
+  <rect x="60" y="102" width="57" height="2" fill="#4A3000"/>
+  <rect x="3" y="103" width="57" height="1" fill="#FF4400"/>
+  <rect x="60" y="103" width="57" height="1" fill="#DDAA00"/>
+
+  <!-- ===== INFO AREA BACKGROUND ===== -->
+  <rect x="4" y="104" width="112" height="70" fill="#2A0A00"/>
+
+  <!-- ===== CLASS NAME PLACEHOLDER (y=106, h=16) ===== -->
+  <rect x="6" y="106" width="108" height="16" fill="#3A1000"/>
+  <rect x="6" y="106" width="54" height="1" fill="#FF4400"/>
+  <rect x="60" y="106" width="54" height="1" fill="#DDAA00"/>
+  <rect x="6" y="121" width="54" height="1" fill="#CC3300"/>
+  <rect x="60" y="121" width="54" height="1" fill="#FFCC00"/>
+
+  <!-- ===== LEVEL and ENHANCEMENT SLOTS (y=124, h=16) ===== -->
+  <rect x="6" y="124" width="50" height="16" fill="#1A0A00"/>
+  <rect x="64" y="124" width="50" height="16" fill="#1A0A00"/>
+  <rect x="6" y="124" width="50" height="1" fill="#FF4400"/>
+  <rect x="64" y="124" width="50" height="1" fill="#DDAA00"/>
+  <rect x="6" y="139" width="50" height="1" fill="#CC3300"/>
+  <rect x="64" y="139" width="50" height="1" fill="#FFCC00"/>
+  <!-- Slot separator -->
+  <rect x="58" y="130" width="2" height="4" fill="#FF6600"/>
+
+  <!-- ===== RARITY BADGE BAR (y=144, h=28) ===== -->
+  <rect x="4" y="144" width="112" height="28" fill="#1A0A00"/>
+  <!-- Top dual-color stripe -->
+  <rect x="4"  y="144" width="56" height="3" fill="#CC3300"/>
+  <rect x="60" y="144" width="56" height="3" fill="#FFCC00"/>
+  <rect x="4"  y="147" width="56" height="1" fill="#FF6600"/>
+  <rect x="60" y="147" width="56" height="1" fill="#DDAA00"/>
+  <!-- Bottom dual-color stripe -->
+  <rect x="4"  y="169" width="56" height="3" fill="#6A1A00"/>
+  <rect x="60" y="169" width="56" height="3" fill="#4A3000"/>
+  <!-- QR text pixel blocks -->
+  <!-- Q -->
+  <rect x="20" y="152" width="6" height="1" fill="#FF6600"/>
+  <rect x="20" y="161" width="6" height="1" fill="#FF6600"/>
+  <rect x="20" y="153" width="1" height="8" fill="#FF6600"/>
+  <rect x="25" y="153" width="1" height="8" fill="#FF6600"/>
+  <rect x="23" y="158" width="4" height="1" fill="#FF6600"/>
+  <rect x="25" y="159" width="3" height="3" fill="#FF6600"/>
+  <!-- R -->
+  <rect x="30" y="152" width="1" height="10" fill="#DDAA00"/>
+  <rect x="31" y="152" width="4" height="1" fill="#DDAA00"/>
+  <rect x="35" y="153" width="1" height="3" fill="#DDAA00"/>
+  <rect x="31" y="156" width="4" height="1" fill="#DDAA00"/>
+  <rect x="33" y="157" width="3" height="5" fill="#DDAA00"/>
+
+  <!-- ===== CORNER ACCENTS (8x8 complex legendary) ===== -->
+  <!-- Top-left (red) -->
+  <rect x="2" y="5"  width="8" height="8" fill="#6A1A00"/>
+  <rect x="3" y="5"  width="6" height="1" fill="#FF4400"/>
+  <rect x="2" y="5"  width="1" height="8" fill="#CC3300"/>
+  <rect x="3" y="6"  width="4" height="4" fill="#FF6600"/>
+  <rect x="7" y="6"  width="1" height="2" fill="#FF4400"/>
+  <rect x="3" y="10" width="2" height="2" fill="#FF4400"/>
+  <!-- Top-right (gold) -->
+  <rect x="110" y="5" width="8" height="8" fill="#4A3000"/>
+  <rect x="110" y="5" width="6" height="1" fill="#DDAA00"/>
+  <rect x="117" y="5" width="1" height="8" fill="#FFCC00"/>
+  <rect x="113" y="6" width="4" height="4" fill="#FFDD44"/>
+  <rect x="110" y="6" width="1" height="2" fill="#DDAA00"/>
+  <rect x="115" y="10" width="2" height="2" fill="#DDAA00"/>
+  <!-- Bottom-left (red) -->
+  <rect x="2" y="167" width="8" height="8" fill="#6A1A00"/>
+  <rect x="3" y="174" width="6" height="1" fill="#FF4400"/>
+  <rect x="2" y="167" width="1" height="8" fill="#CC3300"/>
+  <rect x="3" y="170" width="4" height="4" fill="#FF6600"/>
+  <rect x="7" y="172" width="1" height="2" fill="#FF4400"/>
+  <rect x="3" y="167" width="2" height="2" fill="#FF4400"/>
+  <!-- Bottom-right (gold) -->
+  <rect x="110" y="167" width="8" height="8" fill="#4A3000"/>
+  <rect x="110" y="174" width="6" height="1" fill="#DDAA00"/>
+  <rect x="117" y="167" width="1" height="8" fill="#FFCC00"/>
+  <rect x="113" y="170" width="4" height="4" fill="#FFDD44"/>
+  <rect x="110" y="172" width="1" height="2" fill="#DDAA00"/>
+  <rect x="115" y="167" width="2" height="2" fill="#DDAA00"/>
+
+</svg>

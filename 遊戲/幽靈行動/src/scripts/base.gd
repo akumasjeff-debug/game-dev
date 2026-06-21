@@ -61,6 +61,9 @@ const FALLBACK_MISSION: Dictionary = {
 # 選中的任務 ID（預設為第一個）
 var selected_mission_id: String = "demo_01"
 
+# 待執行的任務資料（在 _on_launch_pressed 存入，_start_mission 讀取）
+var _pending_mission: Dictionary = {}
+
 func _ready() -> void:
 	_build_ui()
 	_load_state()
@@ -95,6 +98,9 @@ func _build_ui() -> void:
 	# ── 升級管理按鈕 ──
 	_add_upgrade_button()
 
+	# ── 出擊陣容展示（只讀卡片，底部）──
+	_add_squad_card_display()
+
 	# ── 放置橫帶（任務板與陣容選擇之間）──
 	_create_idle_banner()
 
@@ -116,27 +122,27 @@ func _add_top_bar() -> void:
 	var title = Label.new()
 	title.text = "幽靈行動 — 基地"
 	title.position = Vector2(30, 20)
-	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_font_size_override("font_size", 36)
 	title.modulate = Color(0.9, 0.9, 0.7)
 	top.add_child(title)
 
 	coins_label = Label.new()
-	coins_label.position = Vector2(700, 28)
-	coins_label.add_theme_font_size_override("font_size", 26)
+	coins_label.position = Vector2(580, 10)
+	coins_label.add_theme_font_size_override("font_size", 28)
 	coins_label.modulate = Color(1.0, 0.9, 0.3)
 	coins_label.name = "CoinsLabel"
 	top.add_child(coins_label)
 
 	ticket_label = Label.new()
-	ticket_label.position = Vector2(700, 58)
-	ticket_label.add_theme_font_size_override("font_size", 18)
+	ticket_label.position = Vector2(580, 48)
+	ticket_label.add_theme_font_size_override("font_size", 24)
 	ticket_label.modulate = Color(0.6, 0.8, 1.0)
 	ticket_label.name = "TicketLabel"
 	top.add_child(ticket_label)
 
 	stamina_label = Label.new()
-	stamina_label.position = Vector2(700, 80)
-	stamina_label.add_theme_font_size_override("font_size", 18)
+	stamina_label.position = Vector2(580, 80)
+	stamina_label.add_theme_font_size_override("font_size", 22)
 	stamina_label.modulate = Color(0.4, 1.0, 0.6)
 	stamina_label.name = "StaminaLabel"
 	top.add_child(stamina_label)
@@ -145,8 +151,8 @@ func _add_mission_board() -> void:
 	# 區塊標題
 	var section_lbl = Label.new()
 	section_lbl.text = "任務板"
-	section_lbl.position = Vector2(30, 120)
-	section_lbl.add_theme_font_size_override("font_size", 26)
+	section_lbl.position = Vector2(30, 116)
+	section_lbl.add_theme_font_size_override("font_size", 30)
 	section_lbl.modulate = Color(0.8, 1.0, 0.8)
 	add_child(section_lbl)
 
@@ -160,15 +166,15 @@ func _add_mission_board() -> void:
 	# 取得任務資料（從 GameManager，否則用預設值）
 	var missions: Array = _get_missions_list()
 
-	# 最多顯示 3 個任務卡片，高度 140px，間距 16px
-	var y_offset: float = 170.0
+	# 最多顯示 3 個任務卡片，高度 175px，間距 16px
+	var y_offset: float = 168.0
 	var show_count: int = mini(missions.size(), 3)
 	for i in range(show_count):
 		var card = _create_mission_card(missions[i], y_offset)
 		card.name = "MissionCard_" + missions[i].get("id", str(i))
 		add_child(card)
 		_mission_cards.append(card)
-		y_offset += 156.0
+		y_offset += 191.0
 
 	# 預設選中第一個任務並更新視覺
 	if missions.size() > 0:
@@ -184,11 +190,11 @@ func _get_missions_list() -> Array:
 func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	var card = Control.new()
 	card.position = Vector2(30, y)
-	card.custom_minimum_size = Vector2(1020, 140)
+	card.custom_minimum_size = Vector2(1020, 175)
 
 	# 可點擊的整體按鈕區（覆蓋整張卡片）
 	var hit_btn = Button.new()
-	hit_btn.size = Vector2(1020, 140)
+	hit_btn.size = Vector2(1020, 175)
 	hit_btn.flat = true
 	hit_btn.name = "HitBtn"
 	var mission_id = mission.get("id", "demo_01")
@@ -197,14 +203,14 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 
 	# 卡片背景
 	var bg = ColorRect.new()
-	bg.size = Vector2(1020, 140)
+	bg.size = Vector2(1020, 175)
 	bg.color = Color(0.08, 0.12, 0.08)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(bg)
 
 	# 邊框（StyleBoxFlat 套在 Panel 上，初始灰色）
 	var frame = Panel.new()
-	frame.size = Vector2(1020, 140)
+	frame.size = Vector2(1020, 175)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.name = "Frame"
 	var frame_style = StyleBoxFlat.new()
@@ -220,7 +226,7 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	var bar_color = _difficulty_color(diff_val)
 	var border_bar = ColorRect.new()
 	border_bar.position = Vector2(0, 0)
-	border_bar.size = Vector2(6, 140)
+	border_bar.size = Vector2(8, 175)
 	border_bar.color = bar_color
 	border_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(border_bar)
@@ -232,8 +238,8 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 		tag_text = "[DEMO]"
 	var type_lbl = Label.new()
 	type_lbl.text = tag_text
-	type_lbl.position = Vector2(18, 8)
-	type_lbl.add_theme_font_size_override("font_size", 15)
+	type_lbl.position = Vector2(22, 8)
+	type_lbl.add_theme_font_size_override("font_size", 20)
 	type_lbl.modulate = Color(0.9, 0.7, 0.3)
 	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(type_lbl)
@@ -241,8 +247,8 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	# 任務名稱（大字）
 	var title_lbl = Label.new()
 	title_lbl.text = mission.get("name", "未知任務")
-	title_lbl.position = Vector2(18, 30)
-	title_lbl.add_theme_font_size_override("font_size", 24)
+	title_lbl.position = Vector2(22, 36)
+	title_lbl.add_theme_font_size_override("font_size", 30)
 	title_lbl.modulate = Color.WHITE
 	title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(title_lbl)
@@ -250,19 +256,19 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	# 難度星號
 	var diff_lbl = Label.new()
 	diff_lbl.text = "難度：" + "★".repeat(diff_val) + "☆".repeat(maxi(0, 5 - diff_val))
-	diff_lbl.position = Vector2(18, 62)
-	diff_lbl.add_theme_font_size_override("font_size", 17)
+	diff_lbl.position = Vector2(22, 78)
+	diff_lbl.add_theme_font_size_override("font_size", 22)
 	diff_lbl.modulate = bar_color
 	diff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(diff_lbl)
 
-	# 任務說明（小字，截斷）
+	# 任務說明（截斷）
 	var desc_lbl = Label.new()
 	desc_lbl.text = mission.get("description", "")
-	desc_lbl.position = Vector2(18, 88)
-	desc_lbl.add_theme_font_size_override("font_size", 14)
+	desc_lbl.position = Vector2(22, 110)
+	desc_lbl.add_theme_font_size_override("font_size", 18)
 	desc_lbl.modulate = Color(0.7, 0.7, 0.7)
-	desc_lbl.custom_minimum_size = Vector2(680, 0)
+	desc_lbl.custom_minimum_size = Vector2(650, 0)
 	desc_lbl.clip_text = true
 	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(desc_lbl)
@@ -274,8 +280,8 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 
 	var coins_lbl = Label.new()
 	coins_lbl.text = str(reward_coins) + " 金幣"
-	coins_lbl.position = Vector2(740, 24)
-	coins_lbl.add_theme_font_size_override("font_size", 20)
+	coins_lbl.position = Vector2(720, 28)
+	coins_lbl.add_theme_font_size_override("font_size", 24)
 	coins_lbl.modulate = Color(1.0, 0.9, 0.3)
 	coins_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(coins_lbl)
@@ -287,8 +293,8 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	if reward_blue > 0:
 		ticket_parts.append("藍票 x" + str(reward_blue))
 	tickets_lbl.text = " / ".join(ticket_parts) if ticket_parts.size() > 0 else "—"
-	tickets_lbl.position = Vector2(740, 52)
-	tickets_lbl.add_theme_font_size_override("font_size", 15)
+	tickets_lbl.position = Vector2(720, 64)
+	tickets_lbl.add_theme_font_size_override("font_size", 20)
 	tickets_lbl.modulate = Color(0.6, 0.85, 1.0)
 	tickets_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(tickets_lbl)
@@ -332,17 +338,17 @@ func _update_mission_selection_visual(selected_id: String) -> void:
 		frame.add_theme_stylebox_override("panel", style)
 
 func _add_squad_panel() -> void:
-	var y_base: float = 760.0
+	var y_base: float = 950.0
 
 	var section_lbl = Label.new()
 	section_lbl.text = "陣容選擇（選 4 人）"
 	section_lbl.position = Vector2(30, y_base)
-	section_lbl.add_theme_font_size_override("font_size", 26)
+	section_lbl.add_theme_font_size_override("font_size", 28)
 	section_lbl.modulate = Color(0.8, 1.0, 0.8)
 	add_child(section_lbl)
 
 	var sep = ColorRect.new()
-	sep.position = Vector2(30, y_base + 38)
+	sep.position = Vector2(30, y_base + 42)
 	sep.size = Vector2(1020, 2)
 	sep.color = Color(0.3, 0.5, 0.3, 0.7)
 	add_child(sep)
@@ -350,8 +356,8 @@ func _add_squad_panel() -> void:
 	# ── 職業選擇按鈕（6 個）──
 	var class_title = Label.new()
 	class_title.text = "可用職業："
-	class_title.position = Vector2(30, y_base + 50)
-	class_title.add_theme_font_size_override("font_size", 18)
+	class_title.position = Vector2(30, y_base + 54)
+	class_title.add_theme_font_size_override("font_size", 22)
 	class_title.modulate = Color(0.7, 0.7, 0.7)
 	add_child(class_title)
 
@@ -360,29 +366,29 @@ func _add_squad_panel() -> void:
 		var cls = ALL_CLASSES[i]
 		var btn = Button.new()
 		btn.text = cls["name"]
-		btn.position = Vector2(btn_x, y_base + 80)
-		btn.custom_minimum_size = Vector2(155, 60)
-		btn.add_theme_font_size_override("font_size", 18)
+		btn.position = Vector2(btn_x, y_base + 86)
+		btn.custom_minimum_size = Vector2(163, 70)
+		btn.add_theme_font_size_override("font_size", 22)
 		btn.name = "ClassBtn_" + cls["id"]
 		_style_button(btn, Color(0.12, 0.20, 0.28))
 		btn.pressed.connect(_on_class_toggled.bind(cls["id"]))
 		add_child(btn)
 		class_buttons.append(btn)
-		btn_x += 165.0
+		btn_x += 170.0
 
 	# ── 已選陣容（4 個槽）──
 	var slot_title = Label.new()
 	slot_title.text = "出戰陣容："
-	slot_title.position = Vector2(30, y_base + 160)
-	slot_title.add_theme_font_size_override("font_size", 18)
+	slot_title.position = Vector2(30, y_base + 172)
+	slot_title.add_theme_font_size_override("font_size", 22)
 	slot_title.modulate = Color(0.7, 0.7, 0.7)
 	add_child(slot_title)
 
 	for i in range(4):
 		var slot_btn = Button.new()
-		slot_btn.position = Vector2(30.0 + i * 255.0, y_base + 190)
-		slot_btn.custom_minimum_size = Vector2(240, 70)
-		slot_btn.add_theme_font_size_override("font_size", 20)
+		slot_btn.position = Vector2(30.0 + i * 260.0, y_base + 204)
+		slot_btn.custom_minimum_size = Vector2(245, 80)
+		slot_btn.add_theme_font_size_override("font_size", 24)
 		slot_btn.name = "SlotBtn_" + str(i)
 		_style_button(slot_btn, Color(0.10, 0.10, 0.15))
 		slot_btn.pressed.connect(_on_slot_pressed.bind(i))
@@ -392,9 +398,9 @@ func _add_squad_panel() -> void:
 func _add_launch_button() -> void:
 	var btn = Button.new()
 	btn.text = "出發"
-	btn.position = Vector2(290, 1100)
-	btn.custom_minimum_size = Vector2(500, 90)
-	btn.add_theme_font_size_override("font_size", 30)
+	btn.position = Vector2(90, 1460)
+	btn.custom_minimum_size = Vector2(900, 120)
+	btn.add_theme_font_size_override("font_size", 40)
 	btn.name = "LaunchBtn"
 	_style_button(btn, Color(0.6, 0.25, 0.0))
 	btn.pressed.connect(_on_launch_pressed)
@@ -403,9 +409,9 @@ func _add_launch_button() -> void:
 func _add_gacha_button() -> void:
 	var btn = Button.new()
 	btn.text = "招募中心"
-	btn.position = Vector2(290, 1210)
-	btn.custom_minimum_size = Vector2(500, 70)
-	btn.add_theme_font_size_override("font_size", 26)
+	btn.position = Vector2(90, 1600)
+	btn.custom_minimum_size = Vector2(900, 110)
+	btn.add_theme_font_size_override("font_size", 34)
 	btn.name = "GachaBtn"
 	_style_button(btn, Color(0.15, 0.10, 0.35))
 	btn.pressed.connect(_open_gacha)
@@ -414,9 +420,9 @@ func _add_gacha_button() -> void:
 func _add_upgrade_button() -> void:
 	var btn = Button.new()
 	btn.text = "升級管理"
-	btn.position = Vector2(290, 1300)
-	btn.custom_minimum_size = Vector2(500, 70)
-	btn.add_theme_font_size_override("font_size", 26)
+	btn.position = Vector2(90, 1730)
+	btn.custom_minimum_size = Vector2(900, 110)
+	btn.add_theme_font_size_override("font_size", 34)
 	btn.name = "UpgradeBtn"
 	_style_button(btn, Color(0.10, 0.25, 0.15))
 	btn.pressed.connect(_open_upgrade_panel)
@@ -426,6 +432,215 @@ func _open_upgrade_panel() -> void:
 	AudioManager.play_sfx("btn_click")
 	var panel = load("res://scenes/UpgradePanel.tscn").instantiate()
 	get_tree().root.add_child(panel)
+
+func _add_squad_card_display() -> void:
+	_build_squad_display()
+
+func _build_squad_display() -> void:
+	# 移除舊的陣容卡片區（如有）
+	var old = get_node_or_null("SquadDisplay")
+	if old:
+		old.queue_free()
+
+	# 讀取 cards.json
+	var cards_data = _load_cards_json()
+
+	# 讀取 selected_squad（統一 card_id 格式，如 "shield_r", "assault_sr"）
+	var squad: Array = SaveManager.selected_squad
+	if squad.is_empty():
+		squad = ["shield_r", "assault_r", "medic_r", "sniper_r"]
+
+	# 建立容器（陣容選擇下方）
+	var container = Control.new()
+	container.name = "SquadDisplay"
+	container.position = Vector2(0, 1248)
+	container.size = Vector2(1080, 195)
+	add_child(container)
+
+	# 深色底色
+	var bg = ColorRect.new()
+	bg.size = Vector2(1080, 195)
+	bg.color = Color(0.05, 0.06, 0.08, 0.92)
+	container.add_child(bg)
+
+	# 頂部分隔線
+	var sep = ColorRect.new()
+	sep.size = Vector2(1080, 2)
+	sep.color = Color(0.3, 0.4, 0.5, 0.7)
+	container.add_child(sep)
+
+	# 標題
+	var title = Label.new()
+	title.text = "出擊陣容"
+	title.position = Vector2(20, 6)
+	title.add_theme_font_size_override("font_size", 24)
+	title.modulate = Color(0.9, 0.8, 0.4)
+	container.add_child(title)
+
+	# 陣容管理按鈕（右側）
+	var mgr_btn = Button.new()
+	mgr_btn.text = "陣容管理"
+	mgr_btn.size = Vector2(160, 60)
+	mgr_btn.position = Vector2(900, -8)
+	mgr_btn.add_theme_font_size_override("font_size", 22)
+	_style_button(mgr_btn, Color(0.15, 0.20, 0.30))
+	mgr_btn.pressed.connect(_open_card_gallery)
+	container.add_child(mgr_btn)
+
+	# 4 張卡片
+	var card_width: int = 100
+	var card_height: int = 150
+	var spacing: int = 16
+	var total_width: int = card_width * 4 + spacing * 3
+	var start_x: int = (1080 - total_width) / 2
+
+	for i in range(4):
+		# selected_squad 統一 card_id 格式，直接使用
+		var card_id: String = squad[i] if i < squad.size() else ""
+		var card_info: Dictionary = cards_data.get(card_id, {})
+
+		var slot = _build_squad_card_slot(card_id, card_info, card_width, card_height)
+		slot.position = Vector2(start_x + i * (card_width + spacing), 32)
+		container.add_child(slot)
+
+func _build_squad_card_slot(card_id: String, card_info: Dictionary, w: int, h: int) -> Control:
+	var slot = Control.new()
+	slot.size = Vector2(w, h)
+
+	if card_id.is_empty() or card_info.is_empty():
+		# 空槽
+		var empty = ColorRect.new()
+		empty.size = Vector2(w, h)
+		empty.color = Color(0.1, 0.1, 0.15, 0.8)
+		slot.add_child(empty)
+		var empty_border = Panel.new()
+		empty_border.size = Vector2(w, h)
+		empty_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var eb_style = StyleBoxFlat.new()
+		eb_style.bg_color = Color(0, 0, 0, 0)
+		eb_style.border_color = Color(0.3, 0.3, 0.35, 0.6)
+		eb_style.set_border_width_all(2)
+		eb_style.set_corner_radius_all(4)
+		empty_border.add_theme_stylebox_override("panel", eb_style)
+		slot.add_child(empty_border)
+		var plus_lbl = Label.new()
+		plus_lbl.text = "空"
+		plus_lbl.position = Vector2(w / 2 - 10, h / 2 - 10)
+		plus_lbl.modulate = Color(0.4, 0.4, 0.4)
+		slot.add_child(plus_lbl)
+		return slot
+
+	var grade: String = card_info.get("grade", "R")
+
+	# 卡框背景（按稀有度嘗試載入 SVG，失敗則用色塊）
+	var frame_path: String = "res://resources/art/cards/card_frame_%s.svg" % grade.to_lower()
+	if ResourceLoader.exists(frame_path):
+		var frame = TextureRect.new()
+		frame.texture = load(frame_path)
+		frame.size = Vector2(w, h)
+		frame.stretch_mode = TextureRect.STRETCH_SCALE
+		slot.add_child(frame)
+	else:
+		var grade_colors: Dictionary = {
+			"R": Color(0.08, 0.16, 0.28),
+			"SR": Color(0.18, 0.08, 0.30),
+			"SSR": Color(0.28, 0.22, 0.02),
+			"QR": Color(0.35, 0.04, 0.02)
+		}
+		var bg_card = ColorRect.new()
+		bg_card.size = Vector2(w, h)
+		bg_card.color = grade_colors.get(grade, Color(0.1, 0.1, 0.15))
+		slot.add_child(bg_card)
+		# 稀有度色邊框
+		var grade_border_colors: Dictionary = {
+			"R": Color(0.27, 0.53, 0.80),
+			"SR": Color(0.60, 0.40, 0.90),
+			"SSR": Color(0.90, 0.72, 0.10),
+			"QR": Color(0.90, 0.20, 0.10)
+		}
+		var border_panel = Panel.new()
+		border_panel.size = Vector2(w, h)
+		border_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bp_style = StyleBoxFlat.new()
+		bp_style.bg_color = Color(0, 0, 0, 0)
+		bp_style.border_color = grade_border_colors.get(grade, Color(0.3, 0.3, 0.35))
+		bp_style.set_border_width_all(3)
+		bp_style.set_corner_radius_all(4)
+		border_panel.add_theme_stylebox_override("panel", bp_style)
+		slot.add_child(border_panel)
+
+	# 角色肖像
+	var portrait_path: String = card_info.get("portrait_path", "")
+	if portrait_path != "" and ResourceLoader.exists(portrait_path):
+		var portrait = TextureRect.new()
+		portrait.texture = load(portrait_path)
+		portrait.size = Vector2(w, h - 30)
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		slot.add_child(portrait)
+
+	# 卡片名稱（上方小字）
+	var name_lbl = Label.new()
+	name_lbl.text = card_info.get("name", "")
+	name_lbl.position = Vector2(2, 2)
+	name_lbl.add_theme_font_size_override("font_size", 16)
+	name_lbl.modulate = Color(1.0, 1.0, 0.9)
+	slot.add_child(name_lbl)
+
+	# 等級標籤（從 SaveManager 讀，若無 get_card_level 方法則顯示 Lv.1）
+	var lv: int = 1
+	if SaveManager.has_method("get_card_level"):
+		lv = SaveManager.get_card_level(card_id)
+	var lv_label = Label.new()
+	lv_label.text = "Lv.%d" % lv
+	lv_label.position = Vector2(4, h - 28)
+	lv_label.add_theme_font_size_override("font_size", 14)
+	lv_label.modulate = Color.WHITE
+	slot.add_child(lv_label)
+
+	# 強化值（右下角）
+	var plus: int = 0
+	if SaveManager.has_method("get_card_plus"):
+		plus = SaveManager.get_card_plus(card_id)
+	if plus > 0:
+		var plus_lbl = Label.new()
+		plus_lbl.text = "+%d" % plus
+		plus_lbl.position = Vector2(w - 28, h - 28)
+		plus_lbl.add_theme_font_size_override("font_size", 14)
+		plus_lbl.modulate = Color(1.0, 0.8, 0.2)
+		slot.add_child(plus_lbl)
+
+	return slot
+
+func _load_cards_json() -> Dictionary:
+	var path: String = "res://resources/data/cards.json"
+	if not ResourceLoader.exists(path):
+		return {}
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	var raw = JSON.parse_string(file.get_as_text())
+	file.close()
+	if raw == null:
+		return {}
+	# cards.json 頂層是 {"cards": [...]}
+	var cards_array: Array = []
+	if raw is Dictionary and raw.has("cards") and raw["cards"] is Array:
+		cards_array = raw["cards"]
+	elif raw is Array:
+		cards_array = raw
+	else:
+		return {}
+	var result: Dictionary = {}
+	for card in cards_array:
+		if card is Dictionary and card.has("id"):
+			result[card["id"]] = card
+	return result
+
+func _open_card_gallery() -> void:
+	AudioManager.play_sfx("btn_click")
+	var gallery = load("res://scripts/card_gallery.gd").new()
+	add_child(gallery)
+	gallery.gallery_closed.connect(_build_squad_display)
 
 func _add_offline_popup() -> void:
 	offline_popup = Panel.new()
@@ -494,7 +709,9 @@ func _update_squad_display() -> void:
 	for i in range(4):
 		var slot = squad_slots[i]
 		if i < selected.size():
-			var char_id = selected[i]
+			# selected_squad 是 card_id 格式（如 "assault_r"），取底線前的部分得到 char_id
+			var card_id = selected[i]
+			var char_id = card_id.split("_")[0] if "_" in card_id else card_id
 			var cls_data = _get_class_data(char_id)
 			if cls_data:
 				slot.text = cls_data["name"]
@@ -516,10 +733,11 @@ func _update_class_buttons() -> void:
 		var is_owned = char_id in owned
 		var rarity = SaveManager.character_rarity.get(char_id, 0)
 
-		# 計算該職業在陣容中的出現次數
+		# 計算該職業在陣容中的出現次數（selected 是 card_id 格式，需解析 char_id）
 		var count_in_squad: int = 0
 		for sid in selected:
-			if sid == char_id:
+			var sid_char = sid.split("_")[0] if "_" in sid else sid
+			if sid_char == char_id:
 				count_in_squad += 1
 
 		# 稀有度後綴
@@ -581,8 +799,9 @@ func _update_stamina_display() -> void:
 
 func _open_gacha() -> void:
 	AudioManager.play_sfx("btn_click")
-	var gacha_panel = load("res://scenes/GachaPanel.tscn").instantiate()
+	var gacha_panel = load("res://scripts/gacha_panel.gd").new()
 	get_tree().root.add_child(gacha_panel)
+	gacha_panel.panel_closed.connect(_build_squad_display)
 
 # ─────────────────────────────────────────
 #  離線金幣
@@ -647,7 +866,16 @@ func _on_class_toggled(char_id: String) -> void:
 	if selected.size() >= 4:
 		# 已滿 4 人：替換最後一個
 		selected.pop_back()
-	selected.append(char_id)
+	# 寫入 card_id 格式：依照 SaveManager 的 character_rarity 決定後綴
+	var rarity: int = SaveManager.character_rarity.get(char_id, 0)
+	var grade_suffix: String
+	match rarity:
+		0: grade_suffix = "r"
+		1: grade_suffix = "sr"
+		2: grade_suffix = "ssr"
+		3: grade_suffix = "qr"
+		_: grade_suffix = "r"
+	selected.append(char_id + "_" + grade_suffix)
 	SaveManager.selected_squad = selected
 	_update_class_buttons()
 	_update_squad_display()
@@ -672,14 +900,13 @@ func _on_launch_pressed() -> void:
 		_show_error("請先選滿 4 名隊員！")
 		return
 
-	# 取得當前任務資料，顯示確認面板
+	# 取得當前任務資料，存入實例變數供後續使用
 	var gm = get_node_or_null("/root/GameManager")
-	var mission: Dictionary = {}
 	if gm != null and not gm.current_mission_data.is_empty():
-		mission = gm.current_mission_data
+		_pending_mission = gm.current_mission_data
 	else:
-		mission = FALLBACK_MISSION
-	_show_mission_confirm_panel(mission)
+		_pending_mission = FALLBACK_MISSION
+	_show_mission_confirm_panel(_pending_mission)
 
 func _show_mission_confirm_panel(mission: Dictionary) -> void:
 	# 半透明遮罩（直接掛在場景根節點，確保在最上層）
@@ -816,8 +1043,10 @@ func _start_mission() -> void:
 		return
 	_update_stamina_display()
 
-	# 打開陣容確認面板
+	# 打開陣容確認面板（setup 必須在 add_child 之前呼叫，確保 _ready() 執行時資料已就緒）
 	var confirm_panel = load("res://scenes/SquadConfirmPanel.tscn").instantiate()
+	if confirm_panel.has_method("setup"):
+		confirm_panel.setup(_pending_mission, SaveManager.selected_squad.duplicate())
 	get_tree().root.add_child(confirm_panel)
 
 func _show_error(msg: String) -> void:
@@ -826,7 +1055,7 @@ func _show_error(msg: String) -> void:
 	if err_lbl == null:
 		err_lbl = Label.new()
 		err_lbl.name = "ErrorLabel"
-		err_lbl.position = Vector2(290, 1200)
+		err_lbl.position = Vector2(90, 1410)
 		err_lbl.add_theme_font_size_override("font_size", 22)
 		err_lbl.modulate = Color(1.0, 0.3, 0.3)
 		add_child(err_lbl)
@@ -840,46 +1069,46 @@ func _show_error(msg: String) -> void:
 
 func _create_idle_banner() -> void:
 	_idle_banner_node = Control.new()
-	_idle_banner_node.position = Vector2(0, 550)
-	_idle_banner_node.size = Vector2(1080, 180)
+	_idle_banner_node.position = Vector2(0, 742)
+	_idle_banner_node.size = Vector2(1080, 200)
 	_idle_banner_node.clip_children = 1  # CLIP_CHILDREN_ENABLED
 	add_child(_idle_banner_node)
 
 	# 深色背景（室內走廊）
 	var bg = ColorRect.new()
-	bg.size = Vector2(1080, 180)
+	bg.size = Vector2(1080, 200)
 	bg.color = Color(0.06, 0.07, 0.10)
 	_idle_banner_node.add_child(bg)
 
 	# 地板線（側視角地板）
 	var floor_line = ColorRect.new()
-	floor_line.position = Vector2(0, 140)
-	floor_line.size = Vector2(1080, 4)
+	floor_line.position = Vector2(0, 158)
+	floor_line.size = Vector2(1080, 5)
 	floor_line.color = Color(0.18, 0.20, 0.24)
 	_idle_banner_node.add_child(floor_line)
 
 	# 天花板線
 	var ceil_line = ColorRect.new()
-	ceil_line.position = Vector2(0, 16)
-	ceil_line.size = Vector2(1080, 3)
+	ceil_line.position = Vector2(0, 18)
+	ceil_line.size = Vector2(1080, 4)
 	ceil_line.color = Color(0.12, 0.14, 0.18)
 	_idle_banner_node.add_child(ceil_line)
 
 	# 捲動背景柱子（裝飾）
 	for i in range(6):
 		var pillar = ColorRect.new()
-		pillar.position = Vector2(i * 180, 20)
-		pillar.size = Vector2(8, 120)
+		pillar.position = Vector2(i * 180, 22)
+		pillar.size = Vector2(10, 136)
 		pillar.color = Color(0.10, 0.12, 0.16)
 		pillar.name = "Pillar_" + str(i)
 		_idle_banner_node.add_child(pillar)
 
 	# 右上角文字：累積速率
 	var rate_lbl = Label.new()
-	rate_lbl.position = Vector2(700, 4)
-	rate_lbl.size = Vector2(374, 28)
+	rate_lbl.position = Vector2(580, 4)
+	rate_lbl.size = Vector2(494, 34)
 	rate_lbl.text = "前線累積中：100 金幣/小時"
-	rate_lbl.add_theme_font_size_override("font_size", 16)
+	rate_lbl.add_theme_font_size_override("font_size", 22)
 	rate_lbl.modulate = Color(0.7, 0.8, 0.5)
 	rate_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	rate_lbl.name = "RateLabel"
@@ -894,25 +1123,25 @@ func _create_idle_banner() -> void:
 	]
 	for i in range(4):
 		var char_node = Control.new()
-		char_node.position = Vector2(80 + i * 60, 90)
+		char_node.position = Vector2(80 + i * 70, 108)
 		char_node.name = "IdleChar_" + str(i)
 
 		if ResourceLoader.exists(IDLE_CHAR_SPRITES[i]):
 			var tr = TextureRect.new()
 			tr.texture = load(IDLE_CHAR_SPRITES[i])
-			tr.size = Vector2(24, 36)
+			tr.size = Vector2(32, 48)
 			tr.stretch_mode = TextureRect.STRETCH_SCALE
 			tr.name = "Body"
 			char_node.add_child(tr)
 		else:
 			var body = ColorRect.new()
-			body.size = Vector2(18, 26)
+			body.size = Vector2(24, 36)
 			body.color = char_colors[i]
 			body.name = "Body"
 			char_node.add_child(body)
 			var head = ColorRect.new()
-			head.size = Vector2(14, 14)
-			head.position = Vector2(2, -14)
+			head.size = Vector2(18, 18)
+			head.position = Vector2(3, -18)
 			head.color = Color(
 				clamp(char_colors[i].r + 0.1, 0.0, 1.0),
 				clamp(char_colors[i].g + 0.1, 0.0, 1.0),
@@ -929,9 +1158,9 @@ func _create_idle_banner() -> void:
 		for ci in range(2):
 			var crate = TextureRect.new()
 			crate.texture = load(crate_path)
-			crate.size = Vector2(32, 24)
+			crate.size = Vector2(44, 34)
 			crate.stretch_mode = TextureRect.STRETCH_SCALE
-			crate.position = Vector2(250 + ci * 150, 115)
+			crate.position = Vector2(280 + ci * 170, 124)
 			_idle_banner_node.add_child(crate)
 
 	# 開始第一波（1 秒後）
@@ -955,7 +1184,7 @@ func _update_idle_banner(delta: float) -> void:
 		var ch = _idle_chars[i]
 		if ch and is_instance_valid(ch):
 			var bob = sin(Time.get_ticks_msec() * 0.005 + i * 1.0) * 2.0
-			ch.position.y = 95 + bob
+			ch.position.y = 110 + bob
 
 	# 子彈移動
 	var bullets_to_remove: Array = []
@@ -1000,7 +1229,7 @@ func _spawn_enemy_wave() -> void:
 	var count = randi_range(1, 3)
 	for i in range(count):
 		var enemy_node = Control.new()
-		enemy_node.position = Vector2(1020 + i * 45, 94)
+		enemy_node.position = Vector2(1020 + i * 50, 110)
 
 		var sprite_path = IDLE_ENEMY_SPRITES[randi_range(0, 1)]
 		if ResourceLoader.exists(sprite_path):
@@ -1031,8 +1260,8 @@ func _fire_idle_bullets() -> void:
 		if not ch or not is_instance_valid(ch):
 			continue
 		var bullet = ColorRect.new()
-		bullet.size = Vector2(8, 4)
-		bullet.position = Vector2(ch.position.x + 20, ch.position.y + 12)
+		bullet.size = Vector2(10, 5)
+		bullet.position = Vector2(ch.position.x + 26, ch.position.y + 16)
 		bullet.color = Color(1.0, 0.95, 0.3)
 		_idle_banner_node.add_child(bullet)
 		_idle_bullets.append(bullet)

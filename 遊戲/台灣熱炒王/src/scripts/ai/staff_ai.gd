@@ -122,6 +122,10 @@ const COOK_BAR_MAX_W: float = 80.0  # 進度條最大寬度（像素）
 ## 炒鍋位置（固定對應地圖上的炒菜台 Vector2i(1,1) * 16）
 var cook_position: Vector2 = Vector2(16.0, 16.0)
 
+## 冒煙粒子計時器（廚師炒菜時每 0.5 秒生成一個煙霧粒子）
+var _smoke_timer: float = 0.0
+const SMOKE_INTERVAL: float = 0.5
+
 ## 當前移動目標（直線位移）
 var _move_target: Vector2 = Vector2.ZERO
 
@@ -190,7 +194,6 @@ func _ready() -> void:
 	# TODO: 動畫整合後，在此連接 animated_sprite.animation_finished 信號
 	# animated_sprite.animation_finished.connect(_on_animation_finished)
 	_enter_state(State.IDLE)
-	print("[StaffAI] 員工生成，初始狀態 IDLE")
 
 
 # ============================================================
@@ -286,6 +289,12 @@ func _process_working(delta: float) -> void:
 	else:
 		# 更新烹飪進度條寬度
 		_update_cook_bar(_work_progress)
+	# 廚師炒菜冒煙效果
+	if _is_chef:
+		_smoke_timer += delta
+		if _smoke_timer >= SMOKE_INTERVAL:
+			_smoke_timer = 0.0
+			_spawn_smoke_particle()
 
 
 ## SATISFIED：完成任務慶祝動畫
@@ -393,6 +402,10 @@ func assign_task(task_data: Dictionary) -> void:
 	if task_data.is_empty():
 		push_warning("[StaffAI] assign_task 收到空任務")
 		return
+	# 廚師最多同時 2 個烹飪任務
+	if _is_chef and task_queue.size() >= 2:
+		push_warning("[StaffAI] 廚師任務佇列已滿（上限2），丟棄任務 %s" % task_data.get("id", ""))
+		return
 	task_queue.append(task_data)
 	# 若正在 IDLE，立即開始
 	if _current_state == State.IDLE:
@@ -408,7 +421,6 @@ func _start_next_task() -> void:
 	_work_duration = current_task.get("data", {}).get("duration", 5.0)
 	current_work_animation = _get_work_animation(current_task.get("type", "cook"))
 	_transition_to(State.WALK)
-	print("[StaffAI] 開始執行任務：%s" % current_task.get("id", "unknown"))
 
 
 ## 完成當前任務
@@ -426,6 +438,8 @@ func _complete_current_task() -> void:
 			if ResourceLoader.exists(sfx_cook):
 				am_cook.play_sfx(load(sfx_cook))
 		OrderManager.complete_cooking(completed_id)
+		# 飄字「送餐！」（若無外場員工時的視覺提示）
+		_show_deliver_popup()
 	# 串接 OrderManager：送餐完成通知
 	elif task_type == "serve" and OrderManager:
 		# task id 格式為 "<order_id>_deliver"，取出原始 order_id
@@ -454,7 +468,6 @@ func _complete_current_task() -> void:
 	current_task = {}
 	has_task = false
 	_transition_to(State.SATISFIED)
-	print("[StaffAI] 完成任務：%s" % completed_id)
 
 
 ## 清空任務佇列（緊急中斷用）
@@ -494,6 +507,54 @@ func _direction_suffix() -> String:
 		return "right" if vel.x > 0 else "left"
 	else:
 		return "down" if vel.y > 0 else "up"
+
+
+## 炒菜完成時顯示飄字「送餐！」（無外場員工時的視覺提示）
+func _show_deliver_popup() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var popup_layer := CanvasLayer.new()
+	popup_layer.layer = 4
+	tree.root.add_child(popup_layer)
+	var lbl := Label.new()
+	lbl.text = "送餐！"
+	lbl.position = Vector2(180, 140)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.7, 0.1))
+	lbl.add_theme_font_size_override("font_size", 12)
+	var fp := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
+	if ResourceLoader.exists(fp):
+		lbl.add_theme_font_override("font", load(fp))
+	popup_layer.add_child(lbl)
+	var tw := create_tween()
+	tw.tween_property(lbl, "position:y", lbl.position.y - 20.0, 0.8)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(popup_layer.queue_free)
+
+
+## 廚師炒菜時在炒菜台上方生成白色煙霧粒子
+func _spawn_smoke_particle() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	# 在炒菜台上方（螢幕座標）生成白色煙霧粒子
+	# 炒菜台世界座標 (20,16)，Camera zoom=2.5 center=(60,50)
+	# 螢幕座標 x=240+(20-60)*2.5=140, y=135+(16-50)*2.5=50
+	var smoke_layer := CanvasLayer.new()
+	smoke_layer.layer = 4
+	tree.root.add_child(smoke_layer)
+
+	var smoke := ColorRect.new()
+	smoke.color = Color(0.9, 0.9, 0.9, 0.7)  # 白色半透明
+	smoke.size = Vector2(4, 4)
+	var start_x: float = 136.0 + randf() * 8.0
+	smoke.position = Vector2(start_x, 50.0)
+	smoke_layer.add_child(smoke)
+
+	var tw := create_tween()
+	tw.tween_property(smoke, "position:y", smoke.position.y - 20.0, 0.8)
+	tw.parallel().tween_property(smoke, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(smoke_layer.queue_free)
 
 
 ## 備用計時器到期時的處理（ANGRY → IDLE，附帶少量士氣恢復）
@@ -544,7 +605,9 @@ func set_sprite(s: Sprite2D, is_chef: bool = false) -> void:
 # 烹飪進度條管理
 # ============================================================
 
-## 在炒菜台上方（像素位置 16,16 對應 tile(1,1)）建立進度條 CanvasLayer
+## 在廚師頭頂上方建立進度條 CanvasLayer（跟隨廚師世界座標換算至螢幕）
+## CanvasLayer 使用螢幕座標；廚師站在 (20, 36)，Camera zoom=2.5, pos=(60,50)
+## 換算：螢幕中心=(240,135)，廚師螢幕位置=(240+(20-60)*2.5, 135+(36-50)*2.5)=(140,100)
 func _create_cook_bar() -> void:
 	_remove_cook_bar()  # 確保舊的已清除
 
@@ -555,9 +618,11 @@ func _create_cook_bar() -> void:
 	_cook_bar_layer.layer = 3
 	get_tree().root.add_child(_cook_bar_layer)
 
-	# 進度條顯示在畫面左側（對應廚房區域上方）
-	const BAR_X: float = 120.0  # 靠左，對應廚房區域
-	const BAR_Y: float = 32.0   # HUD 下方緊接語錄區
+	# 進度條顯示在廚師頭頂上方（螢幕固定座標，根據廚師位置估算）
+	# 廚師在世界座標 (20,36)，Camera zoom=2.5 center=(60,50)
+	# 螢幕座標: x=240+(20-60)*2.5=140, y=135+(36-50)*2.5=100 → 頭頂再上 18px = y=82
+	const BAR_X: float = 100.0  # 廚師頭頂對應螢幕 x-20（讓進度條居中於廚師上方）
+	const BAR_Y: float = 80.0   # 廚師頭頂螢幕位置（y=100 - 20px 上方）
 
 	var bar_bg := ColorRect.new()
 	bar_bg.color = Color(0.3, 0.3, 0.3, 0.85)
@@ -565,7 +630,7 @@ func _create_cook_bar() -> void:
 	bar_bg.position = Vector2(BAR_X, BAR_Y)
 	_cook_bar_layer.add_child(bar_bg)
 
-	# 「烹飪中」標籤（進度條左側，與進度條同 y）
+	# 「烹飪中」標籤（進度條正上方，垂直排列）
 	var bar_label := Label.new()
 	bar_label.name = "cook_label"
 	var cook_font_path := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
@@ -577,7 +642,7 @@ func _create_cook_bar() -> void:
 	else:
 		bar_label.text = "cooking"
 		bar_label.add_theme_font_size_override("font_size", 8)
-	bar_label.position = Vector2(BAR_X - 36, BAR_Y - 1)
+	bar_label.position = Vector2(BAR_X, BAR_Y - 12)  # 進度條正上方 12px
 	bar_label.add_theme_color_override("font_color", Color(1, 0.7, 0.2))
 	_cook_bar_layer.add_child(bar_label)
 
@@ -617,8 +682,12 @@ func _tick_animation(delta: float) -> void:
 			_anim_timer += delta
 			if _anim_timer >= 1.0 / fps:
 				_anim_timer -= 1.0 / fps
-				_anim_frame = (_anim_frame + 1) % frames.size()
-				_sprite.texture = load(frames[_anim_frame])
+				var next_walk_frame: int = (_anim_frame + 1) % frames.size()
+				if next_walk_frame != _anim_frame:
+					_anim_frame = next_walk_frame
+					var walk_path: String = frames[_anim_frame]
+					if ResourceLoader.exists(walk_path):
+						_sprite.texture = load(walk_path)
 
 		State.WORKING:
 			# 工作幀循環
@@ -627,15 +696,23 @@ func _tick_animation(delta: float) -> void:
 				_anim_timer += delta
 				if _anim_timer >= 1.0 / ANIM_COOK_FPS:
 					_anim_timer -= 1.0 / ANIM_COOK_FPS
-					_anim_frame = (_anim_frame + 1) % ANIM_CHEF_COOK.size()
-					_sprite.texture = load(ANIM_CHEF_COOK[_anim_frame])
+					var next_cook_frame: int = (_anim_frame + 1) % ANIM_CHEF_COOK.size()
+					if next_cook_frame != _anim_frame:
+						_anim_frame = next_cook_frame
+						var cook_path: String = ANIM_CHEF_COOK[_anim_frame]
+						if ResourceLoader.exists(cook_path):
+							_sprite.texture = load(cook_path)
 			else:
 				# 外場端餐：2幀，6 FPS
 				_anim_timer += delta
 				if _anim_timer >= 1.0 / ANIM_FPS:
 					_anim_timer -= 1.0 / ANIM_FPS
-					_anim_frame = (_anim_frame + 1) % ANIM_WAITER_CARRY.size()
-					_sprite.texture = load(ANIM_WAITER_CARRY[_anim_frame])
+					var next_carry_frame: int = (_anim_frame + 1) % ANIM_WAITER_CARRY.size()
+					if next_carry_frame != _anim_frame:
+						_anim_frame = next_carry_frame
+						var carry_path: String = ANIM_WAITER_CARRY[_anim_frame]
+						if ResourceLoader.exists(carry_path):
+							_sprite.texture = load(carry_path)
 
 		_:
 			# IDLE / SATISFIED / ANGRY：顯示待機幀（frame 0）
@@ -643,4 +720,5 @@ func _tick_animation(delta: float) -> void:
 				_anim_frame = 0
 				_anim_timer = 0.0
 				var idle_tex: String = ANIM_CHEF_WALK[0] if _is_chef else ANIM_WAITER_WALK[0]
-				_sprite.texture = load(idle_tex)
+				if ResourceLoader.exists(idle_tex):
+					_sprite.texture = load(idle_tex)

@@ -1286,6 +1286,89 @@
 					}
 				}
 			]
+		},
+		{
+			"id": "festival_mid_autumn",
+			"name": "中秋烤肉節",
+			"trigger_type": "year_start",
+			"trigger_condition": {
+				"type": "day_equals",
+				"value": 30,
+				"min_year": 1
+			},
+			"dialog": "中秋節到了！附近的客人都出來烤肉，趁機衝一波！",
+			"options": [
+				{
+					"text": "A. 推出中秋套餐（+$500 投資，客人量+50%）",
+					"effects": {
+						"money": -500,
+						"reputation": 3,
+						"custom": "中秋套餐上線！"
+					}
+				},
+				{
+					"text": "B. 正常營業，分到人潮紅利",
+					"effects": {
+						"money": 300,
+						"reputation": 1
+					}
+				}
+			]
+		},
+		{
+			"id": "festival_year_end_banquet",
+			"name": "尾牙宴",
+			"trigger_type": "year_start",
+			"trigger_condition": {
+				"type": "day_equals",
+				"value": 60,
+				"min_year": 1
+			},
+			"dialog": "公司行號年底尾牙，一桌桌包場！這種機會不能錯過。",
+			"options": [
+				{
+					"text": "A. 接受包場（豐厚收入但需要準備）",
+					"effects": {
+						"money": 2000,
+						"reputation": 2,
+						"staff_morale": -10
+					}
+				},
+				{
+					"text": "B. 婉拒（維持正常水準）",
+					"effects": {
+						"money": 0,
+						"reputation": 0
+					}
+				}
+			]
+		},
+		{
+			"id": "festival_new_year",
+			"name": "農曆新年",
+			"trigger_type": "year_start",
+			"trigger_condition": {
+				"type": "year_start",
+				"min_year": 2
+			},
+			"dialog": "農曆新年到了！大家回鄉過節，店裡暫時歇業三天，但收到親戚的紅包。",
+			"options": [
+				{
+					"text": "A. 開心收下（$5,000 紅包收入）",
+					"effects": {
+						"money": 5000,
+						"reputation": 1
+					}
+				},
+				{
+					"text": "B. 趁機整修店面（-$2,000 但士氣+20）",
+					"effects": {
+						"money": -2000,
+						"reputation": 0,
+						"staff_morale": 20
+					}
+				}
+			]
 		}
 	]
 }

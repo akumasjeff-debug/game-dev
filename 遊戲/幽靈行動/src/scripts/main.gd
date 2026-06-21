@@ -635,63 +635,111 @@ func _on_room_cleared() -> void:
 		_advance_camera_to_next_room()
 	)
 
-func _play_door_open_animation(door_y: float, on_complete: Callable) -> void:
-	# 清除上一個門（若存在）
-	if _door_left and is_instance_valid(_door_left):
-		_door_left.queue_free()
-	if _door_right and is_instance_valid(_door_right):
-		_door_right.queue_free()
-	if _door_frame and is_instance_valid(_door_frame):
-		_door_frame.queue_free()
+func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
+	# 清除舊門節點（防禦性）
+	for v in [_door_left, _door_right, _door_frame]:
+		if v and is_instance_valid(v):
+			v.queue_free()
 	_door_left = null
 	_door_right = null
 	_door_frame = null
 
-	# 門的尺寸：寬 240px（約配合房間寬度 300px），高 28px
-	# x 對準鏡頭水平中心 540（世界座標）
-	var door_total_w: float = 240.0
-	var door_h: float = 28.0
-	var door_x_center: float = 540.0
+	print("[BREACH] 播放 SWAT 破門過場（含場景圖）")
 
-	# 門框（在最底層，較門板稍大）
-	_door_frame = ColorRect.new()
-	_door_frame.size = Vector2(door_total_w + 8.0, door_h + 4.0)
-	_door_frame.position = Vector2(door_x_center - door_total_w / 2.0 - 4.0, door_y - door_h / 2.0 - 2.0)
-	_door_frame.color = Color(0.25, 0.25, 0.30)
-	add_child(_door_frame)
+	# 建立過場 CanvasLayer（layer=20，最上層）
+	var cl = CanvasLayer.new()
+	cl.layer = 20
+	add_child(cl)
 
-	# 左半門（右邊緣貼中線，向左滑開）
-	_door_left = ColorRect.new()
-	_door_left.size = Vector2(door_total_w / 2.0, door_h)
-	_door_left.position = Vector2(door_x_center - door_total_w / 2.0, door_y - door_h / 2.0)
-	_door_left.color = Color(0.15, 0.15, 0.18)
-	add_child(_door_left)
+	# 上黑邊（較寬：260px，遮住畫面頂部）
+	var bar_top = ColorRect.new()
+	bar_top.color = Color.BLACK
+	bar_top.size = Vector2(1080, 260)
+	bar_top.position = Vector2(0, -260)
+	cl.add_child(bar_top)
 
-	# 右半門（左邊緣貼中線，向右滑開）
-	_door_right = ColorRect.new()
-	_door_right.size = Vector2(door_total_w / 2.0, door_h)
-	_door_right.position = Vector2(door_x_center, door_y - door_h / 2.0)
-	_door_right.color = Color(0.15, 0.15, 0.18)
-	add_child(_door_right)
+	# 下黑邊（較寬：260px，遮住畫面底部）
+	var bar_bot = ColorRect.new()
+	bar_bot.color = Color.BLACK
+	bar_bot.size = Vector2(1080, 260)
+	bar_bot.position = Vector2(0, 1920)
+	cl.add_child(bar_bot)
 
-	print("[Door] 播放門打開動畫，door_y=", door_y)
+	# 中間深色背景（場景圖底板）
+	var center_bg = ColorRect.new()
+	center_bg.color = Color(0.02, 0.02, 0.04)
+	center_bg.size = Vector2(1080, 400)
+	center_bg.position = Vector2(0, 760)  # 垂直居中於 1920 高度
+	center_bg.modulate.a = 0.0
+	cl.add_child(center_bg)
 
-	# Tween：門向兩側滑開（0.6 秒），結束後執行 callback 並清除節點
-	var tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(_door_left, "position:x",
-		door_x_center - door_total_w, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	tween.tween_property(_door_right, "position:x",
-		door_x_center + door_total_w / 2.0, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
-	tween.set_parallel(false)
-	tween.tween_callback(on_complete)
-	var dl_ref = _door_left
-	var dr_ref = _door_right
-	var df_ref = _door_frame
-	tween.tween_callback(func():
-		if dl_ref and is_instance_valid(dl_ref): dl_ref.queue_free()
-		if dr_ref and is_instance_valid(dr_ref): dr_ref.queue_free()
-		if df_ref and is_instance_valid(df_ref): df_ref.queue_free()
+	# SWAT 場景圖（breach_scene.svg）
+	var scene_tex: TextureRect = null
+	var scene_path = "res://resources/art/cutscenes/breach_scene.svg"
+	if ResourceLoader.exists(scene_path):
+		scene_tex = TextureRect.new()
+		scene_tex.texture = load(scene_path)
+		scene_tex.size = Vector2(1080, 400)
+		scene_tex.position = Vector2(0, 760)
+		scene_tex.stretch_mode = TextureRect.STRETCH_SCALE
+		scene_tex.modulate.a = 0.0
+		cl.add_child(scene_tex)
+
+	# "BREACH" 文字（疊在場景圖中央偏上）
+	var breach_label = Label.new()
+	breach_label.text = "BREACH"
+	breach_label.add_theme_font_size_override("font_size", 120)
+	breach_label.size = Vector2(800, 140)
+	breach_label.position = Vector2(140, 890)
+	breach_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	breach_label.modulate = Color(1, 1, 1, 0)
+	cl.add_child(breach_label)
+
+	# 閃白 overlay
+	var flash = ColorRect.new()
+	flash.color = Color(1, 1, 1, 0)
+	flash.size = Vector2(1080, 1920)
+	cl.add_child(flash)
+
+	# 時間軸
+	var tw = create_tween()
+
+	# 0.00-0.15s：黑邊滑入
+	tw.tween_property(bar_top, "position:y", 0.0, 0.15).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(bar_bot, "position:y", 1660.0, 0.15).set_ease(Tween.EASE_OUT)
+
+	# 0.15-0.23s：場景圖 + 背景淡入
+	tw.tween_property(center_bg, "modulate:a", 1.0, 0.08)
+	if scene_tex:
+		tw.parallel().tween_property(scene_tex, "modulate:a", 1.0, 0.08)
+
+	# 0.23-0.28s：BREACH 文字出現 + 微縮放
+	tw.tween_property(breach_label, "modulate:a", 1.0, 0.05)
+	tw.parallel().tween_property(breach_label, "scale", Vector2(1.15, 1.15), 0.05)
+
+	# 0.28-0.34s：閃白
+	tw.tween_property(flash, "color:a", 0.85, 0.06)
+
+	# 0.34-0.44s：閃白退 + 文字消
+	tw.tween_property(flash, "color:a", 0.0, 0.10)
+	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
+
+	# 0.44-0.59s：定格讓玩家看清場景圖
+	tw.tween_interval(0.15)
+
+	# 0.59-0.69s：場景圖淡出
+	if scene_tex:
+		tw.tween_property(scene_tex, "modulate:a", 0.0, 0.10)
+	tw.parallel().tween_property(center_bg, "modulate:a", 0.0, 0.10)
+
+	# 0.69-0.84s：黑邊退出
+	tw.tween_property(bar_top, "position:y", -260.0, 0.15).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(bar_bot, "position:y", 1920.0, 0.15).set_ease(Tween.EASE_IN)
+
+	# 完成：回調 + 清除
+	tw.tween_callback(func():
+		cl.queue_free()
+		on_complete.call()
 	)
 
 func _create_trigger(pos: Vector2, type: String, label: String) -> void:

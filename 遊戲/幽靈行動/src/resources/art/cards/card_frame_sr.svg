@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="180" shape-rendering="crispEdges">
+
+  <!-- ===== SR GOLD TOP LINE (SR+ exclusive) ===== -->
+  <rect x="0" y="0" width="120" height="2" fill="#AA8800"/>
+
+  <!-- ===== OUTER FRAME ===== -->
+  <!-- Top bar (below gold line) -->
+  <rect x="0" y="2" width="120" height="2" fill="#3A1A6A"/>
+  <!-- Bottom bar -->
+  <rect x="0" y="176" width="120" height="2" fill="#3A1A6A"/>
+  <rect x="0" y="178" width="120" height="2" fill="#AA8800"/>
+  <!-- Left bar -->
+  <rect x="0" y="2" width="2" height="176" fill="#3A1A6A"/>
+  <!-- Right bar -->
+  <rect x="118" y="2" width="2" height="176" fill="#3A1A6A"/>
+
+  <!-- ===== BRIGHT EDGE HIGHLIGHT ===== -->
+  <rect x="2" y="4" width="116" height="1" fill="#8844CC"/>
+  <rect x="2" y="4" width="1" height="172" fill="#8844CC"/>
+  <rect x="117" y="4" width="1" height="172" fill="#8844CC"/>
+  <rect x="2" y="175" width="116" height="1" fill="#8844CC"/>
+
+  <!-- ===== DOUBLE FRAME: inner gap (1px dark) + inner border ===== -->
+  <!-- Gap fill (dark between outer and inner border) -->
+  <rect x="3" y="5" width="114" height="1" fill="#1A0A35"/>
+  <rect x="3" y="5" width="1" height="170" fill="#1A0A35"/>
+  <rect x="116" y="5" width="1" height="170" fill="#1A0A35"/>
+  <rect x="3" y="174" width="114" height="1" fill="#1A0A35"/>
+  <!-- Inner border line -->
+  <rect x="4" y="6" width="112" height="1" fill="#8844CC"/>
+  <rect x="4" y="6" width="1" height="168" fill="#8844CC"/>
+  <rect x="115" y="6" width="1" height="168" fill="#8844CC"/>
+  <rect x="4" y="173" width="112" height="1" fill="#8844CC"/>
+
+  <!-- ===== IMAGE AREA (y=7 to y=102) ===== -->
+  <rect x="5" y="7" width="110" height="96" fill="#1A0A35"/>
+
+  <!-- ===== DIVIDER LINE (y=103) ===== -->
+  <rect x="4" y="103" width="112" height="2" fill="#3A1A6A"/>
+  <rect x="4" y="104" width="112" height="1" fill="#8844CC"/>
+
+  <!-- ===== INFO AREA BACKGROUND (y=105 to y=172) ===== -->
+  <rect x="5" y="105" width="110" height="68" fill="#250A45"/>
+
+  <!-- ===== CLASS NAME PLACEHOLDER (y=107, h=16) ===== -->
+  <rect x="7" y="107" width="106" height="16" fill="#3A1A6A"/>
+  <rect x="7" y="107" width="106" height="1" fill="#8844CC"/>
+
+  <!-- ===== LEVEL and ENHANCEMENT SLOTS (y=126, h=16) ===== -->
+  <rect x="7" y="126" width="50" height="16" fill="#1A0A35"/>
+  <rect x="63" y="126" width="50" height="16" fill="#1A0A35"/>
+  <rect x="7" y="126" width="50" height="1" fill="#8844CC"/>
+  <rect x="63" y="126" width="50" height="1" fill="#8844CC"/>
+  <!-- Slot separator -->
+  <rect x="59" y="132" width="2" height="4" fill="#8844CC"/>
+
+  <!-- ===== RARITY BADGE BAR (y=144, h=27) ===== -->
+  <rect x="5" y="144" width="110" height="27" fill="#1A0A35"/>
+  <!-- Top accent stripe (SR purple) -->
+  <rect x="5" y="144" width="110" height="3" fill="#8844CC"/>
+  <!-- Gold line below accent (SR exclusive) -->
+  <rect x="5" y="147" width="110" height="1" fill="#AA8800"/>
+  <!-- Bottom stripe -->
+  <rect x="5" y="169" width="110" height="2" fill="#3A1A6A"/>
+  <!-- SR text representation (4 pixel blocks) -->
+  <rect x="40" y="151" width="4" height="10" fill="#AA66FF"/>
+  <rect x="46" y="151" width="4" height="4"  fill="#AA66FF"/>
+  <rect x="46" y="157" width="4" height="4"  fill="#AA66FF"/>
+  <rect x="52" y="151" width="6" height="1"  fill="#AA66FF"/>
+  <rect x="52" y="155" width="6" height="1"  fill="#AA66FF"/>
+  <rect x="52" y="160" width="6" height="1"  fill="#AA66FF"/>
+  <rect x="52" y="151" width="1" height="5"  fill="#AA66FF"/>
+  <rect x="57" y="155" width="1" height="6"  fill="#AA66FF"/>
+  <rect x="60" y="151" width="4" height="10" fill="#AA66FF"/>
+  <rect x="66" y="151" width="4" height="4"  fill="#AA66FF"/>
+  <rect x="70" y="151" width="4" height="4"  fill="#AA66FF"/>
+  <rect x="74" y="151" width="4" height="10" fill="#AA66FF"/>
+
+  <!-- ===== CORNER ACCENTS (SR = 4x4 with inner 2x2 highlight) ===== -->
+  <rect x="4" y="4" width="5" height="5" fill="#8844CC"/>
+  <rect x="5" y="5" width="3" height="3" fill="#AA66FF"/>
+  <rect x="111" y="4" width="5" height="5" fill="#8844CC"/>
+  <rect x="112" y="5" width="3" height="3" fill="#AA66FF"/>
+  <rect x="4" y="171" width="5" height="5" fill="#8844CC"/>
+  <rect x="5" y="172" width="3" height="3" fill="#AA66FF"/>
+  <rect x="111" y="171" width="5" height="5" fill="#8844CC"/>
+  <rect x="112" y="172" width="3" height="3" fill="#AA66FF"/>
+
+</svg>

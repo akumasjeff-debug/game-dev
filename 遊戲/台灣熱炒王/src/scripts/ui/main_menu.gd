@@ -80,6 +80,15 @@ func _ready() -> void:
 	_rect(cl, 478, 0, 2, 270, Color(0.9, 0.3, 0.1))
 	_rect(cl, 20, 55, 440, 1, Color(0.85, 0.55, 0.1, 0.6))
 	_rect(cl, 20, 215, 440, 1, Color(0.85, 0.55, 0.1, 0.6))
+	# 窗戶燈光（黃色矩形，模擬深夜建築）
+	_rect(cl, 30, 60, 20, 30, Color(0.9, 0.8, 0.1, 0.15))
+	_rect(cl, 60, 55, 20, 25, Color(0.9, 0.8, 0.1, 0.12))
+	_rect(cl, 380, 65, 22, 28, Color(0.9, 0.8, 0.1, 0.15))
+	_rect(cl, 420, 58, 18, 32, Color(0.9, 0.8, 0.1, 0.12))
+	# 霓虹招牌效果（左右各一個紅色橫條）
+	_rect(cl, 15, 135, 40, 8, Color(0.9, 0.1, 0.1, 0.5))
+	_rect(cl, 425, 140, 40, 8, Color(0.9, 0.1, 0.1, 0.5))
+
 	_rect(cl, 160, 148, 160, 22, Color(0.75, 0.1, 0.1))
 	_rect(cl, 161, 149, 158, 20, Color(0.9, 0.15, 0.15))
 
@@ -93,8 +102,30 @@ func _ready() -> void:
 		_rect(cl, 161, 179, 158, 20, Color(0.15, 0.55, 0.2))
 		_label(cl, font, "繼續遊戲", 160, 181, 160, 16, 12, Color(0.9, 1.0, 0.9))
 
-	_label(cl, font, "v0.9 DEMO",            0, 250, 475, 12,  8, Color(0.5, 0.5, 0.5, 0.7),
+	_label(cl, font, "v1.1 DEMO",            0, 250, 475, 12,  8, Color(0.5, 0.5, 0.5, 0.7),
 		HORIZONTAL_ALIGNMENT_RIGHT)
+
+	# 路人動畫：兩個黃色小方塊從左右兩側緩慢移動
+	_add_pedestrian(cl, Vector2(20, 210), true)   # 從左往右
+	_add_pedestrian(cl, Vector2(400, 225), false)  # 從右往左
+
+
+func _add_pedestrian(parent: Node, start_pos: Vector2, go_right: bool) -> void:
+	var ped := ColorRect.new()
+	ped.color = Color(0.9, 0.8, 0.2, 0.7)  # 黃色路人色塊
+	ped.size = Vector2(5, 10)
+	ped.position = start_pos
+	parent.add_child(ped)
+
+	# 使用 Tween 讓路人來回移動
+	var tw := create_tween()
+	tw.set_loops()  # 無限循環
+	if go_right:
+		tw.tween_property(ped, "position:x", 460.0, 8.0)
+		tw.tween_property(ped, "position:x", start_pos.x, 8.0)
+	else:
+		tw.tween_property(ped, "position:x", 20.0, 8.0)
+		tw.tween_property(ped, "position:x", start_pos.x, 8.0)
 
 
 func _rect(parent: Node, x: float, y: float, w: float, h: float, color: Color) -> void:
@@ -134,12 +165,12 @@ func _input(event: InputEvent) -> void:
 		if BUTTON_RECT.has_point(mp):
 			_start_game()
 		elif CONTINUE_BUTTON_RECT.has_point(mp) and SaveManager.has_save_file():
-			get_tree().change_scene_to_file("res://scenes/main/Main.tscn")
+			_continue_game()
 	if event is InputEventScreenTouch and event.pressed:
 		if BUTTON_RECT.has_point(event.position):
 			_start_game()
 		elif CONTINUE_BUTTON_RECT.has_point(event.position) and SaveManager.has_save_file():
-			get_tree().change_scene_to_file("res://scenes/main/Main.tscn")
+			_continue_game()
 
 ## 處理開場故事的點擊邏輯
 func _handle_opening_click() -> void:
@@ -164,6 +195,17 @@ func _start_game() -> void:
 		get_tree().change_scene_to_file("res://scenes/main/Main.tscn")
 
 
+func _continue_game() -> void:
+	# 驗證存檔可讀，損壞時刪除並開始新遊戲
+	var save_data: Dictionary = SaveManager.load_game()
+	if save_data.is_empty() or not save_data.has("game_data"):
+		# 存檔損壞，刪除並以新遊戲模式進入
+		SaveManager.delete_save()
+		get_tree().change_scene_to_file("res://scenes/main/Main.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/main/Main.tscn")
+
+
 # ============================================================
 # 開場故事
 # ============================================================
@@ -176,7 +218,6 @@ func _show_opening_story() -> void:
 	var gm := get_node_or_null("/root/GameManager")
 	if gm != null and gm.has_method("pause_time"):
 		gm.pause_time()
-		print("[main_menu.gd] GameManager 時間已暫停（開場故事）")
 
 	var font: Font = null
 	var font_path := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
@@ -433,7 +474,6 @@ func _finish_opening_story() -> void:
 	var gm := get_node_or_null("/root/GameManager")
 	if gm != null and gm.has_method("resume_time"):
 		gm.resume_time()
-		print("[main_menu.gd] GameManager 時間已恢復（開場故事結束）")
 
 	# 進入遊戲
 	get_tree().change_scene_to_file("res://scenes/main/Main.tscn")

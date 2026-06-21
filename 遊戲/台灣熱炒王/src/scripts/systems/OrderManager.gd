@@ -140,6 +140,9 @@ func _auto_deliver_order(order_id: String) -> void:
 ## 建立新訂單，加入廚房佇列
 ## 回傳新建立的 order_id
 func place_order(customer_id: String, dish_id: String, table_tile: Vector2i) -> String:
+	if customer_id.is_empty() or dish_id.is_empty():
+		push_warning("[OrderManager] place_order 收到空 customer_id 或 dish_id，忽略")
+		return ""
 	_order_counter += 1
 	var order_id: String = "order_%03d" % _order_counter
 

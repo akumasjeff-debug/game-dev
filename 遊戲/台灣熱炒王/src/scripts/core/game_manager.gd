@@ -38,6 +38,9 @@ signal first_payment_received
 ## 特殊時段事件信號（hour：遊戲時刻，message：顯示訊息）
 signal hour_milestone_reached(hour: int, message: String)
 
+## 升級點數變動
+signal upgrade_points_changed(new_points: int)
+
 
 # ============================================================
 # 遊戲狀態變數
@@ -69,6 +72,9 @@ var time_paused: bool = false
 
 ## 時間加速倍率（1.0 = 正常，2.0 = 兩倍速）
 var time_scale: float = 1.0
+
+## 升級點數（每賺 $1,000 得 1 點）
+var upgrade_points: int = 0
 
 
 # ============================================================
@@ -268,6 +274,13 @@ func add_money(amount: float) -> void:
 	_today_income += amount
 	money_changed.emit(money)
 
+	# 升級點數：每累積 $1000 賺取 1 點
+	var old_threshold: int = int((_today_income - amount) / 1000.0)
+	var new_threshold: int = int(_today_income / 1000.0)
+	if new_threshold > old_threshold:
+		upgrade_points += (new_threshold - old_threshold)
+		upgrade_points_changed.emit(upgrade_points)
+
 	# 第一次收到付款（>= 50 元才算，避免測試觸發）
 	if not _first_payment_done and amount >= 50.0:
 		_first_payment_done = true
@@ -397,6 +410,7 @@ func export_save_data() -> Dictionary:
 		"money": money,
 		"reputation": reputation,
 		"staff_morale": staff_morale,
+		"upgrade_points": upgrade_points,
 	}
 
 
@@ -409,6 +423,7 @@ func apply_save_data(data: Dictionary) -> void:
 	money = data.get("money", 10000.0)
 	reputation = data.get("reputation", 0)
 	staff_morale = data.get("staff_morale", 100.0)
+	upgrade_points = data.get("upgrade_points", 0)
 	money_changed.emit(money)
 	reputation_changed.emit(reputation)
 	staff_morale_changed.emit(staff_morale)
@@ -420,3 +435,45 @@ func save_now() -> bool:
 	var result: bool = SaveManager.save_game(export_save_data())
 	print("[GameManager] 手動存檔 %s" % ("成功" if result else "失敗"))
 	return result
+
+
+# ============================================================
+# 升級系統
+# ============================================================
+
+## 廚師速度 +20%（花 5 點）
+var _chef_speed_level: int = 0
+func upgrade_chef_speed() -> bool:
+	const COST: int = 5
+	if upgrade_points < COST:
+		return false
+	upgrade_points -= COST
+	_chef_speed_level += 1
+	upgrade_points_changed.emit(upgrade_points)
+	return true
+
+func get_chef_speed_multiplier() -> float:
+	return 1.0 + _chef_speed_level * 0.2
+
+## 座位數 +2（花 8 點）
+func upgrade_seating() -> bool:
+	const COST: int = 8
+	if upgrade_points < COST:
+		return false
+	upgrade_points -= COST
+	upgrade_points_changed.emit(upgrade_points)
+	return true
+
+## 菜色品質 +10%（花 6 點）
+var _quality_level: int = 0
+func upgrade_dish_quality() -> bool:
+	const COST: int = 6
+	if upgrade_points < COST:
+		return false
+	upgrade_points -= COST
+	_quality_level += 1
+	upgrade_points_changed.emit(upgrade_points)
+	return true
+
+func get_dish_quality_multiplier() -> float:
+	return 1.0 + _quality_level * 0.1

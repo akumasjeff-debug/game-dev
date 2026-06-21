@@ -73,10 +73,11 @@ func apply_damage_to_member(member: Node, raw_amount: float) -> void:
 	var final_amount = raw_amount
 	if shield_buff_active:
 		final_amount *= (1.0 - SHIELD_BUFF_DAMAGE_REDUCTION)
-	# 百分比防禦減傷：member.defense 為 0~100，代表減傷百分比
-	if member.get("defense") != null and member.defense > 0.0:
-		var defense_ratio = float(member.defense) / 100.0
-		final_amount = final_amount * (1.0 - defense_ratio)
+	# DEF 固定值減傷：傷害 = max(raw - defense * 0.5, raw * 0.1)
+	# defense 為固定防禦數值（盾兵R=40, QR=200），至多減少 90% 傷害
+	var defense = member.get("defense") if member.get("defense") != null else 0.0
+	if defense > 0.0:
+		final_amount = max(final_amount - defense * 0.5, final_amount * 0.1)
 	final_amount = max(1.0, final_amount)  # 至少造成 1 點傷害
 	member.take_damage(final_amount)
 

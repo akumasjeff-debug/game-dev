@@ -73,6 +73,13 @@ const DEFAULT_SPEAKER_COLOR: Color = Color(0.4, 0.4, 0.4)
 ## 打字機每字間隔（秒）
 const TYPING_SPEED: float = 0.03
 
+## 年度目標常數（reputation：聲望門檻；money：累積收入門檻）
+const YEAR_TARGETS: Dictionary = {
+	1: {"reputation": 20, "money": 50000.0},
+	2: {"reputation": 50, "money": 150000.0},
+	3: {"reputation": 100, "money": 300000.0},
+}
+
 
 # ============================================================
 # 內部節點引用
@@ -129,6 +136,7 @@ func _connect_signals() -> void:
 	if GameManager.year_ended.is_connected(_on_year_ended):
 		return
 	GameManager.year_ended.connect(_on_year_ended)
+	GameManager.year_ended.connect(_on_year_ended_check_goals)
 	print("[YearEndingManager] 已連接 GameManager.year_ended 信號")
 
 
@@ -415,3 +423,117 @@ func _cleanup_ui() -> void:
 		get_tree().paused = false
 
 	print("[YearEndingManager] UI 清除完成，遊戲繼續")
+
+
+# ============================================================
+# 年度目標系統
+# ============================================================
+
+func _on_year_ended_check_goals(year: int) -> void:
+	var target: Dictionary = YEAR_TARGETS.get(year, {})
+	if target.is_empty():
+		return
+	var gm := get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+	var rep: int = gm.reputation
+	var money: float = gm.money
+	var target_rep: int = target.get("reputation", 0)
+	var target_money: float = target.get("money", 0.0)
+	var rep_ok: bool = rep >= target_rep
+	var money_ok: bool = money >= target_money
+	# 延遲顯示，讓結局故事先播完
+	await get_tree().create_timer(2.0).timeout
+	_show_year_goal_panel(year, rep, target_rep, money, target_money, rep_ok and money_ok)
+
+
+func _show_year_goal_panel(year: int, rep: int, target_rep: int, money: float, target_money: float, achieved: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var cl := CanvasLayer.new()
+	cl.layer = 9
+	tree.root.add_child(cl)
+
+	var fp := "res://assets/fonts/fusion-pixel-12px-proportional-zh_hant.ttf"
+	var f: Font = null
+	if ResourceLoader.exists(fp):
+		f = load(fp)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.03, 0.06, 0.15, 0.9)
+	bg.size = Vector2(480, 270)
+	bg.position = Vector2.ZERO
+	cl.add_child(bg)
+
+	var title := Label.new()
+	title.text = "第 %d 年 年度報告" % year
+	title.position = Vector2(0, 60)
+	title.size = Vector2(480, 24)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
+	title.add_theme_font_size_override("font_size", 16)
+	if f: title.add_theme_font_override("font", f)
+	cl.add_child(title)
+
+	var rep_lbl := Label.new()
+	rep_lbl.text = "聲望：%d / %d %s" % [rep, target_rep, "達成!" if rep >= target_rep else "未達成"]
+	rep_lbl.position = Vector2(0, 110)
+	rep_lbl.size = Vector2(480, 20)
+	rep_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rep_lbl.add_theme_color_override("font_color", Color(0.2, 1.0, 0.5) if rep >= target_rep else Color(1.0, 0.4, 0.4))
+	rep_lbl.add_theme_font_size_override("font_size", 12)
+	if f: rep_lbl.add_theme_font_override("font", f)
+	cl.add_child(rep_lbl)
+
+	var money_lbl := Label.new()
+	money_lbl.text = "累積收入：$%d / $%d %s" % [int(money), int(target_money), "達成!" if money >= target_money else "未達成"]
+	money_lbl.position = Vector2(0, 135)
+	money_lbl.size = Vector2(480, 20)
+	money_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	money_lbl.add_theme_color_override("font_color", Color(0.2, 1.0, 0.5) if money >= target_money else Color(1.0, 0.4, 0.4))
+	money_lbl.add_theme_font_size_override("font_size", 12)
+	if f: money_lbl.add_theme_font_override("font", f)
+	cl.add_child(money_lbl)
+
+	if achieved:
+		var congrats := Label.new()
+		congrats.text = "年度目標全部達成！繼續加油！"
+		congrats.position = Vector2(0, 165)
+		congrats.size = Vector2(480, 20)
+		congrats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		congrats.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
+		congrats.add_theme_font_size_override("font_size", 12)
+		if f: congrats.add_theme_font_override("font", f)
+		cl.add_child(congrats)
+		# 生成 confetti
+		_spawn_year_confetti(cl)
+
+	var cont_btn := Button.new()
+	cont_btn.text = "繼續"
+	cont_btn.size = Vector2(80, 22)
+	cont_btn.position = Vector2(200, 215)
+	cont_btn.add_theme_font_size_override("font_size", 10)
+	if f: cont_btn.add_theme_font_override("font", f)
+	cont_btn.pressed.connect(cl.queue_free)
+	cl.add_child(cont_btn)
+
+
+func _spawn_year_confetti(parent: CanvasLayer) -> void:
+	var colors: Array[Color] = [
+		Color(1, 0.2, 0.2), Color(1, 0.8, 0.1), Color(0.2, 0.8, 1),
+		Color(0.5, 1, 0.3), Color(0.8, 0.3, 1), Color(1, 0.5, 0.1),
+	]
+	for i in range(30):
+		var cr := ColorRect.new()
+		cr.color = colors[i % colors.size()]
+		cr.size = Vector2(4, 4)
+		var start_x: float = randf() * 480.0
+		cr.position = Vector2(start_x, -10.0)
+		parent.add_child(cr)
+		var tw := cr.create_tween()
+		var target_y: float = 270.0 + randf() * 50.0
+		var duration: float = 2.0 + randf() * 3.0
+		tw.tween_property(cr, "position:y", target_y, duration)
+		tw.parallel().tween_property(cr, "position:x", start_x + (randf() - 0.5) * 100.0, duration)
+		tw.tween_callback(cr.queue_free)

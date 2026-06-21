@@ -16,27 +16,42 @@ import sys
 from pathlib import Path
 
 
-def remove_handwriting(image_path: str, debug: bool = False) -> None:
+def remove_handwriting(image_path: str, pencil_min: int = 15, pencil_max: int = 80, debug: bool = False) -> None:
     # 用 numpy 繞過 OpenCV 不支援中文路徑的問題
     img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
     if img is None:
         print(f"錯誤：無法讀取圖片 {image_path}")
         sys.exit(1)
 
+    # === 1. 紅色筆跡（顏色偵測）===
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    # 紅色在 HSV 空間分兩段（0-10 和 160-180）
     mask_red1 = cv2.inRange(hsv, np.array([0, 60, 60]),   np.array([10, 255, 255]))
     mask_red2 = cv2.inRange(hsv, np.array([160, 60, 60]), np.array([180, 255, 255]))
-    mask = cv2.bitwise_or(mask_red1, mask_red2)
+    mask_red = cv2.bitwise_or(mask_red1, mask_red2)
 
-    # 膨脹遮罩，確保筆跡邊緣全覆蓋
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    mask = cv2.dilate(mask, kernel, iterations=2)
+    # === 2. 鉛筆筆跡（局部對比偵測）===
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # 用大範圍模糊估算「局部背景亮度」
+    bg = cv2.GaussianBlur(gray, (61, 61), 0)
+    # 計算每個像素比周圍背景暗多少
+    diff = np.clip(bg.astype(np.int16) - gray.astype(np.int16), 0, 255).astype(np.uint8)
+    # 鉛筆：稍微暗（pencil_min~pencil_max）；印刷文字：非常暗（>100）
+    mask_pencil = np.zeros_like(gray, dtype=np.uint8)
+    mask_pencil[(diff >= pencil_min) & (diff <= pencil_max)] = 255
+
+    # === 合併遮罩 ===
+    mask = cv2.bitwise_or(mask_red, mask_pencil)
+
+    # 清除孤立雜點
+    kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel_clean)
+    # 稍微膨脹確保邊緣覆蓋
+    kernel_dilate = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))
+    mask = cv2.dilate(mask, kernel_dilate, iterations=2)
 
     if debug:
         debug_path = Path(image_path).with_stem(Path(image_path).stem + "_mask")
-        cv2.imwrite(str(debug_path), mask)
+        cv2.imencode(".jpg", mask)[1].tofile(str(debug_path))
         print(f"遮罩已儲存：{debug_path}")
 
     # Inpainting：從周圍背景重建，不生成文字，不會出現亂碼
@@ -48,7 +63,7 @@ def remove_handwriting(image_path: str, debug: bool = False) -> None:
     print(f"完成！輸出：{out_path}")
 
 
-def batch_process(folder: str, debug: bool = False) -> None:
+def batch_process(folder: str, pencil_min: int = 15, pencil_max: int = 80, debug: bool = False) -> None:
     folder_path = Path(folder)
     images = list(folder_path.glob("*.jpg")) + list(folder_path.glob("*.png")) + \
              list(folder_path.glob("*.jpeg")) + list(folder_path.glob("*.JPG"))
@@ -63,7 +78,7 @@ def batch_process(folder: str, debug: bool = False) -> None:
     print(f"找到 {len(images)} 張圖片，開始批次處理...")
     for i, img_path in enumerate(images, 1):
         print(f"[{i}/{len(images)}] 處理：{img_path.name}")
-        remove_handwriting(str(img_path), debug=debug)
+        remove_handwriting(str(img_path), pencil_min=pencil_min, pencil_max=pencil_max, debug=debug)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,7 @@ func _get_gm() -> Node:
 func _ready() -> void:
 	current_hp = max_hp
 	_build_visual()
+	_apply_card_stats()
 	# 狙擊手攻擊間隔較長
 	if char_id == "sniper":
 		auto_attack_interval = 3.0
@@ -397,6 +398,71 @@ func _pop_up_animation() -> void:
 			_body.texture = _crouch_texture
 			_body.scale = Vector2(40.0 / 32.0, 40.0 / 32.0)
 	)
+
+# 從卡牌資料套用數值（grade 倍率 + plus 強化）
+func _apply_card_stats() -> void:
+	var save_mgr = get_node_or_null("/root/SaveManager")
+	if save_mgr == null:
+		return
+
+	# 找出這個角色對應的 card_id
+	var card_id = _find_my_card_id(save_mgr)
+	if card_id.is_empty():
+		return
+
+	# 讀取 cards.json
+	var card_info = _load_card_info(card_id)
+	if card_info.is_empty():
+		return
+
+	# 套用基礎數值
+	var base_hp = card_info.get("base_hp", max_hp)
+	var base_atk = card_info.get("base_atk", attack_power)
+
+	# 等級加成（每級 +5% 基礎值）
+	var lv = save_mgr.get_card_level(card_id) if save_mgr.has_method("get_card_level") else 1
+	var lv_mult = 1.0 + (lv - 1) * 0.05
+
+	# 強化加成（每+1 提升 3%）
+	var plus = save_mgr.get_card_plus(card_id) if save_mgr.has_method("get_card_plus") else 0
+	var plus_mult = 1.0 + plus * 0.03
+
+	max_hp = base_hp * lv_mult * plus_mult
+	current_hp = max_hp
+	attack_power = base_atk * lv_mult * plus_mult
+
+	if _hp_bar:
+		_hp_bar.max_value = max_hp
+		_hp_bar.value = current_hp
+
+func _find_my_card_id(save_mgr: Node) -> String:
+	# 從 selected_squad 中找到對應此 char_id 的 card_id
+	if save_mgr.get("selected_squad") == null:
+		return ""
+	var squad = save_mgr.selected_squad
+	for card_id in squad:
+		if card_id.begins_with(char_id + "_"):
+			return card_id
+	return ""
+
+func _load_card_info(card_id: String) -> Dictionary:
+	var path = "res://resources/data/cards.json"
+	if not ResourceLoader.exists(path):
+		return {}
+	var f = FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var raw = JSON.parse_string(f.get_as_text())
+	f.close()
+	if raw is Array:
+		for c in raw:
+			if c is Dictionary and c.get("id") == card_id:
+				return c
+	elif raw is Dictionary and raw.has("cards"):
+		for c in raw["cards"]:
+			if c is Dictionary and c.get("id") == card_id:
+				return c
+	return {}
 
 func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 	var bullet_script = load("res://scripts/bullet.gd")

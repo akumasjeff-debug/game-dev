@@ -1,0 +1,40 @@
+{
+  "pull_cost": {
+    "single": 100,
+    "ten_pull": 900
+  },
+  "currency": "coins",
+  "rates": {
+    "R": 0.75,
+    "SR": 0.18,
+    "SSR": 0.06,
+    "QR": 0.01
+  },
+  "pity": {
+    "sr_pity_at": 10,
+    "ssr_pity_at": 50,
+    "qr_pity_at": 100
+  },
+  "grade_multipliers": {
+    "R": 1.0,
+    "SR": 1.6,
+    "SSR": 2.8,
+    "QR": 5.0
+  },
+  "starter_pulls": 10,
+  "starter_guaranteed_sr": true,
+  "guaranteed_sr_at": 10,
+  "plus_overflow_coins": 50,
+  "pool": [
+    "shield_r", "assault_r", "demo_r", "medic_r", "sniper_r", "recon_r",
+    "shield_sr", "assault_sr", "demo_sr", "medic_sr", "sniper_sr", "recon_sr",
+    "shield_ssr", "assault_ssr", "demo_ssr", "medic_ssr", "sniper_ssr", "recon_ssr",
+    "shield_qr", "assault_qr", "demo_qr", "medic_qr", "sniper_qr", "recon_qr"
+  ],
+  "pool_by_grade": {
+    "R": ["shield_r", "assault_r", "demo_r", "medic_r", "sniper_r", "recon_r"],
+    "SR": ["shield_sr", "assault_sr", "demo_sr", "medic_sr", "sniper_sr", "recon_sr"],
+    "SSR": ["shield_ssr", "assault_ssr", "demo_ssr", "medic_ssr", "sniper_ssr", "recon_ssr"],
+    "QR": ["shield_qr", "assault_qr", "demo_qr", "medic_qr", "sniper_qr", "recon_qr"]
+  }
+}
