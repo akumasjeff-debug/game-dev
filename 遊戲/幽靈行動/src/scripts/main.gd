@@ -81,6 +81,10 @@ var hud_scene: Node
 var decision_panel: Node
 var _fork_triggered: bool = false  # 岔路是否已觸發
 
+# 距離觸發系統（取代 Area2D.body_entered，因為角色是 Node2D 沒有物理碰撞體）
+# 格式：{"pos": Vector2, "radius": float, "triggered": bool, "callback": Callable}
+var _proximity_triggers: Array = []
+
 func _ready() -> void:
 	# Bug3: 讀取並確認任務 ID
 	if OS.is_debug_build():
@@ -128,9 +132,20 @@ func _setup_camera() -> void:
 	print("[Camera] 初始化完成，位置 y=", ROOM_CENTER_Y[0])
 
 func _process(_delta: float) -> void:
-	if _camera == null or _camera_locked:
-		return
 	if GameManager == null:
+		return
+	# 距離觸發系統：用小隊樞軸點偵測，取代 Area2D.body_entered
+	if squad_controller != null and is_instance_valid(squad_controller) and not GameManager.is_paused:
+		var pivot: Vector2 = squad_controller.get_pivot_position()
+		for trig in _proximity_triggers:
+			if trig["triggered"]:
+				continue
+			var dist: float = pivot.distance_to(trig["pos"])
+			if dist <= trig["radius"]:
+				trig["triggered"] = true
+				trig["callback"].call()
+	# 鏡頭跟隨
+	if _camera == null or _camera_locked:
 		return
 	# 找存活隊員的平均 y
 	var valid_members: Array = []
@@ -364,13 +379,17 @@ func _spawn_squad() -> void:
 		squad_ids = ["shield", "assault", "demo", "medic"]
 
 	var members: Array = []
+	var spawn_index: int = 0
+	# 記錄各職業已生成次數，供同職業偏移計算
+	var class_spawn_count: Dictionary = {}
 	for char_id in squad_ids:
 		# 在 CHAR_DATA 中找對應資料
 		var data = _get_char_data(char_id)
 		if data.is_empty():
 			continue
 		var char_node = CHARACTER_SCRIPT.new()
-		char_node.name = char_id
+		# 加上 spawn_index 後綴確保節點名稱唯一（同職業可選多個）
+		char_node.name = char_id + "_" + str(spawn_index)
 		char_node.char_id = data["id"]
 		char_node.char_name = data["name"]
 		char_node.body_color = data["color"]
@@ -380,7 +399,12 @@ func _spawn_squad() -> void:
 		char_node.max_hp = data["max_hp"] * rarity_mult * level_mult
 		char_node.attack_power = data["attack"] * rarity_mult * level_mult
 		char_node.defense = data.get("defense", 0.0) * rarity_mult * level_mult
-		char_node.formation_offset = data["offset"]
+		# 同職業多個時，在原始偏移基礎上加橫向錯開（±30px），避免重疊
+		var base_offset: Vector2 = data["offset"]
+		var same_class_count: int = class_spawn_count.get(char_id, 0)
+		var extra_x: float = float(same_class_count) * 32.0  # 第 2 個往右偏 32px
+		char_node.formation_offset = base_offset + Vector2(extra_x, 0)
+		class_spawn_count[char_id] = same_class_count + 1
 		char_node.ultimate_name = data["ult_name"]
 		char_node.ultimate_cd = data["ult_cd"]
 		# 讀取 SaveManager 中存的等級
@@ -389,6 +413,7 @@ func _spawn_squad() -> void:
 		char_node.add_to_group("squad")
 		add_child(char_node)
 		members.append(char_node)
+		spawn_index += 1
 
 	GameManager.squad_members = members
 
@@ -480,63 +505,68 @@ func _build_enemy_configs_from_mission(room_key: String) -> Array:
 	return result
 
 func _create_room_trigger(pos: Vector2, label: String, enemy_configs: Array) -> void:
-	# 房間觸發器：進入時顯示決策面板，選擇後生成敵人開始戰鬥
-	var area = Area2D.new()
-	area.position = pos
-	area.name = "RoomTrigger_" + label
+	# 視覺標記（Area2D 改為純視覺 Node2D，觸發改用距離偵測）
+	var marker_node = Node2D.new()
+	marker_node.position = pos
+	marker_node.name = "RoomTrigger_" + label
 
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	area.add_child(shape)
-
-	# 視覺標記
 	var marker = ColorRect.new()
 	marker.size = Vector2(60, 60)
 	marker.position = Vector2(-30, -30)
 	marker.color = Color(0.8, 0.2, 0.2, 0.4)
-	area.add_child(marker)
+	marker_node.add_child(marker)
 
 	var mlbl = Label.new()
 	mlbl.text = "!" + label
 	mlbl.position = Vector2(-50, -56)
 	mlbl.add_theme_font_size_override("font_size", 16)
 	mlbl.modulate = Color.WHITE
-	area.add_child(mlbl)
+	marker_node.add_child(mlbl)
 
-	# 儲存在 meta 供信號回調使用
-	area.set_meta("triggered", false)
-	area.set_meta("label", label)
-	area.set_meta("enemy_configs", enemy_configs)
-	area.set_meta("room_node", null)
+	add_child(marker_node)
 
-	area.body_entered.connect(_on_room_trigger_entered.bind(area))
-	add_child(area)
+	# 登記到距離觸發系統
+	var configs_copy = enemy_configs.duplicate(true)
+	_proximity_triggers.append({
+		"pos": pos,
+		"radius": 90.0,
+		"triggered": false,
+		"callback": func(): _fire_room_trigger(pos, label, configs_copy, marker_node)
+	})
 
-func _on_room_trigger_entered(body: Node2D, area: Area2D) -> void:
-	if area.get_meta("triggered", false):
-		return
-	if not body.is_in_group("squad"):
-		return
-	area.set_meta("triggered", true)
-
-	var label = area.get_meta("label", "房間")
-	var enemy_configs = area.get_meta("enemy_configs", [])
+func _fire_room_trigger(trigger_pos: Vector2, label: String, enemy_configs: Array, marker_node: Node) -> void:
+	# 距離觸發回調：由 _proximity_triggers 系統在 _process 中呼叫
 
 	# Boss 房特效：震屏 + 紅色危險閃光
 	if label == "Boss房":
 		_do_camera_shake(10.0, 0.5)
 		_flash_danger_overlay()
 
+	# 隱藏視覺標記（已觸發就不用再顯示）
+	if marker_node and is_instance_valid(marker_node):
+		marker_node.visible = false
+
 	# 建立房間節點
 	var room = ROOM_SCRIPT.new()
 	room.room_label = label
 	room.enemy_configs = enemy_configs.duplicate(true)
-	room.position = area.position
+	room.position = trigger_pos
 	room.name = "Room_" + label
 	add_child(room)
 	_active_room = room
+
+	# 連接房間清空信號（在 trigger_decision 之前，避免競爭）
+	room.room_cleared.connect(_on_room_cleared)
+
+	# 連接決策選擇信號（只連接一次）
+	var dp = get_node_or_null("DecisionPanel/Root")
+	if dp:
+		var callback = func(opt_id: String, _dec_type: String):
+			_on_room_entry_selected(opt_id, room)
+		dp.option_selected.connect(callback, CONNECT_ONE_SHOT)
+
+	if OS.is_debug_build():
+		print("[Main] 觸發房間決策: ", label, " 敵人配置數:", enemy_configs.size())
 
 	# 顯示決策面板（暫停小隊，等玩家選擇進入方式）
 	var decision_data = {
@@ -549,20 +579,7 @@ func _on_room_trigger_entered(body: Node2D, area: Area2D) -> void:
 			{"id": "bomb",    "text": "投擲炸彈",   "desc": "需要爆破手，清場效果佳"},
 		],
 	}
-
-	# 連接決策選擇信號（只連接一次）
-	# DecisionPanel 是 CanvasLayer，script 在其子節點 Root 上
-	var dp = get_node_or_null("DecisionPanel/Root")
-	if dp:
-		# 使用 lambda 捕捉 room 參考
-		var callback = func(opt_id: String, _dec_type: String):
-			_on_room_entry_selected(opt_id, room)
-		dp.option_selected.connect(callback, CONNECT_ONE_SHOT)
-
 	GameManager.trigger_decision(decision_data)
-
-	# 連接房間清空信號
-	room.room_cleared.connect(_on_room_cleared)
 
 func _on_room_entry_selected(opt_id: String, room: Node) -> void:
 	if room == null or not is_instance_valid(room):
@@ -678,73 +695,80 @@ func _play_door_open_animation(door_y: float, on_complete: Callable) -> void:
 	)
 
 func _create_trigger(pos: Vector2, type: String, label: String) -> void:
-	var area = Area2D.new()
-	area.position = pos
-	area.name = "Trigger_" + label
-
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	area.add_child(shape)
+	# 通用觸發點（補給箱等）：改用距離偵測系統
+	var marker_node = Node2D.new()
+	marker_node.position = pos
+	marker_node.name = "Trigger_" + label
 
 	# 視覺標記
 	var marker = ColorRect.new()
 	marker.size = Vector2(60, 60)
 	marker.position = Vector2(-30, -30)
 	marker.color = Color(1.0, 0.8, 0.1, 0.4) if type == "supply" else Color(0.9, 0.3, 0.3, 0.4)
-	area.add_child(marker)
+	marker_node.add_child(marker)
 
 	var mlbl = Label.new()
 	mlbl.text = "!" + label
 	mlbl.position = Vector2(-50, -56)
 	mlbl.add_theme_font_size_override("font_size", 16)
 	mlbl.modulate = Color.WHITE
-	area.add_child(mlbl)
+	marker_node.add_child(mlbl)
 
-	var trigger_script = load("res://scripts/decision_trigger.gd")
-	area.set_script(trigger_script)
-	area.decision_type = type
-	area.location_name = label
+	add_child(marker_node)
 
-	add_child(area)
+	# 建立決策資料（補給箱預設選項）
+	var decision_data: Dictionary = {
+		"type": type,
+		"title": "發現" + label,
+		"description": "選擇行動：",
+		"options": [
+			{"id": "heal", "text": "全體補血",   "desc": "全隊回復 40% HP"},
+			{"id": "ammo", "text": "補充炸彈",   "desc": "爆破手大招 CD 重置"},
+			{"id": "card", "text": "取得抽卡券", "desc": "獲得 1 張抽卡券"},
+		],
+	}
+
+	_proximity_triggers.append({
+		"pos": pos,
+		"radius": 90.0,
+		"triggered": false,
+		"callback": func():
+			marker_node.visible = false
+			GameManager.trigger_decision(decision_data)
+	})
 
 func _create_boss_decision_trigger(pos: Vector2) -> void:
-	# Boss 決策點：進入 Boss 房前的戰術選擇
-	var area = Area2D.new()
-	area.position = pos
-	area.name = "BossDecisionTrigger"
-
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	area.add_child(shape)
+	# Boss 決策點：改用距離偵測系統
+	var marker_node = Node2D.new()
+	marker_node.position = pos
+	marker_node.name = "BossDecisionTrigger"
 
 	# 視覺標記（紅色警示）
 	var marker = ColorRect.new()
 	marker.size = Vector2(80, 80)
 	marker.position = Vector2(-40, -40)
 	marker.color = Color(0.8, 0.1, 0.1, 0.6)
-	area.add_child(marker)
+	marker_node.add_child(marker)
 
 	var mlbl = Label.new()
 	mlbl.text = "BOSS"
 	mlbl.position = Vector2(-28, -56)
 	mlbl.add_theme_font_size_override("font_size", 20)
 	mlbl.modulate = Color(1.0, 0.3, 0.3)
-	area.add_child(mlbl)
+	marker_node.add_child(mlbl)
 
-	area.set_meta("triggered", false)
-	area.body_entered.connect(_on_boss_decision_entered.bind(area))
-	add_child(area)
+	add_child(marker_node)
 
-func _on_boss_decision_entered(body: Node2D, area: Area2D) -> void:
-	if area.get_meta("triggered", false):
-		return
-	if not body.is_in_group("squad"):
-		return
-	area.set_meta("triggered", true)
+	_proximity_triggers.append({
+		"pos": pos,
+		"radius": 90.0,
+		"triggered": false,
+		"callback": func(): _on_boss_decision_fired(marker_node)
+	})
+
+func _on_boss_decision_fired(marker_node: Node) -> void:
+	if marker_node and is_instance_valid(marker_node):
+		marker_node.visible = false
 
 	var decision_data = {
 		"type": "boss",
@@ -763,23 +787,13 @@ func _create_boss_room_trigger(pos: Vector2) -> void:
 	_create_room_trigger(pos, "Boss房", _build_enemy_configs_from_mission("boss_room"))
 
 func _create_end_trigger(pos: Vector2) -> void:
-	var area = Area2D.new()
-	area.position = pos
-	area.name = "EndTrigger"
-
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	area.add_child(shape)
-
-	area.body_entered.connect(_on_end_reached)
-	add_child(area)
-
-func _on_end_reached(body: Node2D) -> void:
-	if body.is_in_group("squad"):
-		# 觸發勝利（票券獎勵由 hud.gd _on_game_won 統一處理）
-		GameManager.trigger_game_over(true)
+	# 終點觸發：改用距離偵測系統
+	_proximity_triggers.append({
+		"pos": pos,
+		"radius": 90.0,
+		"triggered": false,
+		"callback": func(): GameManager.trigger_game_over(true)
+	})
 
 func _connect_hud() -> void:
 	hud_scene = $HUD
@@ -803,40 +817,40 @@ func _connect_hud() -> void:
 			retry_btn.pressed.connect(hud_scene._on_retry_pressed)
 
 func _create_fork_trigger(pos: Vector2) -> void:
-	# 岔路觸發點：直接用 Area2D + inline 腳本連接
-	var area = Area2D.new()
-	area.position = pos
-	area.name = "ForkTrigger"
-
-	var shape = CollisionShape2D.new()
-	var circle = CircleShape2D.new()
-	circle.radius = 80.0
-	shape.shape = circle
-	area.add_child(shape)
+	# 岔路觸發點：改用距離偵測系統
+	var marker_node = Node2D.new()
+	marker_node.position = pos
+	marker_node.name = "ForkTrigger"
 
 	# 視覺標記（菱形用 ColorRect 模擬）
 	var marker = ColorRect.new()
 	marker.size = Vector2(70, 70)
 	marker.position = Vector2(-35, -35)
 	marker.color = Color(0.5, 0.2, 0.9, 0.5)
-	area.add_child(marker)
+	marker_node.add_child(marker)
 
 	var mlbl = Label.new()
 	mlbl.text = "岔路"
 	mlbl.position = Vector2(-28, -56)
 	mlbl.add_theme_font_size_override("font_size", 18)
 	mlbl.modulate = Color(0.9, 0.7, 1.0)
-	area.add_child(mlbl)
+	marker_node.add_child(mlbl)
 
-	area.body_entered.connect(_on_fork_trigger_entered)
-	add_child(area)
+	add_child(marker_node)
 
-func _on_fork_trigger_entered(body: Node2D) -> void:
+	_proximity_triggers.append({
+		"pos": pos,
+		"radius": 90.0,
+		"triggered": false,
+		"callback": func(): _on_fork_trigger_fired(marker_node)
+	})
+
+func _on_fork_trigger_fired(marker_node: Node) -> void:
 	if _fork_triggered:
 		return
-	if not body.is_in_group("squad"):
-		return
 	_fork_triggered = true
+	if marker_node and is_instance_valid(marker_node):
+		marker_node.visible = false
 
 	# 取得盾兵等級，判斷是否顯示 Lv.3 解鎖選項
 	var shield_member = _get_member_by_id("shield")

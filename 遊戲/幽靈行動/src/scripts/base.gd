@@ -516,6 +516,12 @@ func _update_class_buttons() -> void:
 		var is_owned = char_id in owned
 		var rarity = SaveManager.character_rarity.get(char_id, 0)
 
+		# 計算該職業在陣容中的出現次數
+		var count_in_squad: int = 0
+		for sid in selected:
+			if sid == char_id:
+				count_in_squad += 1
+
 		# 稀有度後綴
 		var rarity_suffix = ""
 		if rarity == 1:
@@ -523,16 +529,23 @@ func _update_class_buttons() -> void:
 		elif rarity >= 2:
 			rarity_suffix = " [SSR]"
 
+		# 計數後綴（×2 以上才顯示）
+		var count_suffix = ""
+		if count_in_squad >= 2:
+			count_suffix = " ×" + str(count_in_squad)
+		elif count_in_squad == 1:
+			count_suffix = " ✓"
+
 		if not is_owned:
 			btn.disabled = true
 			btn.modulate = Color(0.3, 0.3, 0.3)
 			btn.text = cls["name"] + " [鎖定]"
 			# 清除邊框樣式
 			_style_button(btn, Color(0.12, 0.20, 0.28))
-		elif char_id in selected:
+		elif count_in_squad > 0:
 			btn.disabled = false
 			btn.modulate = cls["color"]
-			btn.text = cls["name"] + rarity_suffix + " ✓"
+			btn.text = cls["name"] + rarity_suffix + count_suffix
 			# 選中且有稀有度 → 加邊框
 			if rarity >= 2:
 				_style_button_with_border(btn, Color(0.12, 0.20, 0.28), Color(1.0, 0.85, 0.2), 4)
@@ -629,14 +642,12 @@ func _on_mission_selected(mission_id: String, pressed_btn: Button) -> void:
 func _on_class_toggled(char_id: String) -> void:
 	AudioManager.play_sfx("btn_click")
 	var selected = SaveManager.selected_squad
-	if char_id in selected:
-		# 已在陣容中，移除
-		selected.erase(char_id)
-	else:
-		# 不在陣容中，若槽位已滿則替換最後一個
-		if selected.size() >= 4:
-			selected.pop_back()
-		selected.append(char_id)
+	# 同職業可選多次：每次點擊都新增一個，達到上限（4人）則不新增
+	# 若想移除，點擊下方陣容槽位即可
+	if selected.size() >= 4:
+		# 已滿 4 人：替換最後一個
+		selected.pop_back()
+	selected.append(char_id)
 	SaveManager.selected_squad = selected
 	_update_class_buttons()
 	_update_squad_display()
