@@ -34,3 +34,4 @@ theme/custom="res://resources/default_theme.tres"
 [rendering]
 
 renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.02, 0.04, 0.08, 1)

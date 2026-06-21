@@ -44,21 +44,24 @@ func _build_ui() -> void:
 
 
 func _build_background() -> void:
+	# 先鋪一層 ColorRect 確保不透出灰色底
+	var base_fill := ColorRect.new()
+	base_fill.size = Vector2(1080, 1920)
+	base_fill.position = Vector2.ZERO
+	base_fill.color = Color("#050A14")
+	_ui_layer.add_child(base_fill)
+
 	if ResourceLoader.exists(BG_SVG_PATH):
 		var tex: Texture2D = load(BG_SVG_PATH)
 		var bg := TextureRect.new()
 		bg.texture = tex
-		bg.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		# EXPAND_IGNORE_SIZE + STRETCH_SCALE 讓 TextureRect 直接依照 size 縮放圖片，
+		# 不受 CanvasLayer 父容器影響，最穩定地填滿 1080×1920
+		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		bg.stretch_mode = TextureRect.STRETCH_SCALE
 		bg.size = Vector2(1080, 1920)
 		bg.position = Vector2.ZERO
 		_ui_layer.add_child(bg)
-	else:
-		var fallback := ColorRect.new()
-		fallback.size = Vector2(1080, 1920)
-		fallback.position = Vector2.ZERO
-		fallback.color = Color("#050A14")
-		_ui_layer.add_child(fallback)
 
 
 func _build_title() -> void:
