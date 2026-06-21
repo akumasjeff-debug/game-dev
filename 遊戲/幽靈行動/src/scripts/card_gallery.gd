@@ -90,21 +90,22 @@ func _build_ui() -> void:
 	_scroll.add_child(_grid)
 
 func _refresh_grid() -> void:
-	# 清空
 	for child in _grid.get_children():
 		child.queue_free()
 
 	var save_mgr = get_node_or_null("/root/SaveManager")
-	if save_mgr:
-		var squad_val = save_mgr.get("selected_squad")
-		if squad_val != null and squad_val is Array:
-			_selected_squad = squad_val.duplicate()
-		else:
-			_selected_squad = []
+
+	# 只在首次載入（_selected_squad 還是空的）才從 SaveManager 讀取
+	# 換人操作後 _refresh_grid 不覆蓋記憶體中的狀態
+	if _selected_squad.is_empty():
+		if save_mgr:
+			var squad_val = save_mgr.get("selected_squad")
+			if squad_val != null and squad_val is Array:
+				_selected_squad = squad_val.duplicate()
 
 	# 確保陣容永遠 4 張
 	while _selected_squad.size() < 4:
-		_selected_squad.append("assault_r")  # 預設補位
+		_selected_squad.append("assault_r")
 
 	# 建立每張擁有的卡
 	for card_id in _cards_json:
@@ -198,13 +199,31 @@ func _build_card_slot(card_id: String, save_mgr: Node) -> Control:
 	name_lbl.size = Vector2(300, 30)
 	slot.add_child(name_lbl)
 
-	# Lv + 強化
+	# Lv 標籤
 	var lv_lbl = Label.new()
-	lv_lbl.text = "Lv.%d  +%d" % [lv, plus]
+	lv_lbl.text = "Lv.%d" % lv
 	lv_lbl.add_theme_font_size_override("font_size", 18)
-	lv_lbl.modulate = Color(1.0, 0.85, 0.3)
+	lv_lbl.modulate = Color(0.7, 1.0, 0.7)
 	lv_lbl.position = Vector2(10, 382)
 	slot.add_child(lv_lbl)
+
+	# +N badge（只在 plus > 0 時顯示，且顯眼）
+	if plus > 0:
+		var plus_bg = ColorRect.new()
+		plus_bg.size = Vector2(64, 38)
+		plus_bg.position = Vector2(242, 374)
+		plus_bg.color = Color(0.55, 0.35, 0.0, 0.92)
+		plus_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.add_child(plus_bg)
+		var plus_lbl = Label.new()
+		plus_lbl.text = "+%d" % plus
+		plus_lbl.size = Vector2(64, 38)
+		plus_lbl.position = Vector2(242, 374)
+		plus_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		plus_lbl.add_theme_font_size_override("font_size", 28)
+		plus_lbl.modulate = Color(1.0, 0.92, 0.1)
+		plus_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.add_child(plus_lbl)
 
 	# 升級按鈕
 	var upgrade_cost = lv * 50

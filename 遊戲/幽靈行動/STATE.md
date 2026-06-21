@@ -1,6 +1,14 @@
 # 幽靈行動 狀態
 
 ## 已完成
+### v0.4.0（2026-06-22）
+- 主選單畫面（夜間城市背景 + 標題 + 開始按鈕）
+- 24 張卡片獨立插畫（6 職業 × R/SR/SSR/QR）
+- 升級管理 UI 全部重寫（新 TCG 邏輯，Lv.X/20，升等數值預覽）
+- 側視角補齊：side_sniper / side_recon / side_boss
+- 基地背景（指揮室風格）、抽卡背景（神秘召喚空間）
+- DEMO 重置按鈕（清空存檔 + 跳主選單）
+
 ### TCG 卡牌系統
 - TCG 卡牌系統（24 張：6 職業 × R/SR/SSR/QR 四等級）
 - 抽卡機率：R 75% / SR 18% / SSR 6% / QR 1%，三層保底（10/50/100抽）
@@ -59,14 +67,10 @@
 - 中文字型完整支援（chinese_font.ttf 4.7MB）
 
 ## 進行中
-- 24 張卡片插畫（6 職業 × R/SR/SSR/QR）
-- 主選單畫面（main_menu.gd + main_menu_bg.svg）
-- 缺少側視角 sprite（side_sniper / side_recon / side_boss）
-- 基地背景圖、抽卡面板背景圖
+- 無
 
 ## 待辦
 - 角色升級面板技能說明
-- HTML5 重新 build + butler push v0.4.0
 
 ## 待確認
 - 無

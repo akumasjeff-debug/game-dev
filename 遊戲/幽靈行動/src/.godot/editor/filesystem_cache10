@@ -3012,11 +3012,11 @@ Main.tscn::PackedScene::-1::1782004235::0::1::::<><><>0<>0<><>::res://scripts/ma
 MainMenu.tscn::PackedScene::-1::1782056147::0::1::::<><><>0<>0<><>::res://scripts/main_menu.gd
 SquadConfirmPanel.tscn::PackedScene::-1::1782047198::0::1::::<><><>0<>0<><>::res://scripts/squad_confirm_panel.gd
 UpgradePanel.tscn::PackedScene::-1::1782038270::0::1::::<><><>0<>0<><>::res://scripts/upgrade_panel.gd
-::res://scripts/::1782056807
+::res://scripts/::1782059735
 audio_manager.gd::GDScript::3124682798317689935::1782051856::0::1::::<>Node<><>0<>0<><>::
-base.gd::GDScript::3192984383880569308::1782056570::0::1::::<>Node2D<><>0<>0<><>::
+base.gd::GDScript::3192984383880569308::1782059713::0::1::::<>Node2D<><>0<>0<><>::
 bullet.gd::GDScript::7564048488426712478::1782051390::0::1::::<>Node2D<><>0<>0<><>::
-card_gallery.gd::GDScript::7490600949283662910::1782054836::0::1::::<>CanvasLayer<><>0<>0<><>::
+card_gallery.gd::GDScript::7490600949283662910::1782059735::0::1::::<>CanvasLayer<><>0<>0<><>::
 character.gd::GDScript::369751022273438203::1782054363::0::1::::<>Node2D<><>0<>0<><>::
 decision_panel.gd::GDScript::2799764674967977961::1782051022::0::1::::<>Control<><>0<>0<><>::
 decision_trigger.gd::GDScript::4971466695716375736::1782014191::0::1::::<>Area2D<><>0<>0<><>::

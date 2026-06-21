@@ -86,9 +86,6 @@ func _build_ui() -> void:
 	# ── 任務板 ──
 	_add_mission_board()
 
-	# ── 陣容選擇區 ──
-	_add_squad_panel()
-
 	# ── 出發按鈕 ──
 	_add_launch_button()
 
@@ -934,9 +931,17 @@ func _on_slot_pressed(slot_index: int) -> void:
 
 func _on_launch_pressed() -> void:
 	AudioManager.play_sfx("btn_click")
+	# 陣容不足時自動補預設 R 卡，不再阻擋
 	if SaveManager.selected_squad.size() < 4:
-		_show_error("請先選滿 4 名隊員！")
-		return
+		var defaults = ["shield_r", "assault_r", "medic_r", "sniper_r"]
+		var auto_squad: Array = []
+		for d in defaults:
+			if SaveManager.has_card(d):
+				auto_squad.append(d)
+		while auto_squad.size() < 4:
+			auto_squad.append("assault_r")
+		auto_squad.resize(4)
+		SaveManager.set_selected_squad(auto_squad)
 
 	# 取得當前任務資料，存入實例變數供後續使用
 	var gm = get_node_or_null("/root/GameManager")
