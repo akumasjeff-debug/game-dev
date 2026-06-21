@@ -28,27 +28,14 @@ func start_battle(entry_mode: String = "charge") -> void:
 	if is_active or is_cleared:
 		return
 	is_active = true
+
+	# 新架構：小隊已定位，character.gd 自主攻擊，不需暫停
 	_spawn_enemies()
 	_apply_entry_effect(entry_mode)
-	_setup_squad_auto_attack()
-	# 將小隊重新排列到玩家掩體後方戰鬥站位
+	# 通知主場景啟動掩護模式
 	var main = get_parent()
 	if main and main.has_method("_position_squad_for_combat"):
-		# 取得此房間在 build_map 時使用的 pos/size
-		# room 的 position 是觸發點（area）位置，需反推房間 rect
-		# 根據觸發點 y 判斷對應房間
-		var trig_y: float = position.y
-		var room_pos: Vector2
-		var room_size: Vector2
-		if trig_y > 1200.0:
-			room_pos = Vector2(390, 1150); room_size = Vector2(300, 200)
-		elif trig_y > 800.0:
-			room_pos = Vector2(390, 750);  room_size = Vector2(300, 200)
-		elif trig_y > 300.0:
-			room_pos = Vector2(390, 260);  room_size = Vector2(300, 180)
-		else:
-			room_pos = Vector2(380, 120);  room_size = Vector2(320, 120)
-		main.call("_position_squad_for_combat", room_pos, room_size)
+		main.call("_position_squad_for_combat", Vector2.ZERO, Vector2.ZERO)
 
 func _spawn_enemies() -> void:
 	if enemy_configs.is_empty():
@@ -98,51 +85,8 @@ func _apply_entry_effect(entry_mode: String) -> void:
 			if gm:
 				gm.activate_shield_buff()
 
-func _setup_squad_auto_attack() -> void:
-	# 讓每個存活的隊員自動攻擊敵人
-	# 使用 Timer 節點驅動攻擊循環（每 1.5 秒全員攻擊一次）
-	var timer = Timer.new()
-	timer.wait_time = 1.5
-	timer.autostart = true
-	timer.name = "SquadAttackTimer"
-	add_child(timer)
-	timer.timeout.connect(_squad_attack_round)
-
-func _squad_attack_round() -> void:
-	if is_cleared or not is_active:
-		return
-	var gm = get_node_or_null("/root/GameManager")
-	if gm == null:
-		return
-
-	# 取得存活的敵人列表
-	var alive_enemies = _get_alive_enemies()
-	if alive_enemies.is_empty():
-		return
-
-	# 每個存活隊員攻擊一個敵人（優先打血量最低的）
-	var target = _pick_weakest_enemy(alive_enemies)
-	if target == null:
-		return
-
-	var attack_mult = gm.get_attack_multiplier()
-
-	for member in gm.squad_members:
-		if member == null or not is_instance_valid(member) or member.is_dead:
-			continue
-		var dmg = member.attack_power * attack_mult
-		# 狙擊手標記：若有標記且目標是此敵人，秒殺
-		if gm.sniper_marked_target != null and gm.sniper_marked_target == target:
-			dmg = target.max_hp * 2.0
-			gm.consume_sniper_mark()
-		target.take_damage(dmg)
-		# 播放射擊音效
-		member.fire_shot()
-		# 狙擊手鎖定秒殺後換目標
-		if not is_instance_valid(target) or target.is_dead:
-			target = _pick_weakest_enemy(_get_alive_enemies())
-			if target == null:
-				break
+# 攻擊系統由 character.gd 的 _try_auto_attack() 自主處理（含子彈視覺）
+# room.gd 只負責生成敵人 + 偵測清空
 
 func _get_alive_enemies() -> Array:
 	var alive = []

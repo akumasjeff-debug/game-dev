@@ -1,66 +1,78 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-  <!-- 偵察手 — 俯視，夜視鏡往前突出（T形），綠色發光鏡頭最顯眼 -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="64" height="64">
+  <!-- 偵察手 TCG 卡牌風 — 正面半身，青色系，持無線電 -->
 
-  <!-- 落地陰影 -->
-  <ellipse cx="32" cy="56" rx="14" ry="4" fill="#000" opacity="0.35"/>
+  <!-- 頭盔外框 -->
+  <rect x="18" y="4" width="28" height="22" fill="#0A0A0A"/>
+  <!-- 頭盔主體（深青灰） -->
+  <rect x="19" y="5" width="26" height="20" fill="#0A2A2A"/>
+  <!-- 頭盔正面板（青色系） -->
+  <rect x="22" y="6" width="20" height="10" fill="#1A6A6A"/>
+  <!-- 頭盔高光（左上） -->
+  <rect x="22" y="6" width="6" height="3" fill="#44CCCC"/>
+  <!-- 夜視鏡（雙管，正面突出，最醒目特徵） -->
+  <rect x="24" y="11" width="7" height="6" fill="#0A0A0A"/>
+  <rect x="25" y="12" width="5" height="4" fill="#001A1A"/>
+  <rect x="26" y="12" width="3" height="4" fill="#00AAAA"/>
+  <rect x="33" y="11" width="7" height="6" fill="#0A0A0A"/>
+  <rect x="34" y="12" width="5" height="4" fill="#001A1A"/>
+  <rect x="35" y="12" width="3" height="4" fill="#00AAAA"/>
+  <!-- 夜視鏡橋接架 -->
+  <rect x="30" y="12" width="4" height="3" fill="#1A2A2A"/>
+  <!-- 天線（頭盔左側） -->
+  <rect x="19" y="2" width="2" height="8" fill="#44CCCC"/>
+  <rect x="18" y="2" width="4" height="2" fill="#2A9A9A"/>
+  <!-- 頭盔下沿 -->
+  <rect x="19" y="23" width="26" height="2" fill="#061818"/>
 
-  <!-- NVG 夜視鏡（T形往前突出，最大特徵） -->
-  <!-- 橫向夾具 -->
-  <rect x="18" y="8"  width="28" height="6"  fill="#1A2A1A"/>
-  <!-- 右鏡頭管 -->
-  <rect x="18" y="0"  width="10" height="10" fill="#1A1A1A"/>
-  <!-- 左鏡頭管 -->
-  <rect x="36" y="0"  width="10" height="10" fill="#1A1A1A"/>
-  <!-- 右鏡頭玻璃（綠色發光） -->
-  <rect x="19" y="1"  width="8"  height="8"  fill="#33CC55"/>
-  <!-- 左鏡頭玻璃（綠色發光） -->
-  <rect x="37" y="1"  width="8"  height="8"  fill="#33CC55"/>
-  <!-- 鏡頭高光 -->
-  <rect x="20" y="2"  width="3"  height="3"  fill="#88FF88"/>
-  <rect x="38" y="2"  width="3"  height="3"  fill="#88FF88"/>
-  <!-- 鏡頭深色中心 -->
-  <rect x="22" y="4"  width="3"  height="3"  fill="#006600"/>
-  <rect x="40" y="4"  width="3"  height="3"  fill="#006600"/>
-  <!-- 中央橋接 -->
-  <rect x="28" y="2"  width="8"  height="6"  fill="#223322"/>
-  <!-- 綠色光暈（發光感） -->
-  <rect x="16" y="0"  width="4"  height="10" fill="#33CC55" opacity="0.25"/>
-  <rect x="44" y="0"  width="4"  height="10" fill="#33CC55" opacity="0.25"/>
+  <!-- 頸部 -->
+  <rect x="27" y="26" width="10" height="5" fill="#0A1E1E"/>
 
-  <!-- 頭盔（輕型，NVG 後方） -->
-  <rect x="24" y="10" width="16" height="12" fill="#1A2A1A"/>
-  <!-- 頭盔邊緣 -->
-  <rect x="22" y="14" width="20" height="4"  fill="#162216"/>
+  <!-- 肩甲左（青色輕甲） -->
+  <rect x="8" y="28" width="16" height="12" fill="#0A0A0A"/>
+  <rect x="9" y="29" width="14" height="10" fill="#1A4A4A"/>
+  <rect x="9" y="29" width="5" height="4" fill="#44CCCC"/>
+  <!-- 肩甲右 -->
+  <rect x="40" y="28" width="16" height="12" fill="#0A0A0A"/>
+  <rect x="41" y="29" width="14" height="10" fill="#1A4A4A"/>
+  <rect x="41" y="29" width="5" height="4" fill="#33AAAA"/>
 
-  <!-- 細身體（最輕裝備） -->
-  <rect x="24" y="22" width="16" height="26" fill="#182218"/>
-  <!-- 輕型背心分隔線 -->
-  <rect x="31" y="22" width="2"  height="26" fill="#101810"/>
+  <!-- 身體胸甲外框 -->
+  <rect x="16" y="28" width="32" height="26" fill="#0A0A0A"/>
+  <!-- 身體主體（深青輕型背心） -->
+  <rect x="17" y="29" width="30" height="24" fill="#0A2A2A"/>
+  <!-- 胸甲正面 -->
+  <rect x="20" y="31" width="24" height="16" fill="#0E3838"/>
+  <!-- 胸甲中線 -->
+  <rect x="31" y="31" width="2" height="16" fill="#061A1A"/>
+  <!-- 胸甲高光 -->
+  <rect x="20" y="31" width="8" height="4" fill="#1A6A6A"/>
+  <!-- 識別臂章（青色） -->
+  <rect x="17" y="33" width="3" height="6" fill="#44CCCC"/>
+  <!-- 資料板夾（胸口） -->
+  <rect x="24" y="34" width="8" height="10" fill="#062020"/>
+  <rect x="25" y="35" width="6" height="8" fill="#0A3030"/>
+  <rect x="26" y="36" width="4" height="2" fill="#44CCCC"/>
+  <rect x="26" y="39" width="4" height="1" fill="#2A8A8A"/>
+  <rect x="26" y="41" width="4" height="1" fill="#2A8A8A"/>
 
-  <!-- 兩側臂 -->
-  <rect x="18" y="24" width="8"  height="4"  fill="#162016"/>
-  <rect x="38" y="24" width="8"  height="4"  fill="#162016"/>
+  <!-- 無線電（左手持，最醒目道具） -->
+  <rect x="2" y="30" width="14" height="22" fill="#0A0A0A"/>
+  <rect x="3" y="31" width="12" height="20" fill="#0E3838"/>
+  <!-- 無線電天線 -->
+  <rect x="5" y="22" width="2" height="10" fill="#44CCCC"/>
+  <!-- 無線電螢幕 -->
+  <rect x="4" y="32" width="10" height="6" fill="#001A1A"/>
+  <rect x="5" y="33" width="8" height="4" fill="#00AA88"/>
+  <!-- 無線電按鈕列 -->
+  <rect x="4" y="40" width="3" height="3" fill="#44CCCC"/>
+  <rect x="9" y="40" width="3" height="3" fill="#1A6A6A"/>
+  <rect x="4" y="44" width="3" height="3" fill="#1A6A6A"/>
+  <rect x="9" y="44" width="3" height="3" fill="#44CCCC"/>
 
-  <!-- 小型背包（右肩） -->
-  <rect x="40" y="18" width="8"  height="12" fill="#121C12"/>
-  <rect x="41" y="20" width="6"  height="4"  fill="#0E180E"/>
-
-  <!-- 偵察鏡（右肩，圓形感但用方塊） -->
-  <rect x="42" y="22" width="5"  height="5"  fill="#0A1A0A"/>
-  <rect x="43" y="23" width="3"  height="3"  fill="#33CC55" opacity="0.6"/>
-
-  <!-- 手槍（左腰，小型） -->
-  <rect x="16" y="36" width="8"  height="4"  fill="#1A1A1A"/>
-  <rect x="18" y="40" width="4"  height="6"  fill="#222"/>
-
-  <!-- 煙霧彈（腰帶，圓柱用方塊） -->
-  <rect x="26" y="44" width="5"  height="5"  fill="#2A3A2A"/>
-  <rect x="33" y="44" width="5"  height="5"  fill="#2A3A2A"/>
-  <!-- 拉環 -->
-  <rect x="28" y="43" width="2"  height="2"  fill="#33CC55"/>
-  <rect x="35" y="43" width="2"  height="2"  fill="#33CC55"/>
-
-  <!-- 腿（細長） -->
-  <rect x="24" y="50" width="6"  height="6"  fill="#0E180E"/>
-  <rect x="34" y="50" width="6"  height="6"  fill="#0E180E"/>
+  <!-- 右臂（持手槍） -->
+  <rect x="50" y="32" width="12" height="16" fill="#0A0A0A"/>
+  <rect x="51" y="33" width="10" height="14" fill="#0A2A2A"/>
+  <!-- 手槍 -->
+  <rect x="52" y="36" width="7" height="4" fill="#1A1A1A"/>
+  <rect x="55" y="40" width="4" height="5" fill="#141414"/>
 </svg>

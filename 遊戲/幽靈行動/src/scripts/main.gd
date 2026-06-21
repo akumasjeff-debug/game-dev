@@ -1,429 +1,325 @@
 extends Node2D
 
-# 主場景腳本
-# 負責：初始化所有角色、設定路徑、連接 HUD 與決策面板
+# 主場景腳本（v2 — 獨立房間架構）
+# 每關全螢幕顯示；小隊從底部進入 → 對戰 → 破門動畫 → 下一關
 
 const CHARACTER_SCRIPT = preload("res://scripts/character.gd")
-const ROOM_SCRIPT = preload("res://scripts/room.gd")
+const ROOM_SCRIPT      = preload("res://scripts/room.gd")
 
-# 鏡頭系統
-# 房間中心 y 座標（從下往上排列）：房間A、房間B、房間C、Boss房
-# 計算方式：_add_room_visual 的 pos.y + size.y / 2
-#   房間A：1150 + 100 = 1250
-#   房間B：750  + 100 = 850
-#   房間C：260  +  90 = 350
-#   Boss ：120  +  60 = 180
-const ROOM_CENTER_Y: Array = [1250.0, 850.0, 350.0, 180.0]
-
-var _camera: Camera2D
-var _camera_locked: bool = false
-var _current_room_idx: int = 0  # 目前鏡頭所在房間索引（0=房間A）
-
-# 主路徑點（直屏 1080x1920，從下往上）
-# 節點順序：起點 → 房間A → 房間B → 岔路 → 房間C → Boss房 → 終點
-const WAYPOINTS_MAIN: Array[Vector2] = [
-	Vector2(540, 1750),   # 起點
-	Vector2(540, 1500),   # 段1
-	Vector2(540, 1250),   # 房間A 觸發點
-	Vector2(540, 1000),   # 段2
-	Vector2(540, 850),    # 房間B 觸發點
-	Vector2(540, 680),    # 岔路觸發點
-	Vector2(540, 500),    # 段3（岔路後）
-	Vector2(540, 350),    # 房間C 觸發點
-	Vector2(540, 200),    # Boss 房觸發點
-	Vector2(540, 80),     # 終點
+# ─────────────────────────────────────────────────────────────
+#  關卡配置（level 1：4 房）
+#  offset = 相對於房間中心 Vector2(540, 960)
+# ─────────────────────────────────────────────────────────────
+const ROOM_CONFIGS: Array = [
+	{
+		"label": "1-1",
+		"enemies": [
+			{"type": 0, "offset": Vector2(-200, -520)},
+			{"type": 0, "offset": Vector2(0,   -560)},
+			{"type": 0, "offset": Vector2(200,  -520)},
+		]
+	},
+	{
+		"label": "1-2",
+		"enemies": [
+			{"type": 0, "offset": Vector2(-250, -500)},
+			{"type": 1, "offset": Vector2(0,   -545)},
+			{"type": 0, "offset": Vector2(250,  -500)},
+		]
+	},
+	{
+		"label": "1-3",
+		"enemies": [
+			{"type": 0, "offset": Vector2(-280, -510)},
+			{"type": 0, "offset": Vector2(-80,  -550)},
+			{"type": 0, "offset": Vector2(80,   -550)},
+			{"type": 1, "offset": Vector2(280,  -510)},
+		]
+	},
+	{
+		"label": "Boss",
+		"enemies": [
+			{"type": 0, "offset": Vector2(-220, -490)},
+			{"type": 2, "offset": Vector2(0,   -545)},
+			{"type": 0, "offset": Vector2(220,  -490)},
+		]
+	},
 ]
 
-# 岔路 — 左路補給（繞道）
-const WAYPOINTS_LEFT: Array[Vector2] = [
-	Vector2(540, 680),    # 岔路分叉點
-	Vector2(300, 580),    # 左側通道（補給）
-	Vector2(300, 460),    # 左側補給箱
-	Vector2(540, 350),    # 回主路（房間C）
-	Vector2(540, 200),    # Boss 房
-	Vector2(540, 80),     # 終點
+# 小隊站位（全螢幕 1080×1920；y=1540 在 HUD 上方）
+const SQUAD_COMBAT_Y   := 1520.0
+const SQUAD_ENTRY_Y    := 2180.0
+const SQUAD_X_SLOTS: Array = [165.0, 390.0, 690.0, 915.0]
+
+# ─────────────────────────────────────────────────────────────
+#  角色基礎資料（Lv.1 × 稀有度 × 等級 乘率 → SaveManager）
+# ─────────────────────────────────────────────────────────────
+const CHAR_DATA = [
+	{"id": "shield",  "name": "盾兵",   "color": Color(0.267, 0.533, 1.0,  1.0), "max_hp": 400.0, "attack": 30.0,  "defense": 25.0, "ult_name": "防禦護盾", "ult_cd": 30.0},
+	{"id": "medic",   "name": "醫療兵", "color": Color(0.267, 0.800, 0.267,1.0), "max_hp": 260.0, "attack": 20.0,  "defense": 15.0, "ult_name": "緊急治療", "ult_cd": 40.0},
+	{"id": "assault", "name": "突擊手", "color": Color(0.910, 0.376, 0.039,1.0), "max_hp": 310.0, "attack": 60.0,  "defense": 15.0, "ult_name": "火力全開", "ult_cd": 25.0},
+	{"id": "sniper",  "name": "狙擊手", "color": Color(0.667, 0.267, 1.0,  1.0), "max_hp": 220.0, "attack": 120.0, "defense": 10.0, "ult_name": "精準鎖定", "ult_cd": 35.0},
+	{"id": "demo",    "name": "爆破手", "color": Color(0.800, 0.133, 0.133,1.0), "max_hp": 270.0, "attack": 80.0,  "defense": 18.0, "ult_name": "引爆炸彈", "ult_cd": 45.0},
+	{"id": "recon",   "name": "偵察手", "color": Color(0.267, 0.800, 0.800,1.0), "max_hp": 280.0, "attack": 35.0,  "defense": 17.0, "ult_name": "煙霧封鎖", "ult_cd": 35.0},
 ]
 
-# 岔路 — 右路直達（跳過補給）
-const WAYPOINTS_RIGHT: Array[Vector2] = [
-	Vector2(540, 680),    # 岔路分叉點
-	Vector2(780, 580),    # 右側通道（直達）
-	Vector2(780, 460),    # 右側匯合
-	Vector2(540, 350),    # 回主路（房間C）
-	Vector2(540, 200),    # Boss 房
-	Vector2(540, 80),     # 終點
-]
-
-# 向後相容（保留舊名稱指向主路）
-const WAYPOINTS: Array[Vector2] = WAYPOINTS_MAIN
-
-# 房間管理：追蹤當前戰鬥中的房間
+var hud_scene: Node
 var _active_room: Node = null
+var _current_room_idx: int = 0
+var _room_visual: Node = null
 
-# 門動畫節點（左半/右半/門框）
-var _door_left: ColorRect = null
+# 門動畫節點（left/right/frame — 保留 breach animation 用）
+var _door_left: ColorRect  = null
 var _door_right: ColorRect = null
 var _door_frame: ColorRect = null
 
-# 全部 6 名可招募角色資料（Lv.1 基礎數值，對應 characters.json）
-# 職業顏色對應 HUD_SPEC：盾兵#4488FF 醫療兵#44CC44 突擊手#E8600A 狙擊手#AA44FF 爆破手#CC2222 偵察手#44CCCC
-const CHAR_DATA = [
-	{"id": "shield",  "name": "盾兵",  "color": Color(0.267, 0.533, 1.0,  1.0), "max_hp": 200.0, "attack": 30.0,  "defense": 25.0, "offset": Vector2(0,   -80), "ult_name": "防禦護盾", "ult_cd": 30.0, "level": 1},
-	{"id": "medic",   "name": "醫療兵","color": Color(0.267, 0.800, 0.267,1.0), "max_hp": 130.0, "attack": 20.0,  "defense": 15.0, "offset": Vector2(-40,  80), "ult_name": "緊急治療", "ult_cd": 40.0, "level": 1},
-	{"id": "assault", "name": "突擊手","color": Color(0.910, 0.376, 0.039,1.0), "max_hp": 155.0, "attack": 60.0,  "defense": 15.0, "offset": Vector2(-50,   0), "ult_name": "火力全開", "ult_cd": 25.0, "level": 1},
-	{"id": "sniper",  "name": "狙擊手","color": Color(0.667, 0.267, 1.0,  1.0), "max_hp": 110.0, "attack": 120.0, "defense": 10.0, "offset": Vector2(40,    80), "ult_name": "精準鎖定", "ult_cd": 35.0, "level": 1},
-	{"id": "demo",    "name": "爆破手","color": Color(0.800, 0.133, 0.133,1.0), "max_hp": 135.0, "attack": 80.0,  "defense": 18.0, "offset": Vector2(50,    0), "ult_name": "引爆炸彈", "ult_cd": 45.0, "level": 1},
-	{"id": "recon",   "name": "偵察手","color": Color(0.267, 0.800, 0.800,1.0), "max_hp": 140.0, "attack": 35.0,  "defense": 17.0, "offset": Vector2(0,    40), "ult_name": "煙霧封鎖", "ult_cd": 35.0, "level": 1},
-]
-
-var squad_controller: Node2D
-var hud_scene: Node
-var decision_panel: Node
-var _fork_triggered: bool = false  # 岔路是否已觸發
-
-# 距離觸發系統（取代 Area2D.body_entered，因為角色是 Node2D 沒有物理碰撞體）
-# 格式：{"pos": Vector2, "radius": float, "triggered": bool, "callback": Callable}
-var _proximity_triggers: Array = []
-
+# ─────────────────────────────────────────────────────────────
+#  初始化
+# ─────────────────────────────────────────────────────────────
 func _ready() -> void:
-	# Bug3: 讀取並確認任務 ID
-	if OS.is_debug_build():
-		print("[Main] 啟動任務: %s" % GameManager.current_mission_id)
-	_build_map()
 	_spawn_squad()
-	_setup_triggers()
-	_setup_camera()
 	_connect_hud()
-	_connect_signals()
-	_connect_restart()
 	_start_mission_bgm()
+	_start_room(0)
 
-func _start_mission_bgm() -> void:
-	var am = get_node_or_null("/root/AudioManager")
-	if am == null:
-		return
-	var mission_id: String = ""
-	var gm = get_node_or_null("/root/GameManager")
-	if gm:
-		mission_id = gm.current_mission_id
-	match mission_id:
-		"warehouse_01":
-			am.play_bgm("warehouse_bgm")
-		"harbor_01":
-			am.play_bgm("harbor_bgm")
-		_:
-			am.play_bgm("mission")
+# ─────────────────────────────────────────────────────────────
+#  關卡推進
+# ─────────────────────────────────────────────────────────────
+func _start_room(idx: int) -> void:
+	_current_room_idx = idx
+	GameManager.progress = float(idx) / float(ROOM_CONFIGS.size())
 
-func _setup_camera() -> void:
-	_camera = Camera2D.new()
-	_camera.name = "GameCamera"
-	_camera.enabled = true
-	# zoom：房間高度約 200px（最大），螢幕播放區高度 1740（1920 - 180 HUD）
-	# 讓一個房間約佔畫面 80%：zoom = 1740 * 0.8 / 200 ≈ 6.96，約 6.0 偏安全
-	# 但全圖寬 1080、房間寬 300px，zoom=6 會太窄；改用讓寬度對齊：1080/300 ≈ 3.6
-	# 取 3.5 讓房間稍有留白
-	_camera.zoom = Vector2(3.5, 3.5)
-	_camera.position_smoothing_enabled = true
-	_camera.position_smoothing_speed = 4.0
-	# 初始位置：畫面水平中央，y 對準房間A 中心
-	_camera.global_position = Vector2(540.0, ROOM_CENTER_Y[0])
-	add_child(_camera)
-	_camera.make_current()
-	print("[Camera] 初始化完成，位置 y=", ROOM_CENTER_Y[0])
+	# 清除舊房間
+	if _active_room and is_instance_valid(_active_room):
+		_active_room.queue_free()
+		_active_room = null
+	if _room_visual and is_instance_valid(_room_visual):
+		_room_visual.queue_free()
+		_room_visual = null
 
-func _process(_delta: float) -> void:
-	if GameManager == null:
-		return
-	# 距離觸發系統：用小隊樞軸點偵測，取代 Area2D.body_entered
-	if squad_controller != null and is_instance_valid(squad_controller) and not GameManager.is_paused:
-		var pivot: Vector2 = squad_controller.get_pivot_position()
-		for trig in _proximity_triggers:
-			if trig["triggered"]:
-				continue
-			var dist: float = pivot.distance_to(trig["pos"])
-			if dist <= trig["radius"]:
-				trig["triggered"] = true
-				trig["callback"].call()
-	# 鏡頭跟隨
-	if _camera == null or _camera_locked:
-		return
-	# 找存活隊員的平均 y
-	var valid_members: Array = []
-	for m in GameManager.squad_members:
-		if m != null and is_instance_valid(m) and not m.is_dead:
-			valid_members.append(m)
-	if valid_members.size() == 0:
-		return
-	var avg_y: float = 0.0
-	for m in valid_members:
-		avg_y += m.global_position.y
-	avg_y /= float(valid_members.size())
-	# x 固定在畫面水平中央，只讓 y 跟著小隊走
-	_camera.global_position = Vector2(540.0, avg_y)
+	_build_room_visual(idx)
 
-func _advance_camera_to_next_room() -> void:
-	if _current_room_idx + 1 >= ROOM_CENTER_Y.size():
-		return
-	_current_room_idx += 1
-	_camera_locked = true
-	var target_y: float = ROOM_CENTER_Y[_current_room_idx]
-	print("[Camera] 推進到房間 idx=", _current_room_idx, " y=", target_y)
-	var tween = create_tween()
-	tween.tween_property(
-		_camera, "global_position",
-		Vector2(540.0, target_y), 1.5
-	).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	tween.tween_callback(func() -> void:
-		_camera_locked = false
-		print("[Camera] 到位，恢復跟隨")
+	# 小隊進場動畫，結束後建立戰鬥房間
+	_squad_enter(func():
+		var cfg := ROOM_CONFIGS[idx]
+		var room = ROOM_SCRIPT.new()
+		room.room_label  = cfg["label"]
+		room.enemy_configs = cfg["enemies"].duplicate(true)
+		room.position    = Vector2(540, 960)
+		room.name        = "Room_" + cfg["label"]
+		add_child(room)
+		_active_room = room
+		room.room_cleared.connect(_on_room_cleared)
+		room.start_battle("charge")
 	)
 
+func _squad_enter(on_done: Callable) -> void:
+	var members := GameManager.squad_members
+	if members.is_empty():
+		on_done.call()
+		return
+
+	# 進場動畫期間暫停自動攻擊
+	GameManager.is_paused = true
+
+	var count := mini(members.size(), SQUAD_X_SLOTS.size())
+	for i in range(count):
+		var m = members[i]
+		if m and is_instance_valid(m):
+			m.global_position = Vector2(SQUAD_X_SLOTS[i], SQUAD_ENTRY_Y)
+
+	var tw := create_tween()
+	var is_first := true
+	for i in range(count):
+		var m = members[i]
+		if m == null or not is_instance_valid(m):
+			continue
+		if is_first:
+			tw.tween_property(m, "global_position:y", SQUAD_COMBAT_Y, 0.85)\
+				.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+			is_first = false
+		else:
+			tw.parallel().tween_property(m, "global_position:y", SQUAD_COMBAT_Y, 0.85)\
+				.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tw.tween_callback(func():
+		# 到達戰鬥位置，恢復自動攻擊
+		GameManager.is_paused = false
+		on_done.call()
+	)
+
+func _on_room_cleared() -> void:
+	_active_room = null
+	for m in GameManager.squad_members:
+		if m and is_instance_valid(m) and m.has_method("set_cover_mode"):
+			m.set_cover_mode(false)
+
+	await get_tree().create_timer(0.3).timeout
+
+	var next_idx := _current_room_idx + 1
+	if next_idx >= ROOM_CONFIGS.size():
+		GameManager.trigger_game_over(true)
+		return
+
+	_play_door_open_animation(0.0, func():
+		_start_room(next_idx)
+	)
+
+# room.gd 呼叫此方法時小隊已在正確站位，只啟動掩護模式
+func _position_squad_for_combat(_rp: Vector2, _rs: Vector2) -> void:
+	for m in GameManager.squad_members:
+		if m and is_instance_valid(m) and m.has_method("set_cover_mode"):
+			m.set_cover_mode(true)
+
+# ─────────────────────────────────────────────────────────────
+#  房間視覺建立
+# ─────────────────────────────────────────────────────────────
+func _build_room_visual(idx: int) -> void:
+	var visual := Node2D.new()
+	visual.name = "RoomVisual"
+	_room_visual  = visual
+	add_child(visual)
+
+	var cfg     := ROOM_CONFIGS[idx]
+	var is_boss := cfg["label"] == "Boss"
+	var bg_col  := Color(0.20, 0.05, 0.05) if is_boss else _get_mission_room_color()
+
+	# 全螢幕背景
+	var bg := ColorRect.new()
+	bg.position = Vector2.ZERO
+	bg.size     = Vector2(1080, 1920)
+	bg.color    = bg_col
+	visual.add_child(bg)
+
+	# 地板紋理（中段）
+	var tile := _get_floor_tile_path()
+	if ResourceLoader.exists(tile):
+		var tr := TextureRect.new()
+		tr.texture        = load(tile)
+		tr.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		tr.stretch_mode   = TextureRect.STRETCH_TILE
+		tr.position       = Vector2(0, 900)
+		tr.size           = Vector2(1080, 780)
+		tr.modulate       = Color(1, 1, 1, 0.22)
+		visual.add_child(tr)
+
+	# 上下分界線（戰術感）
+	var divider := ColorRect.new()
+	divider.position = Vector2(0, 900)
+	divider.size     = Vector2(1080, 3)
+	divider.color    = Color(0.3, 0.3, 0.4, 0.4)
+	visual.add_child(divider)
+
+	# 敵人掩體（上方）
+	var ec_defs: Array = [
+		{"svg": "res://resources/art/props/enemy_cover_left.svg",  "x": 55,  "y": 380, "w": 300, "h": 22},
+		{"svg": "res://resources/art/props/enemy_cover_mid.svg",   "x": 390, "y": 330, "w": 300, "h": 22},
+		{"svg": "res://resources/art/props/enemy_cover_right.svg", "x": 725, "y": 380, "w": 300, "h": 22},
+	]
+	for ecd in ec_defs:
+		_add_cover(visual, ecd["svg"],
+			Vector2(ecd["x"], ecd["y"]), Vector2(ecd["w"], ecd["h"]),
+			Color(0.40, 0.30, 0.25, 0.7))
+
+	# 玩家掩體（下方，y=1360 確保在隊員站位 1520 上方）
+	_add_cover(visual, "res://resources/art/props/player_cover.svg",
+		Vector2(80, 1360), Vector2(920, 26),
+		Color(0.35, 0.38, 0.45, 0.8))
+
+	# 玩家掩體下方陰影
+	var pshadow := ColorRect.new()
+	pshadow.position = Vector2(80, 1386)
+	pshadow.size     = Vector2(920, 4)
+	pshadow.color    = Color(0.15, 0.15, 0.20, 0.7)
+	visual.add_child(pshadow)
+
+	# 房間標籤
+	var lbl := Label.new()
+	lbl.text     = "ROOM %s%s" % [cfg["label"], "  ⚠ BOSS" if is_boss else ""]
+	lbl.position = Vector2(0, 16)
+	lbl.size     = Vector2(1080, 44)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_color_override("font_color",
+		Color(0.9, 0.4, 0.4, 0.8) if is_boss else Color(0.7, 0.7, 0.8, 0.55))
+	if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
+		lbl.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
+	visual.add_child(lbl)
+
+func _add_cover(parent: Node, svg: String, pos: Vector2, size: Vector2, fallback: Color) -> void:
+	if ResourceLoader.exists(svg):
+		var tr := TextureRect.new()
+		tr.texture      = load(svg)
+		tr.position     = pos
+		tr.size         = size
+		tr.stretch_mode = TextureRect.STRETCH_SCALE
+		parent.add_child(tr)
+	else:
+		var cr := ColorRect.new()
+		cr.position = pos
+		cr.size     = size
+		cr.color    = fallback
+		parent.add_child(cr)
+
+# ─────────────────────────────────────────────────────────────
+#  任務主題色
+# ─────────────────────────────────────────────────────────────
 func _get_mission_room_color() -> Color:
-	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
-	match mission_id:
-		"warehouse_01":
-			return Color(0.05, 0.063, 0.09)   # 深灰黑，停車場
-		"harbor_01":
-			return Color(0.04, 0.083, 0.125)  # 深海藍，港口
-		_:
-			return Color(0.102, 0.125, 0.208) # 辦公大樓 #1A2035
-
-func _get_mission_corridor_color() -> Color:
-	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
-	match mission_id:
-		"warehouse_01":
-			return Color(0.07, 0.08, 0.10)   # 深灰黑走廊
-		"harbor_01":
-			return Color(0.05, 0.09, 0.13)   # 深海藍走廊
-		_:
-			return Color(0.15, 0.15, 0.18)   # 辦公大樓走廊（原本）
-
-func _build_map() -> void:
-	var room_base = _get_mission_room_color()
-	var corridor_col = _get_mission_corridor_color()
-
-	# 繪製路徑背景（深色通道）
-	var path_visual = Line2D.new()
-	path_visual.name = "PathVisual"
-	path_visual.width = 120.0
-	path_visual.default_color = corridor_col
-	for wp in WAYPOINTS:
-		path_visual.add_point(wp)
-	add_child(path_visual)
-
-	# 地板紋理（用 ColorRect 模擬房間區域）
-	# 各房間以任務主題色為基底，保留原有明暗層次偏移
-	# 房間A（偏冷藍）
-	_add_room_visual(Vector2(390, 1150), Vector2(300, 200), room_base.lightened(0.04), "房間A")
-	# 房間B（略暗）
-	_add_room_visual(Vector2(390, 750),  Vector2(300, 200), room_base, "房間B")
-	# 房間C（略帶紫調，僅 demo_01 明顯）
-	_add_room_visual(Vector2(390, 260),  Vector2(300, 180), room_base.darkened(0.04), "房間C")
-	# Boss 房（維持深紅警示，不跟主題色）
-	_add_room_visual(Vector2(380, 120),  Vector2(320, 120), Color(0.25, 0.08, 0.08), "Boss")
-
-	# 起點標記
-	_add_text_label(Vector2(440, 1760), "起點", Color(0.6, 0.8, 0.6))
-	# 終點標記
-	_add_text_label(Vector2(440, 60), "任務完成", Color(1.0, 0.9, 0.3))
+	var mid: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mid:
+		"warehouse_01": return Color(0.05, 0.063, 0.09)
+		"harbor_01":    return Color(0.04, 0.083, 0.125)
+		_:              return Color(0.102, 0.125, 0.208)
 
 func _get_floor_tile_path() -> String:
-	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
-	match mission_id:
-		"warehouse_01":
-			return "res://resources/art/props/floor_tile_warehouse.svg"
-		"harbor_01":
-			return "res://resources/art/props/floor_tile_harbor.svg"
-		_:
-			return "res://resources/art/props/floor_tile_office.svg"
+	var mid: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mid:
+		"warehouse_01": return "res://resources/art/props/floor_tile_warehouse.svg"
+		"harbor_01":    return "res://resources/art/props/floor_tile_harbor.svg"
+		_:              return "res://resources/art/props/floor_tile_office.svg"
 
-func _add_room_visual(pos: Vector2, size: Vector2, color: Color, label: String) -> void:
-	var rect = ColorRect.new()
-	rect.position = pos
-	rect.size = size
-	rect.color = color
-	add_child(rect)
-	# 地板紋理 TextureRect（tile 模式，依任務 ID 選擇對應 SVG）
-	if label != "Boss":
-		var tile_tex = load(_get_floor_tile_path())
-		if tile_tex:
-			var tex_rect = TextureRect.new()
-			tex_rect.texture = tile_tex
-			tex_rect.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-			tex_rect.stretch_mode = TextureRect.STRETCH_TILE
-			tex_rect.position = Vector2.ZERO
-			tex_rect.size = size
-			tex_rect.modulate = Color(1.0, 1.0, 1.0, 0.35)
-			rect.add_child(tex_rect)
-	_add_text_label(pos + Vector2(10, 10), label, Color(0.8, 0.8, 0.8))
-	_add_room_props(rect, size, label == "Boss")
-	_add_battle_covers(pos, size, rect)
-
-func _make_cover_node(svg_path: String, size: Vector2) -> Node2D:
-	var container = Node2D.new()
-	if ResourceLoader.exists(svg_path):
-		var tr = TextureRect.new()
-		tr.texture = load(svg_path)
-		tr.size = size
-		tr.position = Vector2.ZERO
-		tr.stretch_mode = TextureRect.STRETCH_SCALE
-		container.add_child(tr)
-	else:
-		# 回退：保留 ColorRect
-		var cr = ColorRect.new()
-		cr.size = size
-		cr.position = Vector2.ZERO
-		cr.color = Color(0.23, 0.25, 0.29)
-		container.add_child(cr)
-	return container
-
-func _add_battle_covers(room_pos: Vector2, room_size: Vector2, room_node: Node2D) -> void:
-	# 玩家側掩體（房間下方，角色躲在其後方）
-	# 使用相對座標（相對 room_node.position 即 room_pos）
-	var cover_width: float = min(280.0, room_size.x - 20.0)
-	var cover_x: float = (room_size.x - cover_width) / 2.0
-	var cover_y: float = room_size.y - 55
-
-	# 掩體主體（SVG TextureRect，回退 ColorRect）
-	var player_cover = _make_cover_node(
-		"res://resources/art/props/player_cover.svg",
-		Vector2(cover_width, 18)
-	)
-	player_cover.position = Vector2(cover_x, cover_y)
-	room_node.add_child(player_cover)
-
-	# 掩體頂部高光（裝飾層保留）
-	var cover_highlight = ColorRect.new()
-	cover_highlight.size = Vector2(cover_width, 5)
-	cover_highlight.position = Vector2(cover_x, cover_y)
-	cover_highlight.color = Color(0.42, 0.42, 0.48, 0.5)
-	room_node.add_child(cover_highlight)
-
-	# 掩體底部陰影線（裝飾層保留）
-	var cover_shadow = ColorRect.new()
-	cover_shadow.size = Vector2(cover_width, 3)
-	cover_shadow.position = Vector2(cover_x, cover_y + 15)
-	cover_shadow.color = Color(0.18, 0.18, 0.22, 0.7)
-	room_node.add_child(cover_shadow)
-
-	# 敵人側掩體（房間上方，分 3 個小掩體）
-	var enemy_cover_defs: Array = [
-		{"x_ratio": 0.05, "y_off": 18, "svg": "res://resources/art/props/enemy_cover_left.svg"},
-		{"x_ratio": 0.38, "y_off": 26, "svg": "res://resources/art/props/enemy_cover_mid.svg"},
-		{"x_ratio": 0.68, "y_off": 18, "svg": "res://resources/art/props/enemy_cover_right.svg"},
-	]
-	var ec_width: float = min(80.0, room_size.x * 0.25)
-	for ecd in enemy_cover_defs:
-		var ec_x: float = room_size.x * ecd["x_ratio"]
-		var ec_y: float = float(ecd["y_off"])
-		# 敵人掩體主體（SVG TextureRect，回退 ColorRect）
-		var ec = _make_cover_node(ecd["svg"], Vector2(ec_width, 14))
-		ec.position = Vector2(ec_x, ec_y)
-		room_node.add_child(ec)
-		# 頂部高光（裝飾層保留）
-		var ec_h = ColorRect.new()
-		ec_h.size = Vector2(ec_width, 4)
-		ec_h.position = Vector2(ec_x, ec_y)
-		ec_h.color = Color(0.40, 0.34, 0.30, 0.5)
-		room_node.add_child(ec_h)
-		# 底部陰影（裝飾層保留）
-		var ec_s = ColorRect.new()
-		ec_s.size = Vector2(ec_width, 2)
-		ec_s.position = Vector2(ec_x, ec_y + 12)
-		ec_s.color = Color(0.15, 0.12, 0.10, 0.7)
-		room_node.add_child(ec_s)
-
-func _add_room_props(room_node: Node2D, room_size: Vector2, is_boss: bool) -> void:
-	var prop_paths: Array
-	if is_boss:
-		prop_paths = [
-			["res://resources/art/props/server_rack.svg", Vector2(16, 16)],
-			["res://resources/art/props/server_rack.svg", Vector2(room_size.x - 64, 16)],
-			["res://resources/art/props/crate.svg",       Vector2(16, room_size.y - 60)],
-		]
-	else:
-		prop_paths = [
-			["res://resources/art/props/crate.svg",   Vector2(12, 12)],
-			["res://resources/art/props/locker.svg",  Vector2(room_size.x - 58, 12)],
-			["res://resources/art/props/barrel.svg",  Vector2(12, room_size.y - 58)],
-		]
-
-	for entry in prop_paths:
-		var path: String = entry[0]
-		var prop_pos: Vector2 = entry[1]
-		if not ResourceLoader.exists(path):
-			continue
-		var spr = Sprite2D.new()
-		spr.texture = load(path)
-		spr.centered = false
-		spr.position = prop_pos
-		spr.scale = Vector2(0.75, 0.75)
-		room_node.add_child(spr)
-
-func _add_text_label(pos: Vector2, text: String, color: Color) -> void:
-	var lbl = Label.new()
-	lbl.position = pos
-	lbl.text = text
-	lbl.modulate = color
-	lbl.add_theme_font_size_override("font_size", 18)
-	add_child(lbl)
-
+# ─────────────────────────────────────────────────────────────
+#  小隊生成
+# ─────────────────────────────────────────────────────────────
 func _spawn_squad() -> void:
-	squad_controller = load("res://scripts/squad_controller.gd").new()
-	squad_controller.name = "SquadController"
-	add_child(squad_controller)
-
-	# P2：從 SaveManager 讀取陣容與等級；回退到 CHAR_DATA 預設值（開發用）
 	var squad_ids: Array = SaveManager.selected_squad
 	if squad_ids.is_empty():
 		squad_ids = ["shield", "assault", "demo", "medic"]
 
 	var members: Array = []
-	var spawn_index: int = 0
-	# 記錄各職業已生成次數，供同職業偏移計算
-	var class_spawn_count: Dictionary = {}
+	var spawn_idx := 0
+	var class_count: Dictionary = {}
+
 	for char_id in squad_ids:
-		# 在 CHAR_DATA 中找對應資料
-		var data = _get_char_data(char_id)
+		var data := _get_char_data(char_id)
 		if data.is_empty():
 			continue
 		var char_node = CHARACTER_SCRIPT.new()
-		# 加上 spawn_index 後綴確保節點名稱唯一（同職業可選多個）
-		char_node.name = char_id + "_" + str(spawn_index)
-		char_node.char_id = data["id"]
+		char_node.name      = char_id + "_" + str(spawn_idx)
+		char_node.char_id   = data["id"]
 		char_node.char_name = data["name"]
-		char_node.body_color = data["color"]
-		# 套用稀有度 × 等級乘率（基礎數值為 Lv.1 數值）
-		var rarity_mult = SaveManager.get_rarity_multiplier(char_id)
-		var level_mult = SaveManager.get_level_multiplier(char_id)
-		char_node.max_hp = data["max_hp"] * rarity_mult * level_mult
-		char_node.attack_power = data["attack"] * rarity_mult * level_mult
-		char_node.defense = data.get("defense", 0.0) * rarity_mult * level_mult
-		# 同職業多個時，在原始偏移基礎上加橫向錯開（±30px），避免重疊
-		var base_offset: Vector2 = data["offset"]
-		var same_class_count: int = class_spawn_count.get(char_id, 0)
-		var extra_x: float = float(same_class_count) * 32.0  # 第 2 個往右偏 32px
-		char_node.formation_offset = base_offset + Vector2(extra_x, 0)
-		class_spawn_count[char_id] = same_class_count + 1
+		char_node.body_color= data["color"]
+		var rarity_mult := SaveManager.get_rarity_multiplier(char_id)
+		var level_mult  := SaveManager.get_level_multiplier(char_id)
+		char_node.max_hp      = data["max_hp"]  * rarity_mult * level_mult
+		char_node.attack_power= data["attack"]  * rarity_mult * level_mult
+		char_node.defense     = data.get("defense", 0.0) * rarity_mult * level_mult
 		char_node.ultimate_name = data["ult_name"]
-		char_node.ultimate_cd = data["ult_cd"]
-		# 讀取 SaveManager 中存的等級
+		char_node.ultimate_cd   = data["ult_cd"]
+		var same_cls: int = class_count.get(data["id"], 0)
+		char_node.formation_offset = Vector2(float(same_cls) * 32.0, 0)
+		class_count[data["id"]] = same_cls + 1
 		var saved_level = SaveManager.character_levels.get(char_id, 1)
 		char_node.level = saved_level
 		char_node.add_to_group("squad")
 		add_child(char_node)
 		members.append(char_node)
-		spawn_index += 1
+		spawn_idx += 1
 
 	GameManager.squad_members = members
-
-	var wps: Array[Vector2] = []
-	for wp in WAYPOINTS:
-		wps.append(wp)
-	squad_controller.setup(wps, members)
+	GameManager.is_paused     = false
+	GameManager.is_game_over  = false
 
 func _get_char_data(char_id: String) -> Dictionary:
-	# card_id 可能含等級後綴（shield_r / assault_qr / medic_ssr），先剝離
 	var class_id := char_id
 	for suffix in ["_qr", "_ssr", "_sr", "_r"]:
 		if char_id.ends_with(suffix):
@@ -434,537 +330,124 @@ func _get_char_data(char_id: String) -> Dictionary:
 			return data
 	return {}
 
-func _setup_triggers() -> void:
-	# 節點順序：房間A → 房間B → 岔路（左:補給/右:直達）→ 房間C → Boss → 終點
-
-	# 決策點1 — 房間A（敵人數由任務配置決定）
-	_create_room_trigger(Vector2(540, 1270), "房間A",
-		_build_enemy_configs_from_mission("room_a"))
-
-	# 決策點2 — 房間B（敵人數由任務配置決定）
-	_create_room_trigger(Vector2(540, 870), "房間B",
-		_build_enemy_configs_from_mission("room_b"))
-
-	# 岔路觸發點（左:補給繞道 / 右:直達）
-	_create_fork_trigger(Vector2(540, 700))
-
-	# 補給箱觸發（左路才會走到，但設在主路繼續路徑上也可觸發）
-	_create_trigger(Vector2(300, 460), "supply", "補給箱")
-
-	# 決策點3 — 房間C（敵人數由任務配置決定）
-	_create_room_trigger(Vector2(540, 370), "房間C",
-		_build_enemy_configs_from_mission("room_c"))
-
-	# Boss 決策點（進 Boss 房前的戰術選擇，y=280 以拉開與 Boss 房 y=210 的距離）
-	_create_boss_decision_trigger(Vector2(540, 280))
-
-	# Boss 房（敵人數由任務配置決定，在 Boss 決策後生成）
-	_create_boss_room_trigger(Vector2(540, 210))
-
-	# 終點觸發
-	_create_end_trigger(Vector2(540, 90))
-
-# 從 GameManager 讀取指定房間的敵人配置，回傳 [{type, offset}] 陣列
-# 若 GameManager 無資料則回退到 demo_01 預設值
-func _build_enemy_configs_from_mission(room_key: String) -> Array:
-	# 取得敵人數量配置
-	var gm = get_node_or_null("/root/GameManager")
-	var cfg: Dictionary
-	if gm and gm.missions_data.size() > 0:
-		cfg = gm.get_mission_enemy_config(room_key)
-	else:
-		# 回退預設值（對應 demo_01）
-		match room_key:
-			"room_a": cfg = {"normal": 2, "elite": 0, "boss": 0}
-			"room_b": cfg = {"normal": 1, "elite": 1, "boss": 0}
-			"room_c": cfg = {"normal": 0, "elite": 1, "boss": 0}
-			"boss_room": cfg = {"normal": 0, "elite": 0, "boss": 1}
-			_: cfg = {"normal": 1, "elite": 0, "boss": 0}
-
-	var normal_count: int = cfg.get("normal", 0)
-	var elite_count: int = cfg.get("elite", 0)
-	var boss_count: int = cfg.get("boss", 0)
-	var total: int = normal_count + elite_count + boss_count
-	if total == 0:
-		total = 1
-
-	# 計算橫向間距，均分在 ±120 範圍內
-	var spacing: float = min(240.0 / float(max(total, 1)), 80.0)
-	var start_x: float = -spacing * float(total - 1) / 2.0
-
-	var result: Array = []
-	var idx: int = 0
-
-	# 先排普通兵（type=0），再精英（type=1），再 Boss（type=2）
-	for _i in range(normal_count):
-		result.append({"type": 0, "offset": Vector2(start_x + spacing * float(idx), -80)})
-		idx += 1
-	for _i in range(elite_count):
-		result.append({"type": 1, "offset": Vector2(start_x + spacing * float(idx), -80)})
-		idx += 1
-	for _i in range(boss_count):
-		result.append({"type": 2, "offset": Vector2(start_x + spacing * float(idx), -80)})
-		idx += 1
-
-	if OS.is_debug_build():
-		print("[Main] %s 敵人配置: normal=%d elite=%d boss=%d" % [room_key, normal_count, elite_count, boss_count])
-	return result
-
-func _create_room_trigger(pos: Vector2, label: String, enemy_configs: Array) -> void:
-	# 視覺標記（Area2D 改為純視覺 Node2D，觸發改用距離偵測）
-	var marker_node = Node2D.new()
-	marker_node.position = pos
-	marker_node.name = "RoomTrigger_" + label
-
-	var marker = ColorRect.new()
-	marker.size = Vector2(60, 60)
-	marker.position = Vector2(-30, -30)
-	marker.color = Color(0.8, 0.2, 0.2, 0.4)
-	marker_node.add_child(marker)
-
-	var mlbl = Label.new()
-	mlbl.text = "!" + label
-	mlbl.position = Vector2(-50, -56)
-	mlbl.add_theme_font_size_override("font_size", 16)
-	mlbl.modulate = Color.WHITE
-	marker_node.add_child(mlbl)
-
-	add_child(marker_node)
-
-	# 登記到距離觸發系統
-	var configs_copy = enemy_configs.duplicate(true)
-	_proximity_triggers.append({
-		"pos": pos,
-		"radius": 90.0,
-		"triggered": false,
-		"callback": func(): _fire_room_trigger(pos, label, configs_copy, marker_node)
-	})
-
-func _fire_room_trigger(trigger_pos: Vector2, label: String, enemy_configs: Array, marker_node: Node) -> void:
-	# 距離觸發回調：由 _proximity_triggers 系統在 _process 中呼叫
-
-	# Boss 房特效：震屏 + 紅色危險閃光
-	if label == "Boss房":
-		_do_camera_shake(10.0, 0.5)
-		_flash_danger_overlay()
-
-	# 隱藏視覺標記（已觸發就不用再顯示）
-	if marker_node and is_instance_valid(marker_node):
-		marker_node.visible = false
-
-	# 建立房間節點
-	var room = ROOM_SCRIPT.new()
-	room.room_label = label
-	room.enemy_configs = enemy_configs.duplicate(true)
-	room.position = trigger_pos
-	room.name = "Room_" + label
-	add_child(room)
-	_active_room = room
-
-	# 連接房間清空信號（在 trigger_decision 之前，避免競爭）
-	room.room_cleared.connect(_on_room_cleared)
-
-	# 連接決策選擇信號（只連接一次）
-	var dp = get_node_or_null("DecisionPanel/Root")
-	if dp:
-		var callback = func(opt_id: String, _dec_type: String):
-			_on_room_entry_selected(opt_id, room)
-		dp.option_selected.connect(callback, CONNECT_ONE_SHOT)
-
-	if OS.is_debug_build():
-		print("[Main] 觸發房間: ", label, " 敵人配置數:", enemy_configs.size())
-
-	# 事件選擇暫時停用：直接以「直衝突入」進入房間
-	room.start_battle("charge")
-
-func _on_room_entry_selected(opt_id: String, room: Node) -> void:
-	if room == null or not is_instance_valid(room):
-		return
-	room.start_battle(opt_id)
-
-func _do_camera_shake(intensity: float = 8.0, duration: float = 0.4) -> void:
-	var cam = get_viewport().get_camera_2d()
-	if cam == null:
-		return
-	var original_offset = cam.offset
-	var tw = create_tween()
-	var steps = 8
-	for i in range(steps):
-		var rand_x = randf_range(-intensity, intensity)
-		var rand_y = randf_range(-intensity, intensity)
-		tw.tween_property(cam, "offset", original_offset + Vector2(rand_x, rand_y), duration / steps)
-	tw.tween_property(cam, "offset", original_offset, 0.05)
-
-func _flash_danger_overlay() -> void:
-	var overlay = ColorRect.new()
-	overlay.color = Color(0.8, 0.0, 0.0, 0.35)
-	overlay.size = Vector2(1080, 1920)
-	var cl = CanvasLayer.new()
-	cl.layer = 10
-	cl.add_child(overlay)
-	add_child(cl)
-	var tw = create_tween()
-	tw.tween_property(overlay, "modulate:a", 0.0, 0.4)
-	tw.tween_callback(cl.queue_free)
-
-func _on_room_cleared() -> void:
-	_active_room = null
-	# GameManager.resume_squad() 已在 room.gd 的 _check_cleared() 中呼叫
-	print("[Main] 房間清空，小隊繼續推進")
-	var gm = get_node_or_null("/root/GameManager")
-	if gm:
-		for member in gm.squad_members:
-			if member and is_instance_valid(member) and member.has_method("set_cover_mode"):
-				member.set_cover_mode(false)
-	# 延遲 0.3 秒後播放門打開動畫，動畫結束後再推進鏡頭
-	await get_tree().create_timer(0.3).timeout
-	# 計算門的 y 座標：當前房間頂部（房間中心 y 減去半個房間高度）
-	var door_y: float
-	if _current_room_idx < ROOM_CENTER_Y.size():
-		# 各房間高度：A=200, B=200, C=180, Boss=120；取半高估算頂部
-		var half_heights: Array = [100.0, 100.0, 90.0, 60.0]
-		var half_h: float = half_heights[_current_room_idx] if _current_room_idx < half_heights.size() else 90.0
-		door_y = ROOM_CENTER_Y[_current_room_idx] - half_h
-	else:
-		door_y = _camera.global_position.y - 120.0
-	_play_door_open_animation(door_y, func():
-		_advance_camera_to_next_room()
-	)
-
-func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
-	# 清除舊門節點（防禦性）
-	for v in [_door_left, _door_right, _door_frame]:
-		if v and is_instance_valid(v):
-			v.queue_free()
-	_door_left = null
-	_door_right = null
-	_door_frame = null
-
-	print("[BREACH] 播放 SWAT 破門過場（含場景圖）")
-
-	# 建立過場 CanvasLayer（layer=20，最上層）
-	var cl = CanvasLayer.new()
-	cl.layer = 20
-	add_child(cl)
-
-	# 上黑邊（較寬：260px，遮住畫面頂部）
-	var bar_top = ColorRect.new()
-	bar_top.color = Color.BLACK
-	bar_top.size = Vector2(1080, 260)
-	bar_top.position = Vector2(0, -260)
-	cl.add_child(bar_top)
-
-	# 下黑邊（較寬：260px，遮住畫面底部）
-	var bar_bot = ColorRect.new()
-	bar_bot.color = Color.BLACK
-	bar_bot.size = Vector2(1080, 260)
-	bar_bot.position = Vector2(0, 1920)
-	cl.add_child(bar_bot)
-
-	# 中間深色背景（場景圖底板）
-	var center_bg = ColorRect.new()
-	center_bg.color = Color(0.02, 0.02, 0.04)
-	center_bg.size = Vector2(1080, 400)
-	center_bg.position = Vector2(0, 760)  # 垂直居中於 1920 高度
-	center_bg.modulate.a = 0.0
-	cl.add_child(center_bg)
-
-	# SWAT 場景圖（breach_scene.svg）
-	var scene_tex: TextureRect = null
-	var scene_path = "res://resources/art/cutscenes/breach_scene.svg"
-	if ResourceLoader.exists(scene_path):
-		scene_tex = TextureRect.new()
-		scene_tex.texture = load(scene_path)
-		scene_tex.size = Vector2(1080, 400)
-		scene_tex.position = Vector2(0, 760)
-		scene_tex.stretch_mode = TextureRect.STRETCH_SCALE
-		scene_tex.modulate.a = 0.0
-		cl.add_child(scene_tex)
-
-	# "BREACH" 文字（疊在場景圖中央偏上）
-	var breach_label = Label.new()
-	breach_label.text = "BREACH"
-	breach_label.add_theme_font_size_override("font_size", 120)
-	breach_label.size = Vector2(800, 140)
-	breach_label.position = Vector2(140, 890)
-	breach_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	breach_label.modulate = Color(1, 1, 1, 0)
-	cl.add_child(breach_label)
-
-	# 閃白 overlay
-	var flash = ColorRect.new()
-	flash.color = Color(1, 1, 1, 0)
-	flash.size = Vector2(1080, 1920)
-	cl.add_child(flash)
-
-	# 時間軸
-	var tw = create_tween()
-
-	# 0.00-0.15s：黑邊滑入
-	tw.tween_property(bar_top, "position:y", 0.0, 0.15).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(bar_bot, "position:y", 1660.0, 0.15).set_ease(Tween.EASE_OUT)
-
-	# 0.15-0.23s：場景圖 + 背景淡入
-	tw.tween_property(center_bg, "modulate:a", 1.0, 0.08)
-	if scene_tex:
-		tw.parallel().tween_property(scene_tex, "modulate:a", 1.0, 0.08)
-
-	# 0.23-0.28s：BREACH 文字出現 + 微縮放
-	tw.tween_property(breach_label, "modulate:a", 1.0, 0.05)
-	tw.parallel().tween_property(breach_label, "scale", Vector2(1.15, 1.15), 0.05)
-
-	# 0.28-0.34s：閃白
-	tw.tween_property(flash, "color:a", 0.85, 0.06)
-
-	# 0.34-0.44s：閃白退 + 文字消
-	tw.tween_property(flash, "color:a", 0.0, 0.10)
-	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
-
-	# 0.44-0.59s：定格讓玩家看清場景圖
-	tw.tween_interval(0.15)
-
-	# 0.59-0.69s：場景圖淡出
-	if scene_tex:
-		tw.tween_property(scene_tex, "modulate:a", 0.0, 0.10)
-	tw.parallel().tween_property(center_bg, "modulate:a", 0.0, 0.10)
-
-	# 0.69-0.84s：黑邊退出
-	tw.tween_property(bar_top, "position:y", -260.0, 0.15).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(bar_bot, "position:y", 1920.0, 0.15).set_ease(Tween.EASE_IN)
-
-	# 完成：回調 + 清除
-	tw.tween_callback(func():
-		cl.queue_free()
-		on_complete.call()
-	)
-
-func _create_trigger(pos: Vector2, type: String, label: String) -> void:
-	# 通用觸發點（補給箱等）：改用距離偵測系統
-	var marker_node = Node2D.new()
-	marker_node.position = pos
-	marker_node.name = "Trigger_" + label
-
-	# 視覺標記
-	var marker = ColorRect.new()
-	marker.size = Vector2(60, 60)
-	marker.position = Vector2(-30, -30)
-	marker.color = Color(1.0, 0.8, 0.1, 0.4) if type == "supply" else Color(0.9, 0.3, 0.3, 0.4)
-	marker_node.add_child(marker)
-
-	var mlbl = Label.new()
-	mlbl.text = "!" + label
-	mlbl.position = Vector2(-50, -56)
-	mlbl.add_theme_font_size_override("font_size", 16)
-	mlbl.modulate = Color.WHITE
-	marker_node.add_child(mlbl)
-
-	add_child(marker_node)
-
-	# 建立決策資料（補給箱預設選項）
-	var decision_data: Dictionary = {
-		"type": type,
-		"title": "發現" + label,
-		"description": "選擇行動：",
-		"options": [
-			{"id": "heal", "text": "全體補血",   "desc": "全隊回復 40% HP"},
-			{"id": "ammo", "text": "補充炸彈",   "desc": "爆破手大招 CD 重置"},
-			{"id": "card", "text": "取得抽卡券", "desc": "獲得 1 張抽卡券"},
-		],
-	}
-
-	_proximity_triggers.append({
-		"pos": pos,
-		"radius": 90.0,
-		"triggered": false,
-		"callback": func():
-			marker_node.visible = false
-			# 事件選擇暫時停用：補給箱直接回血
-			_apply_supply_effect("heal")
-	})
-
-func _create_boss_decision_trigger(pos: Vector2) -> void:
-	# Boss 決策點：改用距離偵測系統
-	var marker_node = Node2D.new()
-	marker_node.position = pos
-	marker_node.name = "BossDecisionTrigger"
-
-	# 視覺標記（紅色警示）
-	var marker = ColorRect.new()
-	marker.size = Vector2(80, 80)
-	marker.position = Vector2(-40, -40)
-	marker.color = Color(0.8, 0.1, 0.1, 0.6)
-	marker_node.add_child(marker)
-
-	var mlbl = Label.new()
-	mlbl.text = "BOSS"
-	mlbl.position = Vector2(-28, -56)
-	mlbl.add_theme_font_size_override("font_size", 20)
-	mlbl.modulate = Color(1.0, 0.3, 0.3)
-	marker_node.add_child(mlbl)
-
-	add_child(marker_node)
-
-	_proximity_triggers.append({
-		"pos": pos,
-		"radius": 90.0,
-		"triggered": false,
-		"callback": func(): _on_boss_decision_fired(marker_node)
-	})
-
-func _on_boss_decision_fired(marker_node: Node) -> void:
-	if marker_node and is_instance_valid(marker_node):
-		marker_node.visible = false
-	# 事件選擇暫時停用：直接進 Boss 房
-
-func _create_boss_room_trigger(pos: Vector2) -> void:
-	# Boss 房觸發（生成 Boss 敵人，在 Boss 決策後觸發，敵人數由任務配置決定）
-	_create_room_trigger(pos, "Boss房", _build_enemy_configs_from_mission("boss_room"))
-
-func _create_end_trigger(pos: Vector2) -> void:
-	# 終點觸發：改用距離偵測系統
-	_proximity_triggers.append({
-		"pos": pos,
-		"radius": 90.0,
-		"triggered": false,
-		"callback": func(): GameManager.trigger_game_over(true)
-	})
-
+# ─────────────────────────────────────────────────────────────
+#  HUD 連接
+# ─────────────────────────────────────────────────────────────
 func _connect_hud() -> void:
 	hud_scene = $HUD
 	if hud_scene and hud_scene.has_method("setup_cards"):
 		hud_scene.setup_cards(GameManager.squad_members)
 
-	# 連接進度更新
-	if squad_controller:
-		squad_controller.progress_updated.connect(hud_scene.update_progress)
-
-	# 連接決策面板
-	decision_panel = $DecisionPanel
-
-	# 連接結算按鈕（RestartBtn 返回基地，RetryBtn 重試）
-	if hud_scene:
-		var restart_btn = hud_scene.find_child("RestartBtn", true, false)
-		if restart_btn and not restart_btn.pressed.is_connected(hud_scene._on_restart_pressed):
-			restart_btn.pressed.connect(hud_scene._on_restart_pressed)
-		var retry_btn = hud_scene.find_child("RetryBtn", true, false)
-		if retry_btn and not retry_btn.pressed.is_connected(hud_scene._on_retry_pressed):
-			retry_btn.pressed.connect(hud_scene._on_retry_pressed)
-
-func _create_fork_trigger(pos: Vector2) -> void:
-	# 岔路觸發點：改用距離偵測系統
-	var marker_node = Node2D.new()
-	marker_node.position = pos
-	marker_node.name = "ForkTrigger"
-
-	# 視覺標記（菱形用 ColorRect 模擬）
-	var marker = ColorRect.new()
-	marker.size = Vector2(70, 70)
-	marker.position = Vector2(-35, -35)
-	marker.color = Color(0.5, 0.2, 0.9, 0.5)
-	marker_node.add_child(marker)
-
-	var mlbl = Label.new()
-	mlbl.text = "岔路"
-	mlbl.position = Vector2(-28, -56)
-	mlbl.add_theme_font_size_override("font_size", 18)
-	mlbl.modulate = Color(0.9, 0.7, 1.0)
-	marker_node.add_child(mlbl)
-
-	add_child(marker_node)
-
-	_proximity_triggers.append({
-		"pos": pos,
-		"radius": 90.0,
-		"triggered": false,
-		"callback": func(): _on_fork_trigger_fired(marker_node)
-	})
-
-func _on_fork_trigger_fired(marker_node: Node) -> void:
-	if _fork_triggered:
+# ─────────────────────────────────────────────────────────────
+#  BGM
+# ─────────────────────────────────────────────────────────────
+func _start_mission_bgm() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am == null:
 		return
-	_fork_triggered = true
-	if marker_node and is_instance_valid(marker_node):
-		marker_node.visible = false
+	var mid: String = GameManager.current_mission_id if GameManager else ""
+	match mid:
+		"warehouse_01": am.play_bgm("warehouse_bgm")
+		"harbor_01":    am.play_bgm("harbor_bgm")
+		_:              am.play_bgm("mission")
 
-	# 取得盾兵等級，判斷是否顯示 Lv.3 解鎖選項
-	var shield_member = _get_member_by_id("shield")
-	var shield_level = shield_member.level if shield_member and shield_member.get("level") != null else 1
+# ─────────────────────────────────────────────────────────────
+#  破門過場動畫（可點擊跳過）
+# ─────────────────────────────────────────────────────────────
+func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
+	for v in [_door_left, _door_right, _door_frame]:
+		if v and is_instance_valid(v):
+			v.queue_free()
+	_door_left  = null
+	_door_right = null
+	_door_frame = null
 
-	var options = [
-		{"id": "left",  "text": "左路（繞道補給）", "desc": "繞道補給箱，可補充物資"},
-		{"id": "right", "text": "右路（直達房間C）","desc": "直接抵達，節省時間"},
-	]
+	var cl := CanvasLayer.new()
+	cl.layer = 20
+	add_child(cl)
 
-	# 事件選擇暫時停用：岔路直接走右路（直達）
-	switch_path("right")
+	var bar_top := ColorRect.new()
+	bar_top.color    = Color.BLACK
+	bar_top.size     = Vector2(1080, 260)
+	bar_top.position = Vector2(0, -260)
+	cl.add_child(bar_top)
 
-func _get_member_by_id(id: String) -> Node:
-	for member in GameManager.squad_members:
-		if member != null and is_instance_valid(member) and member.char_id == id:
-			return member
-	return null
+	var bar_bot := ColorRect.new()
+	bar_bot.color    = Color.BLACK
+	bar_bot.size     = Vector2(1080, 260)
+	bar_bot.position = Vector2(0, 1920)
+	cl.add_child(bar_bot)
 
-func switch_path(path_id: String) -> void:
-	# 切換 squad_controller 的剩餘路徑
-	var new_wps_raw: Array[Vector2] = []
-	match path_id:
-		"left":
-			new_wps_raw = WAYPOINTS_LEFT
-		"right":
-			new_wps_raw = WAYPOINTS_RIGHT
-		_:
-			return
+	var center_bg := ColorRect.new()
+	center_bg.color    = Color(0.02, 0.02, 0.04)
+	center_bg.size     = Vector2(1080, 400)
+	center_bg.position = Vector2(0, 760)
+	center_bg.modulate.a = 0.0
+	cl.add_child(center_bg)
 
-	# 從現在位置接上新路徑（第一個點已是當前分叉點，略過）
-	var new_wps: Array[Vector2] = []
-	for i in range(1, new_wps_raw.size()):
-		new_wps.append(new_wps_raw[i])
+	var scene_tex: TextureRect = null
+	var scene_path := "res://resources/art/cutscenes/breach_scene.svg"
+	if ResourceLoader.exists(scene_path):
+		scene_tex          = TextureRect.new()
+		scene_tex.texture  = load(scene_path)
+		scene_tex.size     = Vector2(1080, 400)
+		scene_tex.position = Vector2(0, 760)
+		scene_tex.stretch_mode = TextureRect.STRETCH_SCALE
+		scene_tex.modulate.a   = 0.0
+		cl.add_child(scene_tex)
 
-	if squad_controller and squad_controller.has_method("replace_remaining_path"):
-		squad_controller.replace_remaining_path(new_wps)
+	var breach_label := Label.new()
+	breach_label.text = "BREACH"
+	breach_label.add_theme_font_size_override("font_size", 120)
+	breach_label.size     = Vector2(800, 140)
+	breach_label.position = Vector2(140, 890)
+	breach_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	breach_label.modulate = Color(1, 1, 1, 0)
+	cl.add_child(breach_label)
 
-func _position_squad_for_combat(room_pos: Vector2, room_size: Vector2) -> void:
-	# 戰鬥開始時，把小隊重新排列到玩家掩體後方
-	# 玩家掩體在 room_pos.y + room_size.y - 55，角色站在掩體再下方 25px
-	if not GameManager or GameManager.squad_members.size() == 0:
-		return
-	var combat_y: float = room_pos.y + room_size.y - 25.0
-	# x 槽位：在房間寬度內均分（最多 5 個）
-	var alive_members: Array = []
-	for m in GameManager.squad_members:
-		if m != null and is_instance_valid(m) and not m.is_dead:
-			alive_members.append(m)
-	var count: int = alive_members.size()
-	if count == 0:
-		return
-	var step: float = room_size.x / float(count + 1)
-	for i in range(count):
-		var member = alive_members[i]
-		member.global_position = Vector2(room_pos.x + step * float(i + 1), combat_y)
+	var flash := ColorRect.new()
+	flash.color = Color(1, 1, 1, 0)
+	flash.size  = Vector2(1080, 1920)
+	cl.add_child(flash)
 
-	var gm = get_node_or_null("/root/GameManager")
-	if gm:
-		for member in gm.squad_members:
-			if member and is_instance_valid(member) and member.has_method("set_cover_mode"):
-				member.set_cover_mode(true)
+	var tw := create_tween()
+	var _skipped := false
 
-func _apply_supply_effect(effect_id: String) -> void:
-	var gm = get_node_or_null("/root/GameManager")
-	if gm == null:
-		return
-	match effect_id:
-		"heal":
-			for m in gm.squad_members:
-				if m and is_instance_valid(m) and not m.is_dead:
-					m.current_hp = min(m.current_hp + m.max_hp * 0.4, m.max_hp)
-					m.emit_signal("hp_changed", m.current_hp, m.max_hp)
-		"ammo":
-			for m in gm.squad_members:
-				if m and is_instance_valid(m) and m.has_method("reset_ultimate_cd"):
-					m.reset_ultimate_cd()
+	# 透明點擊區：玩家點擊跳過
+	var skip_btn := Button.new()
+	skip_btn.flat         = true
+	skip_btn.size         = Vector2(1080, 1920)
+	skip_btn.position     = Vector2.ZERO
+	skip_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	var empty_style := StyleBoxEmpty.new()
+	for state in ["normal", "hover", "pressed", "focus"]:
+		skip_btn.add_theme_stylebox_override(state, empty_style)
+	cl.add_child(skip_btn)
+	skip_btn.pressed.connect(func():
+		if _skipped: return
+		_skipped = true
+		tw.kill()
+		cl.queue_free()
+		on_complete.call()
+	)
 
-func _connect_signals() -> void:
-	pass
-
-func _connect_restart() -> void:
-	pass
+	tw.tween_property(bar_top, "position:y", 0.0, 0.15).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(bar_bot, "position:y", 1660.0, 0.15).set_ease(Tween.EASE_OUT)
+	tw.tween_property(center_bg, "modulate:a", 1.0, 0.08)
+	if scene_tex:
+		tw.parallel().tween_property(scene_tex, "modulate:a", 1.0, 0.08)
+	tw.tween_property(breach_label, "modulate:a", 1.0, 0.05)
+	tw.parallel().tween_property(breach_label, "scale", Vector2(1.15, 1.15), 0.05)
+	tw.tween_property(flash, "color:a", 0.85, 0.06)
+	tw.tween_property(flash, "color:a", 0.0, 0.10)
+	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
+	tw.tween_interval(0.15)
+	if scene_tex:
+		tw.tween_property(scene_tex, "modulate:a", 0.0, 0.10)
+	tw.parallel().tween_property(center_bg, "modulate:a", 0.0, 0.10)
+	tw.tween_property(bar_top, "position:y", -260.0, 0.15).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(bar_bot, "position:y", 1920.0, 0.15).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		cl.queue_free()
+		on_complete.call()
+	)

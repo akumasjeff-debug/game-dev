@@ -1,52 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" shape-rendering="crispEdges">
-  <!-- 青綠色偵察手蹲伏姿態（俯視角，32×32） -->
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="32" height="32">
+  <!-- 偵察手蹲伏 TCG 風 — 正面，32x32，夜視鏡頭盔 + 無線電 -->
 
-  <!-- 陰影 -->
-  <rect x="6" y="26" width="20" height="3" fill="#001A14" opacity="0.4"/>
+  <!-- 頭盔 -->
+  <rect x="8" y="2" width="16" height="12" fill="#0A0A0A"/>
+  <rect x="9" y="3" width="14" height="10" fill="#0A2A2A"/>
+  <rect x="11" y="4" width="10" height="5" fill="#1A6A6A"/>
+  <rect x="11" y="4" width="4" height="2" fill="#44CCCC"/>
+  <!-- 夜視鏡（正面雙管，最醒目特徵） -->
+  <rect x="11" y="7" width="4" height="4" fill="#0A0A0A"/>
+  <rect x="12" y="8" width="2" height="2" fill="#00AAAA"/>
+  <rect x="17" y="7" width="4" height="4" fill="#0A0A0A"/>
+  <rect x="18" y="8" width="2" height="2" fill="#00AAAA"/>
+  <!-- 夜視鏡橋接 -->
+  <rect x="15" y="8" width="2" height="2" fill="#1A2A2A"/>
+  <!-- 頭盔天線 -->
+  <rect x="9" y="0" width="2" height="4" fill="#44CCCC"/>
+  <!-- 頭盔下沿 -->
+  <rect x="9" y="13" width="14" height="1" fill="#061818"/>
 
-  <!-- 身體（壓低，深青綠戰術裝） -->
-  <rect x="8" y="13" width="16" height="13" fill="#006655"/>
-  <!-- 左肩高光 -->
-  <rect x="8" y="13" width="5" height="6" fill="#007A65"/>
-  <!-- 右側暗部 -->
-  <rect x="21" y="13" width="3" height="13" fill="#004D3F"/>
-  <!-- 戰術裝備帶 -->
-  <rect x="8" y="17" width="16" height="1" fill="#004D3F"/>
-  <rect x="14" y="13" width="1" height="13" fill="#004D3F"/>
+  <!-- 頸部 -->
+  <rect x="13" y="14" width="6" height="3" fill="#0A1E1E"/>
 
-  <!-- 頭盔（8×8，夜視鏡朝前，最突出特徵） -->
-  <rect x="12" y="4" width="8" height="8" fill="#006655"/>
-  <rect x="12" y="4" width="8" height="2" fill="#007A65"/>
-  <rect x="12" y="4" width="2" height="8" fill="#007A65"/>
-  <rect x="18" y="4" width="2" height="8" fill="#004D3F"/>
+  <!-- 無線電（左側，主道具） -->
+  <rect x="1" y="16" width="8" height="12" fill="#0A0A0A"/>
+  <rect x="2" y="17" width="6" height="10" fill="#0E3838"/>
+  <!-- 無線電螢幕 -->
+  <rect x="2" y="18" width="5" height="4" fill="#001A1A"/>
+  <rect x="3" y="19" width="3" height="2" fill="#00AA88"/>
+  <!-- 天線（左上） -->
+  <rect x="3" y="14" width="1" height="4" fill="#44CCCC"/>
+  <!-- 按鈕 -->
+  <rect x="2" y="24" width="2" height="2" fill="#44CCCC"/>
+  <rect x="6" y="24" width="2" height="2" fill="#1A6A6A"/>
 
-  <!-- 夜視鏡（頭盔前方突出，朝前方向） -->
-  <rect x="10" y="5" width="12" height="4" fill="#1A1A1A"/>
-  <rect x="10" y="5" width="12" height="1" fill="#2A2A2A"/>
-  <!-- 夜視鏡鏡頭（兩眼） -->
-  <rect x="11" y="6" width="4" height="3" fill="#002A22"/>
-  <rect x="17" y="6" width="4" height="3" fill="#002A22"/>
-  <!-- 鏡頭高光（夜視發光綠） -->
-  <rect x="12" y="7" width="2" height="1" fill="#00AA88"/>
-  <rect x="18" y="7" width="2" height="1" fill="#00AA88"/>
-  <!-- 夜視鏡支架 -->
-  <rect x="14" y="4" width="4" height="2" fill="#333333"/>
+  <!-- 身體（壓縮版，深青輕甲） -->
+  <rect x="9" y="16" width="18" height="14" fill="#0A0A0A"/>
+  <rect x="10" y="17" width="16" height="12" fill="#0A2A2A"/>
+  <rect x="12" y="18" width="12" height="9" fill="#0E3838"/>
+  <!-- 胸甲中線 -->
+  <rect x="15" y="18" width="2" height="9" fill="#061A1A"/>
+  <!-- 胸甲高光 -->
+  <rect x="12" y="18" width="5" height="3" fill="#1A6A6A"/>
+  <!-- 識別臂章（青色） -->
+  <rect x="10" y="19" width="2" height="4" fill="#44CCCC"/>
+  <!-- 資料板夾 -->
+  <rect x="13" y="22" width="6" height="5" fill="#062020"/>
+  <rect x="14" y="23" width="4" height="3" fill="#0A3030"/>
+  <rect x="15" y="24" width="2" height="1" fill="#44CCCC"/>
 
-  <!-- 手持武器（短衝鋒槍，緊貼身體前方） -->
-  <rect x="9" y="20" width="14" height="3" fill="#222222"/>
-  <rect x="9" y="20" width="14" height="1" fill="#333333"/>
-  <!-- 彈匣 -->
-  <rect x="14" y="23" width="3" height="4" fill="#1A1A1A"/>
-
-  <!-- 下肢（蹲伏） -->
-  <rect x="8" y="23" width="6" height="4" fill="#004D3F"/>
-  <rect x="18" y="23" width="6" height="4" fill="#004D3F"/>
-
-  <!-- 戰術腰包（左側） -->
-  <rect x="4" y="16" width="5" height="5" fill="#005A4A"/>
-  <rect x="4" y="16" width="5" height="1" fill="#007060"/>
-
-  <!-- 通訊天線（右肩後方） -->
-  <rect x="24" y="9" width="1" height="6" fill="#448877"/>
-  <rect x="24" y="9" width="1" height="1" fill="#66BBAA"/>
+  <!-- 右臂 -->
+  <rect x="27" y="17" width="4" height="10" fill="#0A0A0A"/>
+  <rect x="28" y="18" width="3" height="9" fill="#0A2A2A"/>
 </svg>

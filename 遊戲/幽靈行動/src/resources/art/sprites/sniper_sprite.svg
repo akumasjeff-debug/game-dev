@@ -1,48 +1,74 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-  <!-- 狙擊手 — 俯視，超長狙擊槍向前伸出到畫面外最顯眼，鬼影斗篷寬大 -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="64" height="64">
+  <!-- 狙擊手 TCG 卡牌風 — 正面半身，紫色系，持狙擊槍 -->
 
-  <!-- 落地陰影（鬼影斗篷讓陰影更寬） -->
-  <ellipse cx="32" cy="56" rx="20" ry="5" fill="#000" opacity="0.35"/>
+  <!-- 鬼影斗篷帽兜（最外層，寬大輪廓） -->
+  <rect x="12" y="2" width="40" height="26" fill="#0A0A0A"/>
+  <rect x="13" y="3" width="38" height="24" fill="#2A1A3A"/>
+  <!-- 帽兜正面遮蔽紋 -->
+  <rect x="15" y="4" width="34" height="6" fill="#1E1028"/>
+  <rect x="13" y="8" width="6" height="14" fill="#1A0E24"/>
+  <rect x="45" y="8" width="6" height="14" fill="#1A0E24"/>
 
-  <!-- 鬼影斗篷（最寬的區塊，蓋住全身） -->
-  <rect x="8"  y="18" width="48" height="30" fill="#1A2812"/>
-  <!-- 斗篷紋路（不規則草葉感，用小方塊模擬） -->
-  <rect x="8"  y="20" width="4"  height="4"  fill="#243618"/>
-  <rect x="16" y="18" width="4"  height="6"  fill="#1E3014"/>
-  <rect x="24" y="16" width="4"  height="6"  fill="#243818"/>
-  <rect x="32" y="17" width="4"  height="5"  fill="#1C2E10"/>
-  <rect x="40" y="18" width="4"  height="6"  fill="#243618"/>
-  <rect x="48" y="20" width="4"  height="4"  fill="#1E3014"/>
-  <rect x="10" y="38" width="4"  height="6"  fill="#1A2810"/>
-  <rect x="50" y="36" width="4"  height="6"  fill="#1A2810"/>
-  <rect x="18" y="42" width="4"  height="4"  fill="#1E3012"/>
-  <rect x="42" y="42" width="4"  height="4"  fill="#1E3012"/>
-  <!-- 紫色識別緞帶 -->
-  <rect x="22" y="20" width="20" height="3"  fill="#7755AA"/>
-  <rect x="10" y="22" width="4"  height="2"  fill="#7755AA" opacity="0.7"/>
-  <rect x="50" y="22" width="4"  height="2"  fill="#7755AA" opacity="0.7"/>
+  <!-- 頭盔外框 -->
+  <rect x="19" y="5" width="26" height="20" fill="#0A0A0A"/>
+  <!-- 頭盔主體（深紫） -->
+  <rect x="20" y="6" width="24" height="18" fill="#1E0E30"/>
+  <!-- 頭盔正面板（紫色系） -->
+  <rect x="23" y="7" width="18" height="9" fill="#5A2090"/>
+  <!-- 頭盔高光（左上） -->
+  <rect x="23" y="7" width="6" height="3" fill="#AA44FF"/>
+  <!-- 頭盔護目鏡（暗色） -->
+  <rect x="22" y="15" width="8" height="5" fill="#0A0518"/>
+  <rect x="34" y="15" width="8" height="5" fill="#0A0518"/>
+  <!-- 護目鏡反光 -->
+  <rect x="23" y="16" width="3" height="2" fill="#AA44FF"/>
+  <rect x="35" y="16" width="3" height="2" fill="#7A2ACC"/>
+  <!-- 頭盔下沿 -->
+  <rect x="20" y="23" width="24" height="2" fill="#100820"/>
 
-  <!-- 狙擊槍（超長，貫穿畫面往上，最強識別特徵） -->
-  <!-- 超長槍管 -->
-  <rect x="30" y="0"  width="4"  height="22" fill="#222230"/>
+  <!-- 頸部 -->
+  <rect x="27" y="26" width="10" height="5" fill="#1A0E24"/>
+
+  <!-- 肩甲左（紫色狙擊手戰術甲） -->
+  <rect x="8" y="28" width="16" height="12" fill="#0A0A0A"/>
+  <rect x="9" y="29" width="14" height="10" fill="#3A1660"/>
+  <rect x="9" y="29" width="5" height="4" fill="#AA44FF"/>
+  <!-- 肩甲右 -->
+  <rect x="40" y="28" width="16" height="12" fill="#0A0A0A"/>
+  <rect x="41" y="29" width="14" height="10" fill="#3A1660"/>
+  <rect x="41" y="29" width="5" height="4" fill="#7A2ACC"/>
+
+  <!-- 身體胸甲外框 -->
+  <rect x="16" y="28" width="32" height="26" fill="#0A0A0A"/>
+  <!-- 身體主體（深紫軍裝） -->
+  <rect x="17" y="29" width="30" height="24" fill="#1E0E30"/>
+  <!-- 胸甲正面 -->
+  <rect x="20" y="31" width="24" height="16" fill="#260E3C"/>
+  <!-- 胸甲中線 -->
+  <rect x="31" y="31" width="2" height="16" fill="#100820"/>
+  <!-- 胸甲高光 -->
+  <rect x="20" y="31" width="8" height="4" fill="#5A2090"/>
+  <!-- 識別臂章（紫色） -->
+  <rect x="17" y="33" width="3" height="6" fill="#AA44FF"/>
+  <!-- 範圍估算尺（胸口） -->
+  <rect x="24" y="35" width="16" height="4" fill="#1A0A28"/>
+  <rect x="26" y="36" width="12" height="2" fill="#5A2090"/>
+
+  <!-- 狙擊槍（右側，超長，最醒目武器） -->
+  <rect x="42" y="30" width="22" height="6" fill="#0A0A0A"/>
+  <rect x="43" y="31" width="20" height="4" fill="#1E1E1E"/>
+  <!-- 槍管（更細更長） -->
+  <rect x="56" y="32" width="8" height="2" fill="#282828"/>
+  <!-- 瞄準鏡（大型） -->
+  <rect x="46" y="28" width="10" height="4" fill="#2A2A3A"/>
+  <rect x="47" y="29" width="8" height="2" fill="#3A2A5A"/>
+  <rect x="48" y="29" width="6" height="2" fill="#AA44FF"/>
   <!-- 消音器 -->
-  <rect x="29" y="0"  width="6"  height="6"  fill="#2A2A3A"/>
-  <!-- 瞄準鏡 -->
-  <rect x="28" y="10" width="8"  height="5"  fill="#333348"/>
-  <rect x="30" y="11" width="4"  height="3"  fill="#7755AA" opacity="0.8"/>
-  <!-- 槍機 -->
-  <rect x="26" y="20" width="12" height="8"  fill="#2A2A38"/>
-  <!-- 槍托 -->
-  <rect x="28" y="26" width="8"  height="6"  fill="#1A1A28"/>
+  <rect x="56" y="30" width="6" height="6" fill="#181818"/>
+  <!-- 彈匣 -->
+  <rect x="46" y="34" width="5" height="8" fill="#222"/>
 
-  <!-- 兩手握槍（從斗篷下伸出） -->
-  <rect x="22" y="16" width="8"  height="4"  fill="#1A2010"/>
-  <rect x="34" y="20" width="8"  height="4"  fill="#1A2010"/>
-
-  <!-- 頭（藏在斗篷下） -->
-  <rect x="26" y="20" width="12" height="8"  fill="#1A2614"/>
-
-  <!-- 腿 -->
-  <rect x="24" y="50" width="6"  height="6"  fill="#0E180A"/>
-  <rect x="34" y="50" width="6"  height="6"  fill="#0E180A"/>
+  <!-- 左臂（扶槍） -->
+  <rect x="8" y="32" width="10" height="10" fill="#0A0A0A"/>
+  <rect x="9" y="33" width="8" height="8" fill="#1E0E30"/>
 </svg>

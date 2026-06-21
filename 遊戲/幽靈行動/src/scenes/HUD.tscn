@@ -38,8 +38,8 @@ show_percentage = false
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -180.0
-custom_minimum_size = Vector2(0, 180)
+offset_top = -220.0
+custom_minimum_size = Vector2(0, 220)
 
 [node name="BottomBG" type="ColorRect" parent="BottomBar"]
 anchor_right = 1.0
@@ -50,9 +50,9 @@ color = Color(0.04, 0.04, 0.08, 0.92)
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = 10.0
+offset_top = 8.0
 offset_right = -10.0
-offset_bottom = -10.0
+offset_bottom = -34.0
 theme_override_constants/separation = 6
 
 [node name="GameResultPanel" type="Panel" parent="."]

@@ -49,18 +49,18 @@ func _apply_type_stats() -> void:
 	match enemy_type:
 		EnemyType.NORMAL:
 			enemy_name   = "普通兵"
-			max_hp       = 150.0
+			max_hp       = 350.0
 			attack_power = 35.0
-			attack_interval = 2.0
+			attack_interval = 2.5
 		EnemyType.ELITE:
 			enemy_name   = "精英"
-			max_hp       = 300.0
-			attack_power = 50.0
+			max_hp       = 900.0
+			attack_power = 55.0
 			attack_interval = 2.0
 		EnemyType.BOSS:
 			enemy_name   = "Boss"
-			max_hp       = 600.0
-			attack_power = 70.0
+			max_hp       = 2200.0
+			attack_power = 75.0
 			attack_interval = 1.5
 
 const SPRITE_PATHS: Array[String] = [
