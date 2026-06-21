@@ -1,6 +1,6 @@
-class_name ClassData
+extends Node
 
-# 職業定義
+# 職業定義（ClassData autoload — 用 ClassData.CLASSES 存取）
 const CLASSES = {
 	"assault": {
 		"name": "突擊手",
