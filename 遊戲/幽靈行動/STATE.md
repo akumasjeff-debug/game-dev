@@ -59,16 +59,14 @@
 - 中文字型完整支援（chinese_font.ttf 4.7MB）
 
 ## 進行中
-- TCG 卡牌 UI 系統建置中（gacha_panel / card_gallery / squad_confirm_panel）
-- 手機 UI/UX 全面優化中（base.gd 版面調整）
+- 24 張卡片插畫（6 職業 × R/SR/SSR/QR）
+- 主選單畫面（main_menu.gd + main_menu_bg.svg）
+- 缺少側視角 sprite（side_sniper / side_recon / side_boss）
+- 基地背景圖、抽卡面板背景圖
 
 ## 待辦
-- 角色數值接入卡牌 grade 倍率（character.gd）
-- HTML5 重新 build + butler push v0.3.0
-- 主選單畫面
 - 角色升級面板技能說明
-- 霧戰系統
-- 匿蹤系統
+- HTML5 重新 build + butler push v0.4.0
 
 ## 待確認
 - 無

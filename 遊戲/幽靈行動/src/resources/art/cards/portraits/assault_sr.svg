@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <!-- 背景：深橙色調 SR -->
+  <rect x="0" y="0" width="100" height="130" fill="#141008"/>
+  <rect x="0" y="0" width="50" height="130" fill="#0C0806" opacity="0.7"/>
+  <rect x="0" y="0" width="25" height="130" fill="#080604" opacity="0.5"/>
+  <rect x="0" y="85" width="100" height="45" fill="#100C06" opacity="0.5"/>
+
+  <!-- SR 橙色發光邊線 -->
+  <rect x="2" y="2" width="96" height="126" fill="none" stroke="#CC6600" stroke-width="1" opacity="0.7"/>
+  <rect x="4" y="4" width="92" height="122" fill="none" stroke="#FF8820" stroke-width="0.5" opacity="0.4"/>
+
+  <!-- 地面光暈 -->
+  <ellipse cx="50" cy="120" rx="32" ry="5" fill="#AA4400" opacity="0.2"/>
+  <ellipse cx="50" cy="118" rx="24" ry="4" fill="#000000" opacity="0.5"/>
+
+  <!-- 軀幹：改良型護甲（橙黑） -->
+  <rect x="25" y="68" width="50" height="52" fill="#1E1408" rx="3"/>
+  <!-- 護甲板塊 -->
+  <rect x="25" y="80" width="50" height="3" fill="#100A04" opacity="0.9"/>
+  <rect x="25" y="94" width="50" height="3" fill="#100A04" opacity="0.9"/>
+  <rect x="49" y="68" width="3" height="52" fill="#100A04" opacity="0.7"/>
+  <!-- 橙色發光邊 -->
+  <rect x="25" y="68" width="50" height="52" fill="none" stroke="#CC6600" stroke-width="1.5" rx="3"/>
+  <rect x="25" y="68" width="50" height="52" fill="none" stroke="#FF9940" stroke-width="0.5" rx="3" opacity="0.5"/>
+
+  <!-- 胸甲橙色徽章 -->
+  <polygon points="50,73 43,78 43,86 50,91 57,86 57,78" fill="#1A1006"/>
+  <polygon points="50,73 43,78 43,86 50,91 57,86 57,78" fill="none" stroke="#CC6600" stroke-width="1"/>
+  <ellipse cx="50" cy="82" rx="3" ry="3" fill="#CC6600"/>
+  <ellipse cx="50" cy="82" rx="1.5" ry="1.5" fill="#FF9940"/>
+
+  <!-- 腰帶 -->
+  <rect x="25" y="110" width="50" height="8" fill="#100A04"/>
+  <rect x="44" y="112" width="12" height="5" fill="#CC6600" rx="1"/>
+
+  <!-- 肩甲（改良型） -->
+  <rect x="13" y="64" width="16" height="22" fill="#1A1006" rx="3"/>
+  <rect x="71" y="64" width="16" height="22" fill="#1A1006" rx="3"/>
+  <rect x="13" y="64" width="16" height="22" fill="none" stroke="#CC6600" stroke-width="1" rx="3"/>
+  <rect x="71" y="64" width="16" height="22" fill="none" stroke="#CC6600" stroke-width="1" rx="3"/>
+  <rect x="15" y="70" width="12" height="2" fill="#CC6600" opacity="0.6"/>
+  <rect x="73" y="70" width="12" height="2" fill="#CC6600" opacity="0.6"/>
+
+  <!-- 頸部護甲 -->
+  <rect x="41" y="56" width="18" height="14" fill="#1A1006" rx="2"/>
+  <rect x="41" y="56" width="18" height="14" fill="none" stroke="#CC6600" stroke-width="0.8" rx="2"/>
+
+  <!-- 頭盔（SR 護甲升級） -->
+  <ellipse cx="50" cy="42" rx="22" ry="18" fill="#181006"/>
+  <rect x="28" y="40" width="44" height="14" fill="#181006"/>
+  <!-- 頭盔側護 -->
+  <rect x="27" y="42" width="8" height="16" fill="#141006" rx="1"/>
+  <rect x="65" y="42" width="8" height="16" fill="#141006" rx="1"/>
+  <!-- 頭盔頂邊橙色線 -->
+  <rect x="28" y="25" width="44" height="4" fill="#CC6600" rx="1" opacity="0.8"/>
+  <rect x="27" y="42" width="8" height="16" fill="none" stroke="#CC6600" stroke-width="0.8" rx="1"/>
+  <rect x="65" y="42" width="8" height="16" fill="none" stroke="#CC6600" stroke-width="0.8" rx="1"/>
+  <!-- 頭盔導軌 -->
+  <rect x="34" y="24" width="32" height="3" fill="#282008" rx="1"/>
+
+  <!-- 面部 -->
+  <rect x="32" y="42" width="36" height="16" fill="#7A5A40" rx="1"/>
+
+  <!-- SR 升級護目鏡（含瞄準鏡介面） -->
+  <rect x="32" y="42" width="36" height="12" fill="#0C0A06" rx="2"/>
+  <rect x="34" y="43" width="15" height="8" fill="#141006" rx="1"/>
+  <rect x="51" y="43" width="15" height="8" fill="#141006" rx="1"/>
+  <rect x="34" y="43" width="15" height="8" fill="none" stroke="#CC6600" stroke-width="0.8" rx="1"/>
+  <rect x="51" y="43" width="15" height="8" fill="none" stroke="#CC6600" stroke-width="0.8" rx="1"/>
+  <!-- 橙色反光 -->
+  <rect x="36" y="44" width="5" height="3" fill="#CC6600" opacity="0.4"/>
+  <rect x="53" y="44" width="5" height="3" fill="#CC6600" opacity="0.4"/>
+  <!-- 瞄準十字 -->
+  <rect x="41" y="46" width="5" height="1" fill="#FF8820" opacity="0.6"/>
+  <rect x="43" y="44" width="1" height="5" fill="#FF8820" opacity="0.6"/>
+  <!-- 口罩 -->
+  <rect x="32" y="54" width="36" height="6" fill="#1E1408"/>
+  <rect x="32" y="54" width="36" height="6" fill="none" stroke="#CC6600" stroke-width="0.6"/>
+
+  <!-- 改良突擊步槍（瞄準鏡） -->
+  <!-- 槍托 -->
+  <rect x="67" y="72" width="18" height="6" fill="#201808" rx="1"/>
+  <!-- 機匣 -->
+  <rect x="52" y="70" width="20" height="9" fill="#2A2010" rx="1"/>
+  <rect x="52" y="70" width="20" height="9" fill="none" stroke="#CC6600" stroke-width="0.6" rx="1"/>
+  <!-- 護木 -->
+  <rect x="38" y="72" width="16" height="7" fill="#241C0C" rx="1"/>
+  <!-- 槍管 -->
+  <rect x="22" y="74" width="18" height="4" fill="#2A2010" rx="1"/>
+  <!-- 彈匣 -->
+  <rect x="62" y="79" width="7" height="16" fill="#201808" rx="1"/>
+  <rect x="62" y="79" width="7" height="16" fill="none" stroke="#CC6600" stroke-width="0.5" rx="1"/>
+  <!-- SR 瞄準鏡（高倍） -->
+  <rect x="55" y="65" width="16" height="6" fill="#1A1408" rx="1"/>
+  <rect x="55" y="65" width="16" height="6" fill="none" stroke="#CC6600" stroke-width="0.8" rx="1"/>
+  <ellipse cx="63" cy="68" rx="3" ry="3" fill="#0A0806"/>
+  <ellipse cx="63" cy="68" rx="3" ry="3" fill="none" stroke="#CC6600" stroke-width="0.8"/>
+  <!-- 前握把 -->
+  <rect x="42" y="79" width="5" height="10" fill="#201808" rx="1"/>
+
+  <!-- 左手握槍 -->
+  <rect x="37" y="74" width="10" height="8" fill="#6A5040" rx="1"/>
+  <!-- 右手握托 -->
+  <rect x="67" y="74" width="10" height="10" fill="#6A5040" rx="1"/>
+</svg>

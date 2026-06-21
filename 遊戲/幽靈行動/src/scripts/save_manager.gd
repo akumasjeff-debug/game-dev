@@ -207,6 +207,23 @@ func coins_needed_for_level_up(char_id: String) -> int:
 		return 0
 	return lv * 50
 
+func reset_all() -> void:
+	# DEMO 專用：清空所有存檔資料並重新初始化預設值
+	var path = "user://save.cfg"
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+	coins = 200
+	blue_tickets = 3
+	gold_tickets = 0
+	stamina = 10
+	owned_cards = {}
+	card_levels = {}
+	selected_squad = []
+	gacha_pity = 0
+	starter_claimed = false
+	completed_missions = []
+	_initialize_card_defaults()
+
 func add_coins(amount: int) -> void:
 	coins += amount
 

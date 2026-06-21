@@ -428,6 +428,44 @@ func _add_upgrade_button() -> void:
 	btn.pressed.connect(_open_upgrade_panel)
 	add_child(btn)
 
+	# DEMO 重置按鈕（最底部，小型紅色）
+	var reset_btn = Button.new()
+	reset_btn.text = "[ DEMO ] 清空所有紀錄，重新開始"
+	reset_btn.position = Vector2(90, 1855)
+	reset_btn.custom_minimum_size = Vector2(900, 58)
+	reset_btn.add_theme_font_size_override("font_size", 20)
+	reset_btn.name = "DemoResetBtn"
+	var rs = StyleBoxFlat.new()
+	rs.bg_color = Color(0.20, 0.04, 0.04, 0.85)
+	rs.border_color = Color(0.55, 0.15, 0.15, 0.8)
+	rs.set_border_width_all(2)
+	rs.set_corner_radius_all(5)
+	reset_btn.add_theme_stylebox_override("normal", rs)
+	var rh = StyleBoxFlat.new()
+	rh.bg_color = Color(0.38, 0.08, 0.08)
+	rh.border_color = Color(0.70, 0.25, 0.25)
+	rh.set_border_width_all(2)
+	rh.set_corner_radius_all(5)
+	reset_btn.add_theme_stylebox_override("hover", rh)
+	reset_btn.modulate = Color(1.0, 0.5, 0.5)
+	reset_btn.pressed.connect(_on_demo_reset)
+	add_child(reset_btn)
+
+func _on_demo_reset() -> void:
+	AudioManager.play_sfx("btn_click")
+	# 確認對話框
+	var dialog = AcceptDialog.new()
+	dialog.title = "DEMO 重置"
+	dialog.dialog_text = "確定要清空所有紀錄並重新開始？\n（此操作不可復原）"
+	dialog.add_button("取消", true, "cancel")
+	dialog.confirmed.connect(_do_demo_reset)
+	get_tree().root.add_child(dialog)
+	dialog.popup_centered()
+
+func _do_demo_reset() -> void:
+	SaveManager.reset_all()
+	get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+
 func _open_upgrade_panel() -> void:
 	AudioManager.play_sfx("btn_click")
 	var panel = load("res://scenes/UpgradePanel.tscn").instantiate()

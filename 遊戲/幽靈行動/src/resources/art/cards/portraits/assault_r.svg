@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <!-- 背景：中性軍事色調 -->
+  <rect x="0" y="0" width="100" height="130" fill="#1A1C14"/>
+  <rect x="0" y="0" width="50" height="130" fill="#0E1008" opacity="0.6"/>
+  <rect x="0" y="0" width="28" height="130" fill="#0A0C06" opacity="0.4"/>
+  <rect x="0" y="85" width="100" height="45" fill="#141610" opacity="0.5"/>
+
+  <!-- 地面陰影 -->
+  <ellipse cx="50" cy="118" rx="30" ry="6" fill="#000000" opacity="0.4"/>
+
+  <!-- 軀幹：迷彩作戰服 -->
+  <rect x="27" y="70" width="46" height="48" fill="#3A4028" rx="2"/>
+  <!-- 迷彩斑紋 -->
+  <rect x="30" y="72" width="8" height="6" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="44" y="75" width="10" height="5" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="58" y="71" width="7" height="8" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="34" y="84" width="6" height="7" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="54" y="82" width="9" height="6" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="40" y="92" width="7" height="5" fill="#2A3018" opacity="0.7" rx="1"/>
+  <rect x="60" y="94" width="8" height="6" fill="#2A3018" opacity="0.7" rx="1"/>
+  <!-- 胸前口袋 -->
+  <rect x="30" y="76" width="12" height="8" fill="#303820" rx="1"/>
+  <rect x="58" y="76" width="12" height="8" fill="#303820" rx="1"/>
+  <rect x="36" y="77" width="6" height="1" fill="#2A3018"/>
+  <rect x="64" y="77" width="6" height="1" fill="#2A3018"/>
+  <!-- 腰帶 -->
+  <rect x="27" y="108" width="46" height="8" fill="#282E1A"/>
+  <rect x="46" y="109" width="8" height="6" fill="#3A4028" rx="1"/>
+
+  <!-- 肩膀 -->
+  <rect x="17" y="68" width="14" height="18" fill="#363C24" rx="2"/>
+  <rect x="69" y="68" width="14" height="18" fill="#363C24" rx="2"/>
+
+  <!-- 頸部 -->
+  <rect x="43" y="58" width="14" height="14" fill="#8A6A50"/>
+
+  <!-- 頭盔（標準迷彩作戰頭盔） -->
+  <ellipse cx="50" cy="44" rx="21" ry="18" fill="#3A4028"/>
+  <rect x="29" y="42" width="42" height="13" fill="#3A4028"/>
+  <!-- 頭盔護耳 -->
+  <rect x="28" y="44" width="8" height="14" fill="#303820" rx="1"/>
+  <rect x="64" y="44" width="8" height="14" fill="#303820" rx="1"/>
+  <!-- 迷彩斑紋 -->
+  <rect x="35" y="30" width="6" height="5" fill="#303820" opacity="0.7" rx="1"/>
+  <rect x="50" y="27" width="8" height="4" fill="#303820" opacity="0.7" rx="1"/>
+  <rect x="60" y="31" width="5" height="6" fill="#303820" opacity="0.7" rx="1"/>
+  <!-- 護目鏡（簡單平面） -->
+  <rect x="32" y="44" width="36" height="10" fill="#1A2018" rx="1"/>
+  <rect x="33" y="45" width="15" height="7" fill="#222C18" rx="1"/>
+  <rect x="51" y="45" width="15" height="7" fill="#222C18" rx="1"/>
+  <!-- 口罩（半開，可見嘴角） -->
+  <rect x="32" y="54" width="36" height="7" fill="#3A3A2A"/>
+  <rect x="40" y="58" width="20" height="3" fill="#7A5A40" opacity="0.5"/>
+
+  <!-- 突擊步槍（前視，舉槍姿勢） -->
+  <!-- 槍托 -->
+  <rect x="66" y="72" width="18" height="6" fill="#2A2018" rx="1"/>
+  <!-- 機匣 -->
+  <rect x="55" y="72" width="16" height="8" fill="#3A3028" rx="1"/>
+  <!-- 護木 -->
+  <rect x="40" y="74" width="16" height="6" fill="#322820" rx="1"/>
+  <!-- 槍管 -->
+  <rect x="22" y="75" width="20" height="4" fill="#3A3028" rx="1"/>
+  <!-- 彈匣 -->
+  <rect x="62" y="80" width="6" height="14" fill="#2A2018" rx="1"/>
+  <!-- 消音器 -->
+  <rect x="16" y="74" width="8" height="6" fill="#282018" rx="1"/>
+  <!-- 瞄準鏡（基本型） -->
+  <rect x="56" y="69" width="12" height="4" fill="#242018" rx="1"/>
+
+  <!-- 左手握槍 -->
+  <rect x="38" y="75" width="10" height="8" fill="#6A5040" rx="1"/>
+  <!-- 右手握托 -->
+  <rect x="66" y="74" width="10" height="10" fill="#6A5040" rx="1"/>
+</svg>

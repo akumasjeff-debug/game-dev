@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <!-- 背景：中性軍事色調（綠系） -->
+  <rect x="0" y="0" width="100" height="130" fill="#141A0A"/>
+  <rect x="0" y="0" width="50" height="130" fill="#0C1206" opacity="0.6"/>
+  <rect x="0" y="0" width="28" height="130" fill="#080E04" opacity="0.4"/>
+  <rect x="0" y="85" width="100" height="45" fill="#101608" opacity="0.5"/>
+
+  <!-- 地面陰影 -->
+  <ellipse cx="50" cy="118" rx="30" ry="6" fill="#000000" opacity="0.4"/>
+
+  <!-- 軀幹：防爆作戰服（橄欖綠） -->
+  <rect x="27" y="70" width="46" height="48" fill="#2E3A1A" rx="2"/>
+  <!-- 防爆衣加厚感 -->
+  <rect x="30" y="73" width="40" height="8" fill="#26321A" rx="1"/>
+  <rect x="30" y="85" width="40" height="8" fill="#26321A" rx="1"/>
+  <rect x="30" y="97" width="40" height="8" fill="#26321A" rx="1"/>
+  <!-- 胸前口袋（炸藥裝備） -->
+  <rect x="30" y="74" width="14" height="10" fill="#222E12" rx="1"/>
+  <rect x="56" y="74" width="14" height="10" fill="#222E12" rx="1"/>
+  <!-- 腰帶（工具腰帶） -->
+  <rect x="27" y="108" width="46" height="8" fill="#1E2A10"/>
+  <rect x="32" y="109" width="6" height="5" fill="#2A3618" rx="1"/>
+  <rect x="46" y="109" width="6" height="5" fill="#2A3618" rx="1"/>
+  <rect x="62" y="109" width="6" height="5" fill="#2A3618" rx="1"/>
+
+  <!-- 炸藥包（左肩可見） -->
+  <rect x="15" y="74" width="14" height="20" fill="#3A3010" rx="2"/>
+  <!-- 炸藥包條紋 -->
+  <rect x="15" y="78" width="14" height="2" fill="#2A2208" opacity="0.8"/>
+  <rect x="15" y="84" width="14" height="2" fill="#2A2208" opacity="0.8"/>
+  <rect x="15" y="90" width="14" height="2" fill="#2A2208" opacity="0.8"/>
+  <!-- 導線 -->
+  <rect x="22" y="72" width="2" height="6" fill="#CC2200"/>
+  <rect x="24" y="71" width="6" height="2" fill="#CC2200"/>
+
+  <!-- 肩膀護甲 -->
+  <rect x="17" y="68" width="14" height="18" fill="#283418" rx="2"/>
+  <rect x="69" y="68" width="14" height="18" fill="#283418" rx="2"/>
+
+  <!-- 頸部 -->
+  <rect x="43" y="58" width="14" height="14" fill="#8A6A50"/>
+
+  <!-- 防爆頭盔（半開，可見臉） -->
+  <ellipse cx="50" cy="43" rx="22" ry="18" fill="#2A3418"/>
+  <rect x="28" y="42" width="44" height="13" fill="#2A3418"/>
+  <!-- 頭盔護耳 -->
+  <rect x="27" y="44" width="9" height="14" fill="#222C14" rx="1"/>
+  <rect x="64" y="44" width="9" height="14" fill="#222C14" rx="1"/>
+  <!-- 頭盔頂邊 -->
+  <rect x="28" y="26" width="44" height="5" fill="#324018" rx="1"/>
+  <!-- 防爆帽舌（半開） -->
+  <rect x="30" y="54" width="40" height="5" fill="#1E2A12" rx="1"/>
+  <!-- 帽舌鉸鏈 -->
+  <ellipse cx="38" cy="56" rx="2" ry="2" fill="#3A4020"/>
+  <ellipse cx="62" cy="56" rx="2" ry="2" fill="#3A4020"/>
+
+  <!-- 面部（帽舌掀起，露臉） -->
+  <rect x="33" y="44" width="34" height="14" fill="#8A6A50" rx="1"/>
+  <!-- 護目鏡（防爆護目，翻起在頭頂） -->
+  <rect x="32" y="28" width="36" height="10" fill="#1A2018" rx="2"/>
+  <rect x="34" y="29" width="14" height="7" fill="#243020" rx="1"/>
+  <rect x="52" y="29" width="14" height="7" fill="#243020" rx="1"/>
+  <!-- 表情特徵 -->
+  <rect x="37" y="48" width="6" height="4" fill="#604030" rx="1"/>
+  <rect x="57" y="48" width="6" height="4" fill="#604030" rx="1"/>
+  <rect x="40" y="55" width="20" height="2" fill="#6A4838"/>
+  <!-- 鬍鬚 -->
+  <rect x="36" y="52" width="4" height="2" fill="#504030" opacity="0.6"/>
+  <rect x="60" y="52" width="4" height="2" fill="#504030" opacity="0.6"/>
+  <rect x="44" y="55" width="12" height="2" fill="#504030" opacity="0.4"/>
+
+  <!-- 引爆器（右手持） -->
+  <rect x="69" y="78" width="16" height="10" fill="#1E2A0E" rx="2"/>
+  <rect x="69" y="78" width="16" height="10" fill="none" stroke="#4A5828" stroke-width="1" rx="2"/>
+  <!-- 按鈕 -->
+  <ellipse cx="76" cy="83" rx="3" ry="3" fill="#CC4400"/>
+  <ellipse cx="76" cy="83" rx="2" ry="2" fill="#FF6600"/>
+  <!-- 數字顯示 -->
+  <rect x="72" y="79" width="8" height="3" fill="#1A3010" rx="1"/>
+  <rect x="73" y="79" width="4" height="2" fill="#22CC00" opacity="0.7"/>
+
+  <!-- 右手握引爆器 -->
+  <rect x="69" y="85" width="10" height="8" fill="#6A5040" rx="1"/>
+</svg>

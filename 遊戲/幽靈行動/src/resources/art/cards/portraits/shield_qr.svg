@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <!-- 背景：QR 深色戲劇性背景 -->
+  <rect x="0" y="0" width="100" height="130" fill="#050808"/>
+  <rect x="0" y="0" width="50" height="130" fill="#020505" opacity="0.8"/>
+  <!-- 戲劇性紅光從左下照射 -->
+  <rect x="0" y="80" width="60" height="50" fill="#3A0808" opacity="0.3"/>
+  <rect x="0" y="90" width="40" height="40" fill="#5A0808" opacity="0.2"/>
+  <!-- 深色紫氣 -->
+  <rect x="30" y="0" width="70" height="70" fill="#100010" opacity="0.4"/>
+
+  <!-- 能量護盾光暈（藍黑色籠罩效果） -->
+  <ellipse cx="50" cy="65" rx="46" ry="58" fill="#000A20" opacity="0.5"/>
+  <ellipse cx="50" cy="65" rx="36" ry="46" fill="#001040" opacity="0.3"/>
+  <!-- 能量光環 -->
+  <ellipse cx="50" cy="65" rx="44" ry="56" fill="none" stroke="#1A40AA" stroke-width="1.5" opacity="0.6"/>
+  <ellipse cx="50" cy="65" rx="42" ry="54" fill="none" stroke="#3060CC" stroke-width="0.8" opacity="0.4"/>
+
+  <!-- 紅金外框 -->
+  <rect x="0" y="0" width="100" height="130" fill="none" stroke="#CC2200" stroke-width="2"/>
+  <rect x="2" y="2" width="96" height="126" fill="none" stroke="#AA1800" stroke-width="1" opacity="0.7"/>
+  <!-- 四角金色裝飾 -->
+  <polygon points="0,0 12,0 0,12" fill="#AA8800"/>
+  <polygon points="100,0 88,0 100,12" fill="#AA8800"/>
+  <polygon points="0,130 12,130 0,118" fill="#AA8800"/>
+  <polygon points="100,130 88,130 100,118" fill="#AA8800"/>
+
+  <!-- 地面能量漣漪 -->
+  <ellipse cx="50" cy="124" rx="38" ry="5" fill="#1A0028" opacity="0.5"/>
+  <ellipse cx="50" cy="124" rx="26" ry="3" fill="#3A0060" opacity="0.4"/>
+  <ellipse cx="50" cy="122" rx="16" ry="2" fill="#CC2200" opacity="0.3"/>
+
+  <!-- 軀幹：龍紋紅金重裝甲 -->
+  <rect x="20" y="63" width="60" height="57" fill="#0A0A14" rx="3"/>
+  <!-- 左半：黑藍（能量護甲） -->
+  <rect x="20" y="63" width="30" height="57" fill="#0A1020" rx="3"/>
+  <!-- 右半：紅黑（龍紋裝甲） -->
+  <rect x="50" y="63" width="30" height="57" fill="#140808" rx="3"/>
+  <!-- 中線分割 -->
+  <rect x="49" y="63" width="3" height="57" fill="#CC2200"/>
+  <rect x="49" y="63" width="3" height="57" fill="#FF4400" opacity="0.4"/>
+
+  <!-- 藍色能量護盾籠罩（左半身） -->
+  <rect x="20" y="63" width="30" height="57" fill="none" stroke="#2050CC" stroke-width="1.5" rx="3"/>
+  <rect x="20" y="70" width="30" height="3" fill="#1A40AA" opacity="0.6"/>
+  <rect x="20" y="83" width="30" height="3" fill="#1A40AA" opacity="0.6"/>
+  <rect x="20" y="96" width="30" height="3" fill="#1A40AA" opacity="0.6"/>
+  <!-- 龍紋樣式（右半身紅金） -->
+  <rect x="50" y="63" width="30" height="57" fill="none" stroke="#AA1800" stroke-width="1.5" rx="3"/>
+  <rect x="50" y="70" width="30" height="3" fill="#AA1800" opacity="0.6"/>
+  <rect x="50" y="83" width="30" height="3" fill="#AA1800" opacity="0.6"/>
+  <rect x="50" y="96" width="30" height="3" fill="#AA1800" opacity="0.6"/>
+  <!-- 龍紋菱形裝飾 -->
+  <polygon points="65,73 60,80 65,87 70,80" fill="#AA1800" opacity="0.7"/>
+  <polygon points="65,73 60,80 65,87 70,80" fill="none" stroke="#FFD040" stroke-width="0.8"/>
+  <polygon points="65,90 60,97 65,104 70,97" fill="#AA1800" opacity="0.7"/>
+  <polygon points="65,90 60,97 65,104 70,97" fill="none" stroke="#FFD040" stroke-width="0.8"/>
+
+  <!-- 胸前紅金紋章 -->
+  <polygon points="50,67 42,74 42,83 50,90 58,83 58,74" fill="#1A0A0A"/>
+  <polygon points="50,67 42,74 42,83 50,90 58,83 58,74" fill="none" stroke="#CC2200" stroke-width="1.5"/>
+  <ellipse cx="50" cy="78" rx="4" ry="4" fill="#AA1800"/>
+  <ellipse cx="50" cy="78" rx="2" ry="2" fill="#FF4400"/>
+
+  <!-- 腰帶（能量束） -->
+  <rect x="20" y="110" width="60" height="8" fill="#0A0A14"/>
+  <rect x="20" y="111" width="60" height="2" fill="#2050CC" opacity="0.7"/>
+  <rect x="20" y="114" width="30" height="2" fill="#2050CC" opacity="0.5"/>
+  <rect x="50" y="114" width="30" height="2" fill="#AA1800" opacity="0.7"/>
+
+  <!-- 肩甲（大型+能量翼） -->
+  <rect x="6" y="56" width="18" height="30" fill="#0A1020" rx="3"/>
+  <rect x="76" y="56" width="18" height="30" fill="#140808" rx="3"/>
+  <rect x="6" y="56" width="18" height="30" fill="none" stroke="#2050CC" stroke-width="2" rx="3"/>
+  <rect x="76" y="56" width="18" height="30" fill="none" stroke="#AA1800" stroke-width="2" rx="3"/>
+  <!-- 左肩能量線 -->
+  <rect x="8" y="62" width="14" height="2" fill="#3060CC" opacity="0.8"/>
+  <rect x="8" y="68" width="14" height="2" fill="#3060CC" opacity="0.8"/>
+  <rect x="8" y="74" width="14" height="2" fill="#3060CC" opacity="0.8"/>
+  <!-- 右肩龍紋 -->
+  <polygon points="85,62 81,68 85,74 89,68" fill="#AA1800" opacity="0.8"/>
+  <polygon points="85,62 81,68 85,74 89,68" fill="none" stroke="#FFD040" stroke-width="0.8"/>
+
+  <!-- 頸部能量環 -->
+  <rect x="40" y="52" width="20" height="13" fill="#0A1020" rx="2"/>
+  <rect x="40" y="54" width="20" height="3" fill="#2050CC" opacity="0.7"/>
+  <rect x="40" y="58" width="20" height="3" fill="#AA1800" opacity="0.7"/>
+
+  <!-- 頭盔（QR 傳奇外觀） -->
+  <ellipse cx="50" cy="40" rx="24" ry="20" fill="#080812"/>
+  <rect x="26" y="38" width="48" height="14" fill="#080812"/>
+  <!-- 頭盔側護 -->
+  <rect x="25" y="40" width="9" height="18" fill="#050810" rx="1"/>
+  <rect x="66" y="40" width="9" height="18" fill="#050810" rx="1"/>
+  <!-- 頭盔能量脊線 -->
+  <rect x="47" y="20" width="6" height="20" fill="#2050CC" opacity="0.8" rx="1"/>
+  <rect x="47" y="20" width="6" height="20" fill="none" stroke="#5080FF" stroke-width="0.5" rx="1"/>
+  <!-- 頭盔頂邊紅金線 -->
+  <rect x="26" y="28" width="48" height="3" fill="#AA1800" rx="1"/>
+  <rect x="26" y="28" width="48" height="3" fill="none" stroke="#FFD040" stroke-width="0.5" rx="1"/>
+
+  <!-- 面部（傳奇全遮面） -->
+  <rect x="32" y="40" width="36" height="18" fill="#050810" rx="2"/>
+  <!-- 能量護目鏡（紫紅） -->
+  <rect x="32" y="40" width="36" height="12" fill="#080814" rx="2"/>
+  <rect x="34" y="41" width="14" height="8" fill="#0A0A20" rx="1"/>
+  <rect x="50" y="41" width="14" height="8" fill="#0A0A20" rx="1"/>
+  <!-- 左眼：藍色能量 -->
+  <rect x="34" y="41" width="14" height="8" fill="none" stroke="#2050CC" stroke-width="1" rx="1"/>
+  <rect x="36" y="42" width="5" height="4" fill="#3060CC" opacity="0.6"/>
+  <rect x="36" y="42" width="2" height="2" fill="#80AAFF" opacity="0.8"/>
+  <!-- 右眼：紅色能量 -->
+  <rect x="50" y="41" width="14" height="8" fill="none" stroke="#CC2200" stroke-width="1" rx="1"/>
+  <rect x="52" y="42" width="5" height="4" fill="#AA2200" opacity="0.6"/>
+  <rect x="52" y="42" width="2" height="2" fill="#FF6040" opacity="0.8"/>
+  <!-- 分隔橋 -->
+  <rect x="47" y="41" width="6" height="8" fill="#CC2200" opacity="0.8"/>
+  <!-- 面罩下部 -->
+  <rect x="32" y="52" width="36" height="8" fill="#0A0A14"/>
+  <rect x="32" y="53" width="36" height="2" fill="#2050CC" opacity="0.5"/>
+  <rect x="32" y="56" width="36" height="2" fill="#AA1800" opacity="0.5"/>
+
+  <!-- QR 能量護盾（黑藍色籠罩左半身） -->
+  <rect x="3" y="38" width="22" height="78" fill="#000A28" rx="3" opacity="0.7"/>
+  <rect x="3" y="38" width="22" height="78" fill="none" stroke="#3060CC" stroke-width="2" rx="3"/>
+  <rect x="3" y="38" width="22" height="78" fill="none" stroke="#80B0FF" stroke-width="0.8" rx="3" opacity="0.5"/>
+  <!-- 盾牌能量格紋 -->
+  <rect x="3" y="60" width="22" height="2" fill="#2050CC" opacity="0.6"/>
+  <rect x="3" y="80" width="22" height="2" fill="#2050CC" opacity="0.6"/>
+  <rect x="3" y="100" width="22" height="2" fill="#2050CC" opacity="0.6"/>
+  <!-- 龍紋樣式 -->
+  <polygon points="14,44 7,55 7,75 14,86 21,75 21,55" fill="#040C20"/>
+  <polygon points="14,44 7,55 7,75 14,86 21,75 21,55" fill="none" stroke="#3060CC" stroke-width="1"/>
+  <ellipse cx="14" cy="65" rx="4" ry="4" fill="#1A30AA"/>
+  <ellipse cx="14" cy="65" rx="2" ry="2" fill="#5080FF"/>
+  <!-- 盾牌能量脈衝點 -->
+  <ellipse cx="14" cy="48" rx="2" ry="2" fill="#3060CC" opacity="0.8"/>
+  <ellipse cx="14" cy="82" rx="2" ry="2" fill="#3060CC" opacity="0.8"/>
+
+  <!-- 右手（能量拳套） -->
+  <rect x="76" y="74" width="16" height="14" fill="#100808" rx="2"/>
+  <rect x="76" y="74" width="16" height="14" fill="none" stroke="#AA1800" stroke-width="1" rx="2"/>
+  <rect x="77" y="76" width="14" height="3" fill="#AA1800" opacity="0.6"/>
+</svg>

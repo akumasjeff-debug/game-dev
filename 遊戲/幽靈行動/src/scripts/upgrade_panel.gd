@@ -1,337 +1,290 @@
 extends CanvasLayer
 
-# 角色升級管理面板 — CanvasLayer layer=16
-# 掛在 UpgradePanel.tscn
+# 升級管理面板 — 新 TCG 卡牌系統（v0.4.0）
+# 顯示所有持有卡片，支援金幣升等，廢除舊稀有度提升系統
 
-const CHAR_NAMES = {
-	"shield": "盾兵",
-	"medic": "醫療兵",
-	"assault": "突擊手",
-	"sniper": "狙擊手",
-	"demo": "爆破手",
-	"recon": "偵察手",
+const MAX_LEVEL = 20
+
+const GRADE_COLORS = {
+	"R":   Color(0.27, 0.53, 0.80),
+	"SR":  Color(0.60, 0.40, 0.80),
+	"SSR": Color(0.85, 0.70, 0.10),
+	"QR":  Color(0.85, 0.20, 0.20),
 }
 
-const BASE_STATS = {
-	"shield":  {"hp": 200, "atk": 40,  "def": 25},
-	"medic":   {"hp": 160, "atk": 25,  "def": 20},
-	"assault": {"hp": 155, "atk": 60,  "def": 15},
-	"sniper":  {"hp": 110, "atk": 120, "def": 10},
-	"demo":    {"hp": 135, "atk": 80,  "def": 18},
-	"recon":   {"hp": 140, "atk": 35,  "def": 17},
-}
+const GRADE_ORDER = {"R": 0, "SR": 1, "SSR": 2, "QR": 3}
 
-const POTENTIAL_UNLOCK = {
-	"shield":  "破門衝擊 — 大招附帶眩暈效果",
-	"medic":   "急救強化 — 大招治療量 +50%",
-	"assault": "火力壓制 — 大招持續時間 +4 秒",
-	"sniper":  "精準狙擊 — 瞬殺閾值提升至 35%",
-	"demo":    "連鎖爆破 — 大招傷害提升至 100%",
-	"recon":   "電磁脈衝 — 煙霧持續時間 +3 秒",
-}
-
-const CHAR_COLORS = {
-	"shield":  Color(1.0, 0.55, 0.0),
-	"medic":   Color(0.267, 0.800, 0.267),
-	"assault": Color(0.910, 0.376, 0.039),
-	"sniper":  Color(0.667, 0.267, 1.0),
-	"demo":    Color(0.800, 0.133, 0.133),
-	"recon":   Color(0.267, 0.800, 0.800),
-}
-
-const ALL_IDS = ["shield", "medic", "assault", "sniper", "demo", "recon"]
-const RARITY_NAMES = ["灰色", "SR 銀", "SSR 金"]
-const RARITY_COLORS = [
-	Color(0.6, 0.6, 0.65),
-	Color(0.82, 0.87, 1.0),
-	Color(1.0, 0.85, 0.2),
-]
-
-var _char_list_container: VBoxContainer
+var _cards_data: Array = []
+var _list_container: VBoxContainer
+var _font: Font
 
 func _ready() -> void:
 	layer = 16
+	_font = load("res://resources/fonts/chinese_font.ttf")
+	_cards_data = _load_cards_json()
 	_build_ui()
 
+func _load_cards_json() -> Array:
+	var path = "res://resources/data/cards.json"
+	if not ResourceLoader.exists(path):
+		return []
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return []
+	var json = JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		return []
+	var data = json.get_data()
+	if data is Dictionary and data.has("cards"):
+		return data["cards"]
+	if data is Array:
+		return data
+	return []
+
+func _get_card_data(card_id: String) -> Dictionary:
+	for cd in _cards_data:
+		if cd.get("id", "") == card_id:
+			return cd
+	return {}
+
 func _build_ui() -> void:
-	# 全螢幕半透明背景
 	var bg = ColorRect.new()
 	bg.anchor_right = 1.0
 	bg.anchor_bottom = 1.0
-	bg.color = Color(0.0, 0.0, 0.0, 0.88)
+	bg.color = Color(0.0, 0.0, 0.0, 0.92)
 	add_child(bg)
 
-	# 主面板
 	var panel = ColorRect.new()
 	panel.position = Vector2(30, 60)
 	panel.size = Vector2(1020, 1800)
-	panel.color = Color(0.05, 0.07, 0.10, 0.97)
+	panel.color = Color(0.04, 0.06, 0.09, 0.97)
 	add_child(panel)
 
-	# 標題
 	var title = Label.new()
-	title.text = "角色升級管理"
-	title.position = Vector2(330, 80)
-	title.add_theme_font_size_override("font_size", 36)
-	title.modulate = Color(1.0, 0.9, 0.3)
+	title.text = "升級管理"
+	title.position = Vector2(380, 80)
+	if _font:
+		title.add_theme_font_override("font", _font)
+	title.add_theme_font_size_override("font_size", 38)
+	title.modulate = Color(1.0, 0.88, 0.25)
 	add_child(title)
 
-	# 分隔線
 	var sep = ColorRect.new()
-	sep.position = Vector2(50, 136)
+	sep.position = Vector2(50, 140)
 	sep.size = Vector2(980, 2)
-	sep.color = Color(0.5, 0.4, 0.1, 0.8)
+	sep.color = Color(0.5, 0.4, 0.1, 0.7)
 	add_child(sep)
 
-	# 金幣顯示
 	var coins_lbl = Label.new()
 	coins_lbl.name = "CoinsLabel"
-	coins_lbl.position = Vector2(60, 150)
-	coins_lbl.add_theme_font_size_override("font_size", 22)
-	coins_lbl.modulate = Color(1.0, 0.9, 0.3)
+	coins_lbl.position = Vector2(60, 155)
+	if _font:
+		coins_lbl.add_theme_font_override("font", _font)
+	coins_lbl.add_theme_font_size_override("font_size", 24)
+	coins_lbl.modulate = Color(1.0, 0.88, 0.25)
 	add_child(coins_lbl)
 
-	# 捲動容器
+	var hint_lbl = Label.new()
+	hint_lbl.position = Vector2(400, 160)
+	hint_lbl.text = "升等費用 = 目前等級 × 50 金"
+	if _font:
+		hint_lbl.add_theme_font_override("font", _font)
+	hint_lbl.add_theme_font_size_override("font_size", 18)
+	hint_lbl.modulate = Color(0.6, 0.7, 0.6)
+	add_child(hint_lbl)
+
 	var scroll = ScrollContainer.new()
-	scroll.position = Vector2(50, 195)
-	scroll.size = Vector2(980, 1510)
+	scroll.position = Vector2(50, 200)
+	scroll.size = Vector2(980, 1500)
 	add_child(scroll)
 
-	_char_list_container = VBoxContainer.new()
-	_char_list_container.custom_minimum_size = Vector2(960, 0)
-	_char_list_container.add_theme_constant_override("separation", 12)
-	scroll.add_child(_char_list_container)
+	_list_container = VBoxContainer.new()
+	_list_container.custom_minimum_size = Vector2(960, 0)
+	_list_container.add_theme_constant_override("separation", 10)
+	scroll.add_child(_list_container)
 
-	# 關閉按鈕
 	var close_btn = Button.new()
 	close_btn.text = "關閉"
-	close_btn.position = Vector2(340, 1730)
-	close_btn.custom_minimum_size = Vector2(400, 70)
-	close_btn.add_theme_font_size_override("font_size", 26)
-	_style_button(close_btn, Color(0.3, 0.1, 0.1))
+	close_btn.position = Vector2(340, 1725)
+	close_btn.custom_minimum_size = Vector2(400, 75)
+	if _font:
+		close_btn.add_theme_font_override("font", _font)
+	close_btn.add_theme_font_size_override("font_size", 28)
+	_style_button(close_btn, Color(0.28, 0.08, 0.08))
 	close_btn.pressed.connect(_on_close)
 	add_child(close_btn)
 
-	_rebuild_char_list()
+	_rebuild_list()
 
-func _rebuild_char_list() -> void:
-	# 更新金幣顯示
+func _rebuild_list() -> void:
 	var coins_lbl = find_child("CoinsLabel", true, false)
 	if coins_lbl:
 		coins_lbl.text = "目前金幣：" + str(SaveManager.coins)
 
-	# 清除舊列表
-	for child in _char_list_container.get_children():
+	for child in _list_container.get_children():
 		child.queue_free()
 
-	for char_id in ALL_IDS:
-		var card = _build_char_card(char_id)
-		_char_list_container.add_child(card)
+	# 收集並排序：QR > SSR > SR > R，同等級按 class 字母排
+	var owned_ids: Array = SaveManager.owned_cards.keys()
+	owned_ids.sort_custom(func(a, b):
+		var cd_a = _get_card_data(a)
+		var cd_b = _get_card_data(b)
+		var ga = GRADE_ORDER.get(cd_a.get("grade", "R"), 0)
+		var gb = GRADE_ORDER.get(cd_b.get("grade", "R"), 0)
+		if ga != gb:
+			return ga > gb
+		return a < b
+	)
 
-func _get_unlocked_decisions_text(char_id: String) -> String:
-	var rarity = SaveManager.character_rarity.get(char_id, 0)
-	match char_id:
-		"shield":
-			if rarity >= 2: return "已解鎖：舉盾突入 / 盾牆壓制"
-			elif rarity >= 1: return "已解鎖：舉盾突入"
-			else: return "解鎖 SR 後獲得：舉盾突入"
-		"assault":
-			if rarity >= 2: return "已解鎖：爆發射擊 / 側翼突破"
-			elif rarity >= 1: return "已解鎖：爆發射擊"
-			else: return "解鎖 SR 後獲得：爆發射擊"
-		"sniper":
-			if rarity >= 1: return "已解鎖：目標標記"
-			else: return "解鎖 SR 後獲得：目標標記"
-		"demo":
-			if rarity >= 1: return "已解鎖：定向炸藥"
-			else: return "解鎖 SR 後獲得：定向炸藥"
-		"medic":
-			if rarity >= 1: return "已解鎖：急救注射"
-			else: return "解鎖 SR 後獲得：急救注射"
-		"recon":
-			if rarity >= 1: return "已解鎖：煙幕掩護"
-			else: return "解鎖 SR 後獲得：煙幕掩護"
-	return ""
+	for card_id in owned_ids:
+		var row = _build_card_row(card_id)
+		_list_container.add_child(row)
 
-func _build_char_card(char_id: String) -> Control:
-	var owned = char_id in SaveManager.owned_characters
-	var rarity = SaveManager.character_rarity.get(char_id, 0)
-	var copies = SaveManager.character_copies.get(char_id, 0)
-	var lv = SaveManager.character_levels.get(char_id, 1)
-	var char_name = CHAR_NAMES.get(char_id, char_id)
-	var char_color = CHAR_COLORS.get(char_id, Color.WHITE)
+func _build_card_row(card_id: String) -> Control:
+	var cd = _get_card_data(card_id)
+	var grade = cd.get("grade", "R")
+	var grade_color = GRADE_COLORS.get(grade, Color.WHITE)
+	var card_name = cd.get("name", card_id)
+	var base_hp  = float(cd.get("base_hp",  100))
+	var base_atk = float(cd.get("base_atk", 30))
+	var base_def = float(cd.get("base_def", 10))
 
-	var card = ColorRect.new()
-	card.custom_minimum_size = Vector2(950, 230)
-	card.color = Color(0.08, 0.10, 0.14, 0.95)
+	var lv   = SaveManager.get_card_level(card_id)
+	var plus = SaveManager.get_card_plus(card_id)
+	var cost = lv * 50
+	var can_upgrade = lv < MAX_LEVEL and SaveManager.coins >= cost
 
-	# 左側色條
+	# 計算當前數值
+	var lv_mult   = 1.0 + (lv - 1) * 0.05
+	var plus_mult = 1.0 + plus * 0.03
+	var real_hp  = int(base_hp  * lv_mult * plus_mult)
+	var real_atk = int(base_atk * lv_mult * plus_mult)
+	var real_def = int(base_def * lv_mult * plus_mult)
+
+	var row = ColorRect.new()
+	row.custom_minimum_size = Vector2(950, 160)
+	row.color = Color(0.07, 0.09, 0.12, 0.95)
+
+	# 等級色條
 	var bar = ColorRect.new()
-	bar.size = Vector2(5, 140)
-	bar.color = char_color if owned else Color(0.3, 0.3, 0.3)
-	card.add_child(bar)
+	bar.size = Vector2(6, 160)
+	bar.color = grade_color
+	row.add_child(bar)
 
-	# 職業名稱
+	# 等級 badge
+	var grade_bg = ColorRect.new()
+	grade_bg.position = Vector2(14, 10)
+	grade_bg.size = Vector2(64, 32)
+	grade_bg.color = Color(grade_color.r * 0.3, grade_color.g * 0.3, grade_color.b * 0.3, 0.9)
+	row.add_child(grade_bg)
+	var grade_lbl = Label.new()
+	grade_lbl.text = grade
+	grade_lbl.position = Vector2(14, 11)
+	grade_lbl.size = Vector2(64, 30)
+	grade_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if _font:
+		grade_lbl.add_theme_font_override("font", _font)
+	grade_lbl.add_theme_font_size_override("font_size", 18)
+	grade_lbl.modulate = grade_color
+	row.add_child(grade_lbl)
+
+	# 卡名
 	var name_lbl = Label.new()
-	name_lbl.text = char_name
-	name_lbl.position = Vector2(18, 10)
+	name_lbl.text = card_name
+	name_lbl.position = Vector2(86, 10)
+	if _font:
+		name_lbl.add_theme_font_override("font", _font)
 	name_lbl.add_theme_font_size_override("font_size", 26)
-	name_lbl.modulate = RARITY_COLORS[rarity] if owned else Color(0.4, 0.4, 0.4)
-	card.add_child(name_lbl)
+	name_lbl.modulate = grade_color
+	row.add_child(name_lbl)
 
-	if not owned:
-		# 未解鎖
-		var lock_lbl = Label.new()
-		lock_lbl.text = "[未解鎖]"
-		lock_lbl.position = Vector2(18, 50)
-		lock_lbl.add_theme_font_size_override("font_size", 20)
-		lock_lbl.modulate = Color(0.5, 0.5, 0.5)
-		card.add_child(lock_lbl)
-		# 決策說明（未解鎖狀態）
-		var decision_lbl_u = Label.new()
-		decision_lbl_u.text = _get_unlocked_decisions_text(char_id)
-		decision_lbl_u.position = Vector2(18, 148)
-		decision_lbl_u.add_theme_font_size_override("font_size", 15)
-		decision_lbl_u.modulate = Color(0.5, 0.5, 0.5)
-		card.add_child(decision_lbl_u)
-		return card
-
-	# 稀有度
-	var rarity_lbl = Label.new()
-	rarity_lbl.text = "稀有度：" + RARITY_NAMES[rarity]
-	rarity_lbl.position = Vector2(18, 48)
-	rarity_lbl.add_theme_font_size_override("font_size", 18)
-	rarity_lbl.modulate = RARITY_COLORS[rarity]
-	card.add_child(rarity_lbl)
-
-	# 備份數
-	var copies_lbl = Label.new()
-	copies_lbl.text = "備份：" + str(copies) + " 張"
-	copies_lbl.position = Vector2(18, 74)
-	copies_lbl.add_theme_font_size_override("font_size", 16)
-	copies_lbl.modulate = Color(0.8, 0.8, 0.8)
-	card.add_child(copies_lbl)
-
-	# 等級
+	# Lv 與 + 值
 	var lv_lbl = Label.new()
-	lv_lbl.text = "Lv. " + str(lv) + " / 10"
-	lv_lbl.position = Vector2(18, 98)
-	lv_lbl.add_theme_font_size_override("font_size", 16)
-	lv_lbl.modulate = Color(0.7, 1.0, 0.7)
-	card.add_child(lv_lbl)
+	lv_lbl.text = "Lv.%d / %d" % [lv, MAX_LEVEL]
+	lv_lbl.position = Vector2(86, 50)
+	if _font:
+		lv_lbl.add_theme_font_override("font", _font)
+	lv_lbl.add_theme_font_size_override("font_size", 20)
+	lv_lbl.modulate = Color(0.6, 1.0, 0.6)
+	row.add_child(lv_lbl)
 
-	# 實際數值顯示（改進 1）
-	var mult = SaveManager.get_rarity_multiplier(char_id) * SaveManager.get_level_multiplier(char_id)
-	var base = BASE_STATS.get(char_id, {"hp": 100, "atk": 30, "def": 10})
-	var hp_real = int(base["hp"] * mult)
-	var atk_real = int(base["atk"] * mult)
-	var def_real = int(base["def"] * mult)
+	var plus_lbl = Label.new()
+	plus_lbl.text = "+%d" % plus if plus > 0 else ""
+	plus_lbl.position = Vector2(220, 50)
+	if _font:
+		plus_lbl.add_theme_font_override("font", _font)
+	plus_lbl.add_theme_font_size_override("font_size", 20)
+	plus_lbl.modulate = Color(1.0, 0.85, 0.2)
+	row.add_child(plus_lbl)
+
+	# 數值
 	var stats_lbl = Label.new()
-	stats_lbl.text = "HP " + str(hp_real) + "  ATK " + str(atk_real) + "  DEF " + str(def_real)
-	stats_lbl.position = Vector2(18, 122)
-	stats_lbl.add_theme_font_size_override("font_size", 15)
-	stats_lbl.modulate = Color(0.7, 0.9, 0.7)
-	card.add_child(stats_lbl)
+	stats_lbl.text = "HP %d　ATK %d　DEF %d" % [real_hp, real_atk, real_def]
+	stats_lbl.position = Vector2(86, 80)
+	if _font:
+		stats_lbl.add_theme_font_override("font", _font)
+	stats_lbl.add_theme_font_size_override("font_size", 18)
+	stats_lbl.modulate = Color(0.75, 0.95, 0.75)
+	row.add_child(stats_lbl)
 
-	# 提升稀有度按鈕
-	var rarity_btn = Button.new()
-	if rarity >= 2:
-		rarity_btn.text = "已達 SSR"
-		rarity_btn.disabled = true
-		_style_button(rarity_btn, Color(0.25, 0.25, 0.1))
-	elif copies < 2:
-		rarity_btn.text = "提升稀有度（需 " + str(2 - copies) + " 備份）"
-		rarity_btn.disabled = true
-		_style_button(rarity_btn, Color(0.15, 0.15, 0.25))
-	else:
-		rarity_btn.text = "提升稀有度（費 2 備份）"
-		rarity_btn.disabled = false
-		_style_button(rarity_btn, Color(0.15, 0.10, 0.40))
-	rarity_btn.position = Vector2(380, 12)
-	rarity_btn.custom_minimum_size = Vector2(270, 52)
-	rarity_btn.add_theme_font_size_override("font_size", 17)
-	rarity_btn.pressed.connect(_on_rarity_up.bind(char_id))
-	card.add_child(rarity_btn)
+	# 升等後預覽
+	if lv < MAX_LEVEL:
+		var next_lv_mult   = 1.0 + lv * 0.05
+		var next_hp  = int(base_hp  * next_lv_mult * plus_mult)
+		var next_atk = int(base_atk * next_lv_mult * plus_mult)
+		var next_def = int(base_def * next_lv_mult * plus_mult)
+		var preview_lbl = Label.new()
+		preview_lbl.text = "→ HP %d　ATK %d　DEF %d" % [next_hp, next_atk, next_def]
+		preview_lbl.position = Vector2(86, 108)
+		if _font:
+			preview_lbl.add_theme_font_override("font", _font)
+		preview_lbl.add_theme_font_size_override("font_size", 16)
+		preview_lbl.modulate = Color(0.5, 0.75, 1.0, 0.8)
+		row.add_child(preview_lbl)
 
-	# 金幣升等按鈕
-	var cost = SaveManager.coins_needed_for_level_up(char_id)
-	var lv_btn = Button.new()
-	if lv >= 10:
-		lv_btn.text = "等級已滿"
-		lv_btn.disabled = true
-		_style_button(lv_btn, Color(0.25, 0.20, 0.0))
+	# 升等按鈕
+	var btn = Button.new()
+	if lv >= MAX_LEVEL:
+		btn.text = "等級已滿"
+		btn.disabled = true
+		_style_button(btn, Color(0.2, 0.2, 0.1))
 	elif SaveManager.coins < cost:
-		lv_btn.text = "金幣升等（需 " + str(cost) + " 金）"
-		lv_btn.disabled = true
-		_style_button(lv_btn, Color(0.15, 0.15, 0.10))
+		btn.text = "升等 %d金（不足）" % cost
+		btn.disabled = true
+		_style_button(btn, Color(0.15, 0.12, 0.08))
 	else:
-		lv_btn.text = "金幣升等（" + str(cost) + " 金）"
-		lv_btn.disabled = false
-		_style_button(lv_btn, Color(0.35, 0.25, 0.0))
-	lv_btn.position = Vector2(660, 12)
-	lv_btn.custom_minimum_size = Vector2(275, 52)
-	lv_btn.add_theme_font_size_override("font_size", 17)
-	lv_btn.pressed.connect(_on_level_up.bind(char_id))
-	card.add_child(lv_btn)
+		btn.text = "升等 %d金" % cost
+		btn.disabled = false
+		_style_button(btn, Color(0.35, 0.25, 0.0))
+	btn.position = Vector2(640, 30)
+	btn.custom_minimum_size = Vector2(290, 70)
+	if _font:
+		btn.add_theme_font_override("font", _font)
+	btn.add_theme_font_size_override("font_size", 20)
+	btn.pressed.connect(_on_upgrade.bind(card_id, cost))
+	row.add_child(btn)
 
-	# 每升幅說明（改進 2）
-	var per_lv_lbl = Label.new()
-	per_lv_lbl.text = "每升 1 等：各項數值 +2%"
-	per_lv_lbl.position = Vector2(660, 70)
-	per_lv_lbl.add_theme_font_size_override("font_size", 13)
-	per_lv_lbl.modulate = Color(0.5, 0.7, 0.5)
-	card.add_child(per_lv_lbl)
+	return row
 
-	# 決策解鎖說明
-	var decision_lbl = Label.new()
-	decision_lbl.text = _get_unlocked_decisions_text(char_id)
-	decision_lbl.position = Vector2(18, 148)
-	decision_lbl.add_theme_font_size_override("font_size", 15)
-	decision_lbl.modulate = Color(0.5, 1.0, 0.5) if rarity >= 1 else Color(0.5, 0.5, 0.5)
-	card.add_child(decision_lbl)
-
-	# 潛能解鎖提示（改進 3）
-	var potential_txt = POTENTIAL_UNLOCK.get(char_id, "")
-	var pot_lbl = Label.new()
-	if lv >= 10:
-		pot_lbl.text = "✨ " + potential_txt + "（已解鎖！）"
-		pot_lbl.modulate = Color(1.0, 0.85, 0.2)
-	else:
-		pot_lbl.text = "Lv.10 潛能：" + potential_txt
-		pot_lbl.modulate = Color(0.4, 0.4, 0.4)
-	pot_lbl.position = Vector2(18, 185)
-	pot_lbl.add_theme_font_size_override("font_size", 13)
-	pot_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	pot_lbl.custom_minimum_size = Vector2(900, 0)
-	card.add_child(pot_lbl)
-
-	return card
-
-func _on_rarity_up(char_id: String) -> void:
+func _on_upgrade(card_id: String, cost: int) -> void:
 	AudioManager.play_sfx("btn_click")
-	SaveManager.try_upgrade_rarity(char_id)
-	_rebuild_char_list()
-
-func _on_level_up(char_id: String) -> void:
-	AudioManager.play_sfx("btn_click")
-	SaveManager.try_level_up(char_id)
-	_rebuild_char_list()
+	if SaveManager.upgrade_card(card_id, cost):
+		_rebuild_list()
 
 func _on_close() -> void:
 	AudioManager.play_sfx("btn_click")
 	queue_free()
 
-func _style_button(btn: Button, bg_color: Color) -> void:
-	var style = StyleBoxFlat.new()
-	style.bg_color = bg_color
-	style.border_color = Color(bg_color.r + 0.2, bg_color.g + 0.2, bg_color.b + 0.2, 0.8)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("normal", style)
-
-	var hover_style = StyleBoxFlat.new()
-	hover_style.bg_color = Color(bg_color.r + 0.1, bg_color.g + 0.1, bg_color.b + 0.1)
-	hover_style.border_color = Color(bg_color.r + 0.3, bg_color.g + 0.3, bg_color.b + 0.3, 0.9)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("hover", hover_style)
+func _style_button(btn: Button, bg: Color) -> void:
+	var s = StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = Color(bg.r + 0.2, bg.g + 0.2, bg.b + 0.2, 0.8)
+	s.set_border_width_all(2)
+	s.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("normal", s)
+	var h = StyleBoxFlat.new()
+	h.bg_color = Color(bg.r + 0.12, bg.g + 0.12, bg.b + 0.12)
+	h.border_color = Color(bg.r + 0.3, bg.g + 0.3, bg.b + 0.3, 0.9)
+	h.set_border_width_all(2)
+	h.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("hover", h)

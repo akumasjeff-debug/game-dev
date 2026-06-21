@@ -11,7 +11,7 @@
       "base_def": 40,
       "max_plus": 3,
       "description": "前線防禦專家，以盾牌吸收傷害保護同袍。",
-      "portrait_path": "res://resources/art/portraits/shield_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/shield_r.svg"
     },
     {
       "id": "shield_sr",
@@ -24,7 +24,7 @@
       "base_def": 64,
       "max_plus": 4,
       "description": "前線防禦專家，以盾牌吸收傷害保護同袍。",
-      "portrait_path": "res://resources/art/portraits/shield_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/shield_sr.svg"
     },
     {
       "id": "shield_ssr",
@@ -37,7 +37,7 @@
       "base_def": 112,
       "max_plus": 5,
       "description": "前線防禦專家，以盾牌吸收傷害保護同袍。",
-      "portrait_path": "res://resources/art/portraits/shield_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/shield_ssr.svg"
     },
     {
       "id": "shield_qr",
@@ -50,7 +50,7 @@
       "base_def": 200,
       "max_plus": 6,
       "description": "前線防禦專家，以盾牌吸收傷害保護同袍。",
-      "portrait_path": "res://resources/art/portraits/shield_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/shield_qr.svg"
     },
     {
       "id": "assault_r",
@@ -63,7 +63,7 @@
       "base_def": 15,
       "max_plus": 3,
       "description": "近戰突破主力，衝鋒陷陣撕裂敵陣。",
-      "portrait_path": "res://resources/art/portraits/assault_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/assault_r.svg"
     },
     {
       "id": "assault_sr",
@@ -76,7 +76,7 @@
       "base_def": 24,
       "max_plus": 4,
       "description": "近戰突破主力，衝鋒陷陣撕裂敵陣。",
-      "portrait_path": "res://resources/art/portraits/assault_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/assault_sr.svg"
     },
     {
       "id": "assault_ssr",
@@ -89,7 +89,7 @@
       "base_def": 42,
       "max_plus": 5,
       "description": "近戰突破主力，衝鋒陷陣撕裂敵陣。",
-      "portrait_path": "res://resources/art/portraits/assault_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/assault_ssr.svg"
     },
     {
       "id": "assault_qr",
@@ -102,7 +102,7 @@
       "base_def": 75,
       "max_plus": 6,
       "description": "近戰突破主力，衝鋒陷陣撕裂敵陣。",
-      "portrait_path": "res://resources/art/portraits/assault_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/assault_qr.svg"
     },
     {
       "id": "demo_r",
@@ -115,7 +115,7 @@
       "base_def": 10,
       "max_plus": 3,
       "description": "爆破火力支援，使用炸藥清除障礙與掩體。",
-      "portrait_path": "res://resources/art/portraits/demo_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/demo_r.svg"
     },
     {
       "id": "demo_sr",
@@ -128,7 +128,7 @@
       "base_def": 16,
       "max_plus": 4,
       "description": "爆破火力支援，使用炸藥清除障礙與掩體。",
-      "portrait_path": "res://resources/art/portraits/demo_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/demo_sr.svg"
     },
     {
       "id": "demo_ssr",
@@ -141,7 +141,7 @@
       "base_def": 28,
       "max_plus": 5,
       "description": "爆破火力支援，使用炸藥清除障礙與掩體。",
-      "portrait_path": "res://resources/art/portraits/demo_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/demo_ssr.svg"
     },
     {
       "id": "demo_qr",
@@ -154,7 +154,7 @@
       "base_def": 50,
       "max_plus": 6,
       "description": "爆破火力支援，使用炸藥清除障礙與掩體。",
-      "portrait_path": "res://resources/art/portraits/demo_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/demo_qr.svg"
     },
     {
       "id": "medic_r",
@@ -167,7 +167,7 @@
       "base_def": 20,
       "max_plus": 3,
       "description": "戰場醫療員，治療友軍並在危急時刻起死回生。",
-      "portrait_path": "res://resources/art/portraits/medic_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/medic_r.svg"
     },
     {
       "id": "medic_sr",
@@ -180,7 +180,7 @@
       "base_def": 32,
       "max_plus": 4,
       "description": "戰場醫療員，治療友軍並在危急時刻起死回生。",
-      "portrait_path": "res://resources/art/portraits/medic_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/medic_sr.svg"
     },
     {
       "id": "medic_ssr",
@@ -193,7 +193,7 @@
       "base_def": 56,
       "max_plus": 5,
       "description": "戰場醫療員，治療友軍並在危急時刻起死回生。",
-      "portrait_path": "res://resources/art/portraits/medic_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/medic_ssr.svg"
     },
     {
       "id": "medic_qr",
@@ -206,7 +206,7 @@
       "base_def": 100,
       "max_plus": 6,
       "description": "戰場醫療員，治療友軍並在危急時刻起死回生。",
-      "portrait_path": "res://resources/art/portraits/medic_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/medic_qr.svg"
     },
     {
       "id": "sniper_r",
@@ -219,7 +219,7 @@
       "base_def": 8,
       "max_plus": 3,
       "description": "遠程精準狙擊，消除關鍵目標於無形。",
-      "portrait_path": "res://resources/art/portraits/sniper_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/sniper_r.svg"
     },
     {
       "id": "sniper_sr",
@@ -232,7 +232,7 @@
       "base_def": 13,
       "max_plus": 4,
       "description": "遠程精準狙擊，消除關鍵目標於無形。",
-      "portrait_path": "res://resources/art/portraits/sniper_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/sniper_sr.svg"
     },
     {
       "id": "sniper_ssr",
@@ -245,7 +245,7 @@
       "base_def": 22,
       "max_plus": 5,
       "description": "遠程精準狙擊，消除關鍵目標於無形。",
-      "portrait_path": "res://resources/art/portraits/sniper_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/sniper_ssr.svg"
     },
     {
       "id": "sniper_qr",
@@ -258,7 +258,7 @@
       "base_def": 40,
       "max_plus": 6,
       "description": "遠程精準狙擊，消除關鍵目標於無形。",
-      "portrait_path": "res://resources/art/portraits/sniper_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/sniper_qr.svg"
     },
     {
       "id": "recon_r",
@@ -271,7 +271,7 @@
       "base_def": 22,
       "max_plus": 3,
       "description": "敵後偵察專家，致盲敵人並標記高價值目標。",
-      "portrait_path": "res://resources/art/portraits/recon_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/recon_r.svg"
     },
     {
       "id": "recon_sr",
@@ -284,7 +284,7 @@
       "base_def": 35,
       "max_plus": 4,
       "description": "敵後偵察專家，致盲敵人並標記高價值目標。",
-      "portrait_path": "res://resources/art/portraits/recon_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/recon_sr.svg"
     },
     {
       "id": "recon_ssr",
@@ -297,7 +297,7 @@
       "base_def": 62,
       "max_plus": 5,
       "description": "敵後偵察專家，致盲敵人並標記高價值目標。",
-      "portrait_path": "res://resources/art/portraits/recon_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/recon_ssr.svg"
     },
     {
       "id": "recon_qr",
@@ -310,7 +310,7 @@
       "base_def": 110,
       "max_plus": 6,
       "description": "敵後偵察專家，致盲敵人並標記高價值目標。",
-      "portrait_path": "res://resources/art/portraits/recon_portrait.svg"
+      "portrait_path": "res://resources/art/cards/portraits/recon_qr.svg"
     }
   ]
 }

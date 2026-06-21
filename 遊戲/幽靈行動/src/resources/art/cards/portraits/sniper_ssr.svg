@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <defs>
+    <linearGradient id="bg_ssr_s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#080C08"/>
+      <stop offset="50%" stop-color="#101810"/>
+      <stop offset="100%" stop-color="#060806"/>
+    </linearGradient>
+    <radialGradient id="halo_s" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" stop-color="#446644" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#446644" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="100" height="130" fill="url(#bg_ssr_s)"/>
+  <!-- 光暈 -->
+  <ellipse cx="50" cy="55" rx="48" ry="55" fill="url(#halo_s)"/>
+  <!-- SSR 金色框線 -->
+  <rect x="2" y="2" width="96" height="126" rx="3" fill="none" stroke="#DDAA00" stroke-width="2" opacity="0.9"/>
+  <rect x="4" y="4" width="92" height="122" rx="2" fill="none" stroke="#FFDD44" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- 黑色隱形狙擊服 下身 -->
+  <rect x="10" y="78" width="80" height="52" rx="4" fill="#0C100C"/>
+  <!-- 隱形裝備暗紋 -->
+  <rect x="12" y="86" width="76" height="2" fill="#1A221A" opacity="0.8"/>
+  <rect x="12" y="96" width="76" height="2" fill="#1A221A" opacity="0.8"/>
+  <rect x="12" y="106" width="76" height="2" fill="#1A221A" opacity="0.8"/>
+  <!-- 金色瞄準儀（腰部） -->
+  <rect x="40" y="80" width="20" height="10" rx="3" fill="#DDAA00"/>
+  <ellipse cx="50" cy="85" rx="7" ry="4" fill="#AA7700"/>
+  <ellipse cx="50" cy="85" rx="4" ry="2" fill="#FFDD44" opacity="0.7"/>
+  <!-- 肩甲黑色 -->
+  <polygon points="10,78 26,68 30,88 10,96" fill="#141A14"/>
+  <polygon points="90,78 74,68 70,88 90,96" fill="#141A14"/>
+  <!-- 胸甲黑色 -->
+  <rect x="20" y="66" width="60" height="24" rx="3" fill="#0C100C"/>
+  <rect x="32" y="68" width="36" height="4" rx="1" fill="#1A221A"/>
+
+  <!-- 夜視裝備（腰側） -->
+  <rect x="12" y="70" width="10" height="14" rx="3" fill="#1A2A1A"/>
+  <rect x="13" y="71" width="8" height="12" rx="2" fill="#0A180A"/>
+  <ellipse cx="17" cy="77" rx="3" ry="4" fill="#22AA22" opacity="0.6"/>
+
+  <!-- 頸部 -->
+  <rect x="42" y="56" width="16" height="12" rx="3" fill="#A07848"/>
+  <!-- 頭部 -->
+  <ellipse cx="50" cy="42" rx="22" ry="24" fill="#A07848"/>
+  <ellipse cx="28" cy="44" rx="4" ry="6" fill="#987040"/>
+  <ellipse cx="72" cy="44" rx="4" ry="6" fill="#987040"/>
+  <!-- 黑色隱形狙擊頭盔 -->
+  <ellipse cx="50" cy="30" rx="22" ry="18" fill="#0C100C"/>
+  <rect x="28" y="30" width="44" height="14" fill="#0C100C"/>
+  <!-- 夜視裝備（頭盔前置） -->
+  <rect x="36" y="40" width="28" height="8" rx="3" fill="#0A140A"/>
+  <rect x="37" y="41" width="12" height="6" rx="2" fill="#1A2A1A"/>
+  <rect x="51" y="41" width="12" height="6" rx="2" fill="#1A2A1A"/>
+  <ellipse cx="43" cy="44" rx="4" ry="3" fill="#22AA22" opacity="0.8"/>
+  <ellipse cx="57" cy="44" rx="4" ry="3" fill="#22AA22" opacity="0.8"/>
+  <!-- 金色瞄準儀 頭盔（發光） -->
+  <rect x="42" y="26" width="16" height="8" rx="2" fill="#DDAA00"/>
+  <ellipse cx="50" cy="30" rx="6" ry="3" fill="#FFDD44" opacity="0.6"/>
+  <!-- 金色邊框 夜視鏡 -->
+  <rect x="36" y="40" width="28" height="8" rx="3" fill="none" stroke="#DDAA00" stroke-width="0.8" opacity="0.9"/>
+</svg>

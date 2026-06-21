@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <defs>
+    <linearGradient id="bg_qr_s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#04060E"/>
+      <stop offset="40%" stop-color="#080C18"/>
+      <stop offset="100%" stop-color="#020408"/>
+    </linearGradient>
+    <radialGradient id="purple_halo" cx="50%" cy="42%" r="48%">
+      <stop offset="0%" stop-color="#7744CC" stop-opacity="0.4"/>
+      <stop offset="60%" stop-color="#4422AA" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#2200AA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="scope_glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#AA44FF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#6600CC" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="100" height="130" fill="url(#bg_qr_s)"/>
+  <!-- 紫色光暈 -->
+  <ellipse cx="50" cy="48" rx="50" ry="58" fill="url(#purple_halo)"/>
+  <!-- QR 框線（金紫分割） -->
+  <rect x="1" y="1" width="98" height="128" rx="3" fill="none" stroke="#DDAA00" stroke-width="2.5"/>
+  <rect x="3" y="3" width="94" height="124" rx="2" fill="none" stroke="#8844FF" stroke-width="1" opacity="0.7"/>
+
+  <!-- 深藍黑未來狙擊裝下身 -->
+  <rect x="8" y="76" width="84" height="54" rx="5" fill="#0A0E1A"/>
+  <!-- 紅/金分割設計 腰帶 -->
+  <rect x="8" y="96" width="84" height="5" fill="#DDAA00" opacity="0.9"/>
+  <rect x="8" y="101" width="84" height="3" fill="#CC2200" opacity="0.7"/>
+  <!-- 肩甲（深藍黑+紫能量） -->
+  <polygon points="8,76 26,65 30,88 8,96" fill="#10162A"/>
+  <rect x="8" y="80" width="22" height="3" fill="#8844FF" opacity="0.7"/>
+  <polygon points="92,76 74,65 70,88 92,96" fill="#10162A"/>
+  <rect x="70" y="80" width="22" height="3" fill="#8844FF" opacity="0.7"/>
+  <!-- 胸甲 -->
+  <rect x="18" y="64" width="64" height="24" rx="4" fill="#0C1220"/>
+  <rect x="20" y="66" width="60" height="2" fill="#8844FF" opacity="0.5"/>
+  <!-- 紫色能量瞄準器（胸口） -->
+  <ellipse cx="50" cy="76" rx="12" ry="8" fill="url(#scope_glow)"/>
+  <rect x="44" y="72" width="12" height="8" rx="2" fill="#200A40"/>
+  <ellipse cx="50" cy="76" rx="6" ry="4" fill="#AA44FF" opacity="0.8"/>
+  <ellipse cx="50" cy="76" rx="3" ry="2" fill="#FFFFFF" opacity="0.9"/>
+  <!-- 隱形護盾效果（半透明紫色邊緣） -->
+  <rect x="10" y="78" width="80" height="50" rx="4" fill="none" stroke="#8844FF" stroke-width="2" opacity="0.4"/>
+  <rect x="12" y="80" width="76" height="46" rx="3" fill="none" stroke="#AA66FF" stroke-width="1" opacity="0.25"/>
+
+  <!-- 頸部 -->
+  <rect x="42" y="54" width="16" height="12" rx="3" fill="#987048"/>
+  <!-- 頭部 -->
+  <ellipse cx="50" cy="40" rx="22" ry="24" fill="#987048"/>
+  <ellipse cx="28" cy="42" rx="4" ry="6" fill="#906840"/>
+  <ellipse cx="72" cy="42" rx="4" ry="6" fill="#906840"/>
+  <!-- 深藍黑頭盔 -->
+  <ellipse cx="50" cy="28" rx="22" ry="18" fill="#0A0E1A"/>
+  <rect x="28" y="28" width="44" height="14" fill="#0A0E1A"/>
+  <!-- 紫色能量瞄準器（頭盔前） -->
+  <rect x="32" y="38" width="36" height="12" rx="4" fill="#060A12" opacity="0.95"/>
+  <!-- 瞄準器紫色發光 -->
+  <rect x="33" y="39" width="16" height="10" rx="3" fill="#6600CC" opacity="0.8"/>
+  <rect x="51" y="39" width="16" height="10" rx="3" fill="#6600CC" opacity="0.8"/>
+  <ellipse cx="41" cy="44" rx="6" ry="4" fill="#AA44FF" opacity="0.9"/>
+  <ellipse cx="59" cy="44" rx="6" ry="4" fill="#AA44FF" opacity="0.9"/>
+  <ellipse cx="41" cy="44" rx="3" ry="2" fill="#FFFFFF" opacity="0.8"/>
+  <ellipse cx="59" cy="44" rx="3" ry="2" fill="#FFFFFF" opacity="0.8"/>
+  <!-- 瞄準器發光外框 -->
+  <rect x="32" y="38" width="36" height="12" rx="4" fill="none" stroke="#AA44FF" stroke-width="1" opacity="0.9"/>
+  <!-- 頭盔金紫頂部 -->
+  <rect x="44" y="20" width="12" height="10" rx="2" fill="#10162A"/>
+  <rect x="46" y="18" width="8" height="4" rx="1" fill="#DDAA00"/>
+  <ellipse cx="50" cy="22" rx="5" ry="3" fill="#AA44FF" opacity="0.5"/>
+  <!-- 臉部能量紋路 -->
+  <rect x="28" y="52" width="16" height="1" fill="#8844FF" opacity="0.4"/>
+  <rect x="56" y="52" width="16" height="1" fill="#8844FF" opacity="0.4"/>
+</svg>

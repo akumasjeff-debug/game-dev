@@ -1,0 +1,75 @@
+<svg viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 偵察兵 — 側視角，面朝右，深藍青色輕裝，多鏡頭頭盔，短衝鋒槍 -->
+
+  <!-- 頭盔（多鏡頭，前端有 3 個鏡頭）-->
+  <rect x="9"  y="1"  width="13" height="2"  fill="#1A2A40"/>
+  <rect x="7"  y="3"  width="15" height="8"  fill="#1A2A40"/>
+  <!-- 頭盔前緣 -->
+  <rect x="20" y="3"  width="2"  height="8"  fill="#243650"/>
+  <!-- 多鏡頭系統（前端 3 個橢圓）-->
+  <ellipse cx="22" cy="6"  rx="2" ry="2" fill="#00334D"/>
+  <ellipse cx="22" cy="6"  rx="1" ry="1" fill="#00AACC" opacity="0.8"/>
+  <ellipse cx="22" cy="9"  rx="2" ry="2" fill="#00334D"/>
+  <ellipse cx="22" cy="9"  rx="1" ry="1" fill="#00AACC" opacity="0.6"/>
+  <ellipse cx="22" cy="3"  rx="1.5" ry="1.5" fill="#005566"/>
+  <ellipse cx="22" cy="3"  rx="1" ry="1" fill="#00AACC" opacity="0.5"/>
+  <!-- 護目鏡（青色，寬幅）-->
+  <rect x="17" y="4"  width="4"  height="3"  fill="#005566"/>
+  <rect x="18" y="5"  width="3"  height="2"  fill="#00AACC" opacity="0.9"/>
+  <!-- 頭盔帶 -->
+  <rect x="7"  y="10" width="15" height="2"  fill="#101E30"/>
+  <!-- 耳機/通訊器 -->
+  <rect x="6"  y="5"  width="2"  height="4"  fill="#00AACC" opacity="0.7"/>
+
+  <!-- 脖子 -->
+  <rect x="13" y="12" width="5"  height="2"  fill="#1A2A40"/>
+
+  <!-- 身體（輕裝，修長）-->
+  <rect x="10" y="14" width="12" height="13" fill="#1A2A40"/>
+  <!-- 輕型戰術背心 -->
+  <rect x="11" y="15" width="8"  height="10" fill="#243650"/>
+  <!-- 青色戰術線條 -->
+  <rect x="11" y="17" width="8"  height="1"  fill="#00AACC" opacity="0.6"/>
+  <rect x="11" y="21" width="8"  height="1"  fill="#00AACC" opacity="0.6"/>
+  <!-- 腰部工具包（右側）-->
+  <rect x="22" y="22" width="4"  height="5"  fill="#1A2A40"/>
+  <rect x="22" y="23" width="4"  height="1"  fill="#00AACC" opacity="0.5"/>
+  <rect x="23" y="24" width="2"  height="2"  fill="#00556A"/>
+  <!-- 腰帶 -->
+  <rect x="10" y="26" width="12" height="2"  fill="#101E30"/>
+  <!-- 腰部工具包（左側，小型）-->
+  <rect x="7"  y="24" width="3"  height="4"  fill="#1A2A40"/>
+
+  <!-- 左臂（後側）-->
+  <rect x="7"  y="14" width="4"  height="10" fill="#1A2A40"/>
+  <!-- 右臂（前側，持槍）-->
+  <rect x="22" y="14" width="4"  height="10" fill="#1A2A40"/>
+  <!-- 手腕通訊器 -->
+  <rect x="23" y="21" width="3"  height="2"  fill="#00AACC" opacity="0.7"/>
+
+  <!-- 腿部（輕型，有口袋）-->
+  <rect x="11" y="28" width="5"  height="9"  fill="#101E30"/>
+  <rect x="16" y="28" width="5"  height="9"  fill="#101E30"/>
+  <!-- 腿部口袋 -->
+  <rect x="11" y="31" width="4"  height="3"  fill="#1A2A40"/>
+  <rect x="16" y="31" width="4"  height="3"  fill="#1A2A40"/>
+  <!-- 腳 -->
+  <rect x="10" y="37" width="7"  height="4"  fill="#0A1020"/>
+  <rect x="16" y="37" width="7"  height="4"  fill="#0A1020"/>
+  <!-- 地面陰影 -->
+  <ellipse cx="15" cy="44" rx="9" ry="2" fill="#000000" opacity="0.22"/>
+
+  <!-- 短型衝鋒槍（緊湊，朝右）-->
+  <!-- 槍口（短，帶消焰器）-->
+  <rect x="27" y="17" width="4"  height="2"  fill="#0A0A0A"/>
+  <!-- 槍身（短緊湊）-->
+  <rect x="23" y="17" width="6"  height="3"  fill="#1A1A1A"/>
+  <rect x="23" y="18" width="8"  height="3"  fill="#222"/>
+  <!-- 彈匣（側插式，小型）-->
+  <rect x="25" y="21" width="3"  height="4"  fill="#1A1A1A"/>
+  <!-- 槍托（折疊式，短）-->
+  <rect x="20" y="17" width="4"  height="4"  fill="#2A2A2A"/>
+  <!-- 瞄準器（全息）-->
+  <rect x="24" y="15" width="4"  height="2"  fill="#003344"/>
+  <rect x="25" y="14" width="2"  height="2"  fill="#00AACC" opacity="0.5"/>
+</svg>

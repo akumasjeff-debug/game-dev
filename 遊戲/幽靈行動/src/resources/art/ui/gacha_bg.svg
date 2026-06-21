@@ -1,0 +1,126 @@
+<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <!-- 抽卡背景 — 神秘召喚空間，深黑到深紫氛圍 -->
+
+  <!-- 背景底色（深黑到深紫）-->
+  <defs>
+    <radialGradient id="bg_grad" cx="50%" cy="46%" r="60%">
+      <stop offset="0%"   stop-color="#1A0030"/>
+      <stop offset="60%"  stop-color="#0D0020"/>
+      <stop offset="100%" stop-color="#050009"/>
+    </radialGradient>
+    <radialGradient id="glow_center" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#6600AA" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#1A0030" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="1080" height="1920" fill="url(#bg_grad)"/>
+
+  <!-- 頂部光柱（從上向下，細長 rect）-->
+  <rect x="160"  y="0" width="18"  height="1200" fill="#3300AA" opacity="0.08"/>
+  <rect x="400"  y="0" width="12"  height="1400" fill="#3300AA" opacity="0.07"/>
+  <rect x="640"  y="0" width="20"  height="1100" fill="#4400BB" opacity="0.08"/>
+  <rect x="880"  y="0" width="14"  height="1300" fill="#3300AA" opacity="0.07"/>
+
+  <!-- 底部光柱（從底向上）-->
+  <rect x="240"  y="900" width="10" height="1020" fill="#5500CC" opacity="0.06"/>
+  <rect x="780"  y="800" width="8"  height="1120" fill="#4400AA" opacity="0.07"/>
+
+  <!-- 中央光環光暈（背景層，最大漫射）-->
+  <ellipse cx="540" cy="880" rx="500" ry="500" fill="url(#glow_center)"/>
+
+  <!-- 外圓光環（stroke only）-->
+  <ellipse cx="540" cy="880" rx="380" ry="380"
+           fill="none" stroke="#440088" stroke-width="3" opacity="0.5"/>
+  <!-- 外圓輔助線（虛化感）-->
+  <ellipse cx="540" cy="880" rx="384" ry="384"
+           fill="none" stroke="#440088" stroke-width="1" opacity="0.2"/>
+  <ellipse cx="540" cy="880" rx="376" ry="376"
+           fill="none" stroke="#440088" stroke-width="1" opacity="0.2"/>
+
+  <!-- 內圓光環 -->
+  <ellipse cx="540" cy="880" rx="280" ry="280"
+           fill="none" stroke="#6600AA" stroke-width="2" opacity="0.3"/>
+  <!-- 內圓高光版（稍亮）-->
+  <ellipse cx="540" cy="880" rx="282" ry="282"
+           fill="none" stroke="#8800CC" stroke-width="1" opacity="0.2"/>
+
+  <!-- 最內圈（裝飾）-->
+  <ellipse cx="540" cy="880" rx="160" ry="160"
+           fill="none" stroke="#7700BB" stroke-width="1" opacity="0.2"/>
+
+  <!-- 光環中心發光 -->
+  <ellipse cx="540" cy="880" rx="80" ry="80" fill="#330055" opacity="0.4"/>
+  <ellipse cx="540" cy="880" rx="40" ry="40" fill="#440077" opacity="0.3"/>
+
+  <!-- 符文點（12 個，沿外圓圓周分布，r=380）-->
+  <!-- 角度計算：每30度一個，起始90度，即 y=880-380=500 為 90度 -->
+  <!-- 0度   (540+380, 880) = (920, 880) -->
+  <ellipse cx="920" cy="880" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 30度  (540+380*cos30, 880-380*sin30) = (869, 690) -->
+  <ellipse cx="869" cy="690" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 60度  (540+380*cos60, 880-380*sin60) = (730, 551) -->
+  <ellipse cx="730" cy="551" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 90度  (540, 500) -->
+  <ellipse cx="540" cy="500" rx="6" ry="6" fill="#DD55FF" opacity="0.9"/>
+  <!-- 120度 (540-190, 551) = (350, 551) -->
+  <ellipse cx="350" cy="551" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 150度 (540-329, 690) = (211, 690) -->
+  <ellipse cx="211" cy="690" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 180度 (540-380, 880) = (160, 880) -->
+  <ellipse cx="160" cy="880" rx="6" ry="6" fill="#DD55FF" opacity="0.9"/>
+  <!-- 210度 (211, 1070) -->
+  <ellipse cx="211" cy="1070" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 240度 (350, 1209) -->
+  <ellipse cx="350" cy="1209" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 270度 (540, 1260) -->
+  <ellipse cx="540" cy="1260" rx="6" ry="6" fill="#DD55FF" opacity="0.9"/>
+  <!-- 300度 (730, 1209) -->
+  <ellipse cx="730" cy="1209" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+  <!-- 330度 (869, 1070) -->
+  <ellipse cx="869" cy="1070" rx="6" ry="6" fill="#CC44FF" opacity="0.7"/>
+
+  <!-- 符文點內光（較亮核心）-->
+  <ellipse cx="920" cy="880" rx="3" ry="3" fill="#EE88FF" opacity="0.6"/>
+  <ellipse cx="540" cy="500" rx="3" ry="3" fill="#EE88FF" opacity="0.8"/>
+  <ellipse cx="160" cy="880" rx="3" ry="3" fill="#EE88FF" opacity="0.8"/>
+  <ellipse cx="540" cy="1260" rx="3" ry="3" fill="#EE88FF" opacity="0.8"/>
+
+  <!-- 符文點輻射線（連接外圓，增加神秘感）-->
+  <!-- 12 條從圓心到符文點的極暗線 -->
+  <line x1="540" y1="880" x2="920" y2="880"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="869" y2="690"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="730" y2="551"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="540" y2="500"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="350" y2="551"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="211" y2="690"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="160" y2="880"  stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="211" y2="1070" stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="350" y2="1209" stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="540" y2="1260" stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="730" y2="1209" stroke="#550099" stroke-width="1" opacity="0.15"/>
+  <line x1="540" y1="880" x2="869" y2="1070" stroke="#550099" stroke-width="1" opacity="0.15"/>
+
+  <!-- 地面反光（底部橢圓）-->
+  <ellipse cx="540" cy="1780" rx="500" ry="120" fill="#220044" opacity="0.4"/>
+  <!-- 地面反光（更亮核心）-->
+  <ellipse cx="540" cy="1800" rx="280" ry="60"  fill="#330055" opacity="0.3"/>
+
+  <!-- 頂部暗角（增加縱深，拉回注意力至中央）-->
+  <rect x="0"   y="0"    width="1080" height="200" fill="#050009" opacity="0.5"/>
+  <!-- 底部暗角 -->
+  <rect x="0"   y="1700" width="1080" height="220" fill="#050009" opacity="0.4"/>
+
+  <!-- 左右邊緣暗角 -->
+  <rect x="0"   y="0" width="80"  height="1920" fill="#050009" opacity="0.3"/>
+  <rect x="1000" y="0" width="80"  height="1920" fill="#050009" opacity="0.3"/>
+
+  <!-- 微粒漫射（模擬空氣中的光塵，極小橢圓）-->
+  <ellipse cx="320" cy="620" rx="2" ry="2" fill="#AA44FF" opacity="0.3"/>
+  <ellipse cx="750" cy="480" rx="2" ry="2" fill="#AA44FF" opacity="0.25"/>
+  <ellipse cx="180" cy="900" rx="2" ry="2" fill="#AA44FF" opacity="0.2"/>
+  <ellipse cx="900" cy="750" rx="2" ry="2" fill="#AA44FF" opacity="0.2"/>
+  <ellipse cx="460" cy="1100" rx="2" ry="2" fill="#AA44FF" opacity="0.25"/>
+  <ellipse cx="640" cy="1150" rx="2" ry="2" fill="#AA44FF" opacity="0.2"/>
+  <ellipse cx="820" cy="1020" rx="2" ry="2" fill="#AA44FF" opacity="0.2"/>
+  <ellipse cx="260" cy="1180" rx="2" ry="2" fill="#AA44FF" opacity="0.2"/>
+</svg>

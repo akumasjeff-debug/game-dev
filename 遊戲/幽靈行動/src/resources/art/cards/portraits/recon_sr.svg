@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <defs>
+    <linearGradient id="bg_sr_r" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101828"/>
+      <stop offset="100%" stop-color="#1A2840"/>
+    </linearGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="100" height="130" fill="url(#bg_sr_r)"/>
+  <!-- SR 發光邊線（青色） -->
+  <rect x="2" y="2" width="96" height="126" rx="3" fill="none" stroke="#22CCCC" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- 戰術偵察裝下身 -->
+  <rect x="12" y="80" width="76" height="50" rx="4" fill="#223048"/>
+  <!-- 戰術口袋 左 -->
+  <rect x="15" y="88" width="18" height="14" rx="2" fill="#182038"/>
+  <rect x="16" y="92" width="16" height="2" fill="#223048"/>
+  <!-- 戰術口袋 右 -->
+  <rect x="67" y="88" width="18" height="14" rx="2" fill="#182038"/>
+  <rect x="68" y="92" width="16" height="2" fill="#223048"/>
+  <!-- 護肩（左） -->
+  <polygon points="12,80 28,72 32,90 12,98" fill="#2A3858"/>
+  <rect x="12" y="84" width="20" height="2" fill="#22CCCC" opacity="0.6"/>
+  <!-- 護肩（右） -->
+  <polygon points="88,80 72,72 68,90 88,98" fill="#2A3858"/>
+  <rect x="68" y="84" width="20" height="2" fill="#22CCCC" opacity="0.6"/>
+  <!-- 胸甲 -->
+  <rect x="20" y="66" width="60" height="26" rx="3" fill="#223048"/>
+  <!-- 裝備帶 -->
+  <rect x="34" y="66" width="5" height="26" fill="#182038"/>
+  <rect x="61" y="66" width="5" height="26" fill="#182038"/>
+  <!-- 胸前偵察標記 -->
+  <rect x="43" y="69" width="14" height="10" rx="2" fill="#182038"/>
+  <rect x="45" y="71" width="10" height="6" rx="1" fill="#22CCCC" opacity="0.5"/>
+  <rect x="49" y="67" width="2" height="3" fill="#22CCCC"/>
+
+  <!-- 頸部 -->
+  <rect x="42" y="56" width="16" height="12" rx="3" fill="#A88060"/>
+  <!-- 頭部 -->
+  <ellipse cx="50" cy="42" rx="22" ry="24" fill="#A88060"/>
+  <ellipse cx="28" cy="44" rx="4" ry="6" fill="#A07858"/>
+  <ellipse cx="72" cy="44" rx="4" ry="6" fill="#A07858"/>
+  <!-- 戰術頭盔 多鏡頭 -->
+  <ellipse cx="50" cy="30" rx="22" ry="18" fill="#223048"/>
+  <rect x="28" y="30" width="44" height="14" fill="#223048"/>
+  <!-- 耳機（升級版） -->
+  <rect x="20" y="40" width="10" height="14" rx="4" fill="#1A2438"/>
+  <ellipse cx="25" cy="47" rx="3" ry="5" fill="#223048"/>
+  <rect x="70" y="40" width="10" height="14" rx="4" fill="#1A2438"/>
+  <ellipse cx="75" cy="47" rx="3" ry="5" fill="#223048"/>
+  <!-- SR 多鏡頭陣列 -->
+  <rect x="30" y="40" width="40" height="12" rx="4" fill="#101820" opacity="0.95"/>
+  <!-- 左鏡頭 -->
+  <ellipse cx="38" cy="46" rx="5" ry="5" fill="#1A2A3A"/>
+  <ellipse cx="38" cy="46" rx="3" ry="3" fill="#22CCCC" opacity="0.7"/>
+  <ellipse cx="38" cy="46" rx="1.5" ry="1.5" fill="#AAEEFF" opacity="0.9"/>
+  <!-- 中鏡頭 -->
+  <ellipse cx="50" cy="46" rx="5" ry="5" fill="#1A2A3A"/>
+  <ellipse cx="50" cy="46" rx="3" ry="3" fill="#22CCCC" opacity="0.7"/>
+  <ellipse cx="50" cy="46" rx="1.5" ry="1.5" fill="#AAEEFF" opacity="0.9"/>
+  <!-- 右鏡頭 -->
+  <ellipse cx="62" cy="46" rx="5" ry="5" fill="#1A2A3A"/>
+  <ellipse cx="62" cy="46" rx="3" ry="3" fill="#22CCCC" opacity="0.7"/>
+  <ellipse cx="62" cy="46" rx="1.5" ry="1.5" fill="#AAEEFF" opacity="0.9"/>
+  <!-- 鏡頭框 SR 發光 -->
+  <rect x="30" y="40" width="40" height="12" rx="4" fill="none" stroke="#22CCCC" stroke-width="0.8" opacity="0.8"/>
+  <!-- 頭盔頂部天線 -->
+  <rect x="46" y="20" width="2" height="10" fill="#22CCCC" opacity="0.8"/>
+  <rect x="52" y="22" width="2" height="8" fill="#22CCCC" opacity="0.6"/>
+  <ellipse cx="47" cy="20" rx="2" ry="2" fill="#44EEFF" opacity="0.7"/>
+</svg>

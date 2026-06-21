@@ -1,0 +1,141 @@
+<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <!-- 基地背景 — 軍事地下指揮室，主色調極深藍黑 -->
+
+  <!-- 底色 -->
+  <rect x="0" y="0" width="1080" height="1920" fill="#0A1020"/>
+
+  <!-- 牆面格線（橫向，間距 60px）-->
+  <rect x="0"   y="60"  width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="120" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="180" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="240" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="300" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="360" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="420" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="480" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="540" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="600" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="660" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="720" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="780" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="840" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="900" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="960" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1020" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1080" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1140" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1200" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1260" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1320" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1380" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1440" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1500" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1560" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1620" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1680" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1740" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1800" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+  <rect x="0"   y="1860" width="1080" height="1" fill="#1A2840" opacity="0.5"/>
+
+  <!-- 牆面格線（縱向，間距 60px）-->
+  <rect x="60"  y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="120" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="180" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="240" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="300" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="360" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="420" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="480" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="540" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="600" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="660" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="720" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="780" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="840" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="900" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="960" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+  <rect x="1020" y="0" width="1" height="1920" fill="#1A2840" opacity="0.5"/>
+
+  <!-- 左側地圖投影（半透明地圖感）-->
+  <!-- 地圖底板 -->
+  <rect x="30"  y="280" width="340" height="480" fill="#1E3A5F" opacity="0.4"/>
+  <!-- 地圖內部格線（更細）-->
+  <rect x="30"  y="340" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="400" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="460" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="520" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="580" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="640" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="30"  y="700" width="340" height="1"   fill="#2A5080" opacity="0.6"/>
+  <rect x="90"  y="280" width="1"   height="480" fill="#2A5080" opacity="0.6"/>
+  <rect x="150" y="280" width="1"   height="480" fill="#2A5080" opacity="0.6"/>
+  <rect x="210" y="280" width="1"   height="480" fill="#2A5080" opacity="0.6"/>
+  <rect x="270" y="280" width="1"   height="480" fill="#2A5080" opacity="0.6"/>
+  <rect x="330" y="280" width="1"   height="480" fill="#2A5080" opacity="0.6"/>
+  <!-- 地圖標記點（模擬戰術地圖）-->
+  <rect x="100" y="380" width="12"  height="12"  fill="#00AACC" opacity="0.7"/>
+  <rect x="200" y="450" width="8"   height="8"   fill="#FFCC00" opacity="0.6"/>
+  <rect x="280" y="530" width="10"  height="10"  fill="#FF4444" opacity="0.5"/>
+  <rect x="150" y="600" width="6"   height="6"   fill="#00AACC" opacity="0.5"/>
+  <!-- 地圖邊框（亮線）-->
+  <rect x="30"  y="280" width="340" height="2"   fill="#2A5080" opacity="0.7"/>
+  <rect x="30"  y="756" width="340" height="2"   fill="#2A5080" opacity="0.7"/>
+  <rect x="30"  y="280" width="2"   height="480" fill="#2A5080" opacity="0.7"/>
+  <rect x="368" y="280" width="2"   height="480" fill="#2A5080" opacity="0.7"/>
+  <!-- 地圖標題條 -->
+  <rect x="30"  y="240" width="340" height="42"  fill="#1E3A5F" opacity="0.5"/>
+
+  <!-- 右側螢幕發光效果 -->
+  <!-- 主發光橢圓（大，漫射）-->
+  <ellipse cx="850" cy="400" rx="300" ry="420" fill="#2244AA" opacity="0.2"/>
+  <!-- 次發光（較亮核心）-->
+  <ellipse cx="850" cy="380" rx="180" ry="260" fill="#2244AA" opacity="0.15"/>
+  <!-- 螢幕輪廓（方形，模擬顯示器）-->
+  <rect x="640" y="140" width="380" height="480" fill="#0D1F38" opacity="0.6"/>
+  <rect x="640" y="140" width="380" height="2"   fill="#2244AA" opacity="0.5"/>
+  <rect x="640" y="618" width="380" height="2"   fill="#2244AA" opacity="0.5"/>
+  <rect x="640" y="140" width="2"   height="480" fill="#2244AA" opacity="0.5"/>
+  <rect x="1018" y="140" width="2"  height="480" fill="#2244AA" opacity="0.5"/>
+  <!-- 螢幕內容（掃描線效果）-->
+  <rect x="642" y="200" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="260" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="320" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="380" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="440" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="500" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <rect x="642" y="560" width="376" height="2"   fill="#2244AA" opacity="0.2"/>
+  <!-- 螢幕資料線條（模擬數據顯示）-->
+  <rect x="660" y="180" width="200" height="8"   fill="#2244AA" opacity="0.4"/>
+  <rect x="660" y="230" width="280" height="6"   fill="#1A3388" opacity="0.5"/>
+  <rect x="660" y="280" width="180" height="6"   fill="#1A3388" opacity="0.4"/>
+  <rect x="660" y="340" width="240" height="6"   fill="#1A3388" opacity="0.4"/>
+  <!-- 第二顯示器（右下角，小型）-->
+  <rect x="700" y="700" width="280" height="200" fill="#0D1F38" opacity="0.5"/>
+  <rect x="700" y="700" width="280" height="2"   fill="#2244AA" opacity="0.4"/>
+  <rect x="700" y="898" width="280" height="2"   fill="#2244AA" opacity="0.4"/>
+
+  <!-- 操作台輪廓（底部，高 240px）-->
+  <rect x="0"   y="1680" width="1080" height="240" fill="#0D1F38"/>
+  <!-- 操作台面板線 -->
+  <rect x="0"   y="1680" width="1080" height="3"   fill="#1A3050"/>
+  <!-- 操作台按鈕/螢幕分區 -->
+  <rect x="40"  y="1700" width="180" height="120" fill="#0A1828" opacity="0.8"/>
+  <rect x="40"  y="1700" width="180" height="2"   fill="#2244AA" opacity="0.5"/>
+  <rect x="260" y="1700" width="260" height="120" fill="#0A1828" opacity="0.8"/>
+  <rect x="260" y="1700" width="260" height="2"   fill="#2244AA" opacity="0.5"/>
+  <rect x="560" y="1700" width="200" height="120" fill="#0A1828" opacity="0.8"/>
+  <rect x="560" y="1700" width="200" height="2"   fill="#2244AA" opacity="0.5"/>
+  <rect x="800" y="1700" width="240" height="120" fill="#0A1828" opacity="0.8"/>
+  <rect x="800" y="1700" width="240" height="2"   fill="#2244AA" opacity="0.5"/>
+  <!-- 操作台小按鈕 -->
+  <rect x="60"  y="1840" width="20"  height="20"  fill="#1A3050"/>
+  <rect x="90"  y="1840" width="20"  height="20"  fill="#1A3050"/>
+  <rect x="120" y="1840" width="20"  height="20"  fill="#1A3050"/>
+  <rect x="60"  y="1870" width="20"  height="20"  fill="#1A3050"/>
+  <rect x="90"  y="1870" width="20"  height="20"  fill="#00AACC" opacity="0.4"/>
+  <rect x="120" y="1870" width="20"  height="20"  fill="#1A3050"/>
+  <!-- 操作台鍵盤區 -->
+  <rect x="340" y="1840" width="160" height="60"  fill="#0A1525" opacity="0.9"/>
+  <!-- 頂部極暗漸層（空間縱深感）-->
+  <rect x="0"   y="0"   width="1080" height="120" fill="#050810" opacity="0.6"/>
+</svg>

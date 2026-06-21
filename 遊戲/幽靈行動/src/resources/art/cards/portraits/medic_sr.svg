@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+  <defs>
+    <linearGradient id="bg_sr_m" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1A2840"/>
+      <stop offset="100%" stop-color="#2A4060"/>
+    </linearGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="100" height="130" fill="url(#bg_sr_m)"/>
+  <rect width="100" height="130" fill="#6699CC" opacity="0.08"/>
+  <!-- 發光邊線 -->
+  <rect x="2" y="2" width="96" height="126" rx="3" fill="none" stroke="#4499FF" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- 肩膀強化護甲 -->
+  <rect x="12" y="82" width="76" height="48" rx="5" fill="#C8D8E8"/>
+  <!-- 護肩板（左） -->
+  <polygon points="12,82 28,76 28,96 12,100" fill="#A0B8D0"/>
+  <!-- 護肩板（右） -->
+  <polygon points="88,82 72,76 72,96 88,100" fill="#A0B8D0"/>
+  <!-- 護甲主體 -->
+  <rect x="22" y="70" width="56" height="60" rx="3" fill="#D8EAF8"/>
+  <!-- 藍色發光藥劑（左） -->
+  <rect x="14" y="72" width="10" height="22" rx="5" fill="#2266AA" opacity="0.9"/>
+  <rect x="15" y="73" width="8" height="20" rx="4" fill="#44AAFF" opacity="0.6"/>
+  <ellipse cx="19" cy="76" rx="3" ry="3" fill="#88CCFF" opacity="0.8"/>
+  <!-- 藍色發光藥劑（右） -->
+  <rect x="76" y="72" width="10" height="22" rx="5" fill="#2266AA" opacity="0.9"/>
+  <rect x="77" y="73" width="8" height="20" rx="4" fill="#44AAFF" opacity="0.6"/>
+  <ellipse cx="81" cy="76" rx="3" ry="3" fill="#88CCFF" opacity="0.8"/>
+  <!-- 紅十字強化臂章 -->
+  <rect x="26" y="76" width="18" height="18" rx="2" fill="#FFFFFF" stroke="#CC0000" stroke-width="1.5"/>
+  <rect x="33" y="78" width="4" height="14" fill="#DD1100"/>
+  <rect x="27" y="83" width="16" height="4" fill="#DD1100"/>
+
+  <!-- 頸部 -->
+  <rect x="42" y="60" width="16" height="12" rx="3" fill="#C8A882"/>
+  <!-- 頭部 -->
+  <ellipse cx="50" cy="46" rx="22" ry="24" fill="#C8A882"/>
+  <ellipse cx="28" cy="48" rx="4" ry="6" fill="#C0A07A"/>
+  <ellipse cx="72" cy="48" rx="4" ry="6" fill="#C0A07A"/>
+  <!-- 頭盔（升級，加護目鏡） -->
+  <ellipse cx="50" cy="35" rx="22" ry="17" fill="#B8C8D8"/>
+  <rect x="28" y="35" width="44" height="14" fill="#B8C8D8"/>
+  <!-- 護目鏡 -->
+  <rect x="30" y="44" width="40" height="12" rx="6" fill="#1A3A5A" opacity="0.9"/>
+  <rect x="31" y="45" width="18" height="10" rx="5" fill="#2255AA" opacity="0.7"/>
+  <rect x="51" y="45" width="18" height="10" rx="5" fill="#2255AA" opacity="0.7"/>
+  <rect x="32" y="46" width="16" height="8" rx="4" fill="#44AAFF" opacity="0.3"/>
+  <rect x="52" y="46" width="16" height="8" rx="4" fill="#44AAFF" opacity="0.3"/>
+  <!-- 護目鏡橋接 -->
+  <rect x="48" y="47" width="4" height="6" fill="#445566"/>
+  <!-- 頭盔紅十字 -->
+  <rect x="47" y="28" width="3" height="12" fill="#CC2200" opacity="0.9"/>
+  <rect x="43" y="33" width="11" height="3" fill="#CC2200" opacity="0.9"/>
+  <!-- 口罩 -->
+  <rect x="36" y="56" width="28" height="10" rx="3" fill="#D0DCE8"/>
+  <!-- SR 發光邊緣光 -->
+  <rect x="30" y="44" width="40" height="12" rx="6" fill="none" stroke="#44AAFF" stroke-width="1" opacity="0.8"/>
+</svg>
