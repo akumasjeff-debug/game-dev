@@ -423,8 +423,14 @@ func _spawn_squad() -> void:
 	squad_controller.setup(wps, members)
 
 func _get_char_data(char_id: String) -> Dictionary:
+	# card_id 可能含等級後綴（shield_r / assault_qr / medic_ssr），先剝離
+	var class_id := char_id
+	for suffix in ["_qr", "_ssr", "_sr", "_r"]:
+		if char_id.ends_with(suffix):
+			class_id = char_id.substr(0, char_id.length() - suffix.length())
+			break
 	for data in CHAR_DATA:
-		if data["id"] == char_id:
+		if data["id"] == class_id:
 			return data
 	return {}
 
@@ -566,20 +572,10 @@ func _fire_room_trigger(trigger_pos: Vector2, label: String, enemy_configs: Arra
 		dp.option_selected.connect(callback, CONNECT_ONE_SHOT)
 
 	if OS.is_debug_build():
-		print("[Main] 觸發房間決策: ", label, " 敵人配置數:", enemy_configs.size())
+		print("[Main] 觸發房間: ", label, " 敵人配置數:", enemy_configs.size())
 
-	# 顯示決策面板（暫停小隊，等玩家選擇進入方式）
-	var decision_data = {
-		"type": "room",
-		"title": "進入 " + label,
-		"description": "偵測到敵方移動，如何進入？",
-		"options": [
-			{"id": "charge",  "text": "直衝突入",   "desc": "快速但危險，全隊可能受傷"},
-			{"id": "stealth", "text": "靜悄進入", "desc": "緩慢但安全，敵人無法提前警戒"},
-			{"id": "bomb",    "text": "投擲炸彈",   "desc": "需要爆破手，清場效果佳"},
-		],
-	}
-	GameManager.trigger_decision(decision_data)
+	# 事件選擇暫時停用：直接以「直衝突入」進入房間
+	room.start_battle("charge")
 
 func _on_room_entry_selected(opt_id: String, room: Node) -> void:
 	if room == null or not is_instance_valid(room):
@@ -782,7 +778,8 @@ func _create_trigger(pos: Vector2, type: String, label: String) -> void:
 		"triggered": false,
 		"callback": func():
 			marker_node.visible = false
-			GameManager.trigger_decision(decision_data)
+			# 事件選擇暫時停用：補給箱直接回血
+			_apply_supply_effect("heal")
 	})
 
 func _create_boss_decision_trigger(pos: Vector2) -> void:
@@ -817,18 +814,7 @@ func _create_boss_decision_trigger(pos: Vector2) -> void:
 func _on_boss_decision_fired(marker_node: Node) -> void:
 	if marker_node and is_instance_valid(marker_node):
 		marker_node.visible = false
-
-	var decision_data = {
-		"type": "boss",
-		"title": "目標：指揮官",
-		"description": "前方就是 Boss 房，指揮官帶著精銳衛隊守在裡面，如何行動？",
-		"options": [
-			{"id": "boss_charge",  "text": "直衝 Boss", "desc": "全隊直接衝入，承受 Boss 第一波攻擊，速戰速決"},
-			{"id": "boss_flank",   "text": "側翼迂迴",  "desc": "繞路消耗更長，但陣型更有利，進場受傷 -30%"},
-			{"id": "boss_bait",    "text": "引蛇出洞",  "desc": "引 Boss 離開房間，先消滅 2 名護衛，減少進場壓力"},
-		]
-	}
-	GameManager.trigger_decision(decision_data)
+	# 事件選擇暫時停用：直接進 Boss 房
 
 func _create_boss_room_trigger(pos: Vector2) -> void:
 	# Boss 房觸發（生成 Boss 敵人，在 Boss 決策後觸發，敵人數由任務配置決定）
@@ -909,14 +895,8 @@ func _on_fork_trigger_fired(marker_node: Node) -> void:
 		{"id": "right", "text": "右路（直達房間C）","desc": "直接抵達，節省時間"},
 	]
 
-	var decision_data = {
-		"type": "fork",
-		"title": "前方出現岔路",
-		"description": "選擇前進路線：",
-		"options": options,
-		"shield_level": shield_level,
-	}
-	GameManager.trigger_decision(decision_data)
+	# 事件選擇暫時停用：岔路直接走右路（直達）
+	switch_path("right")
 
 func _get_member_by_id(id: String) -> Node:
 	for member in GameManager.squad_members:
@@ -967,6 +947,21 @@ func _position_squad_for_combat(room_pos: Vector2, room_size: Vector2) -> void:
 		for member in gm.squad_members:
 			if member and is_instance_valid(member) and member.has_method("set_cover_mode"):
 				member.set_cover_mode(true)
+
+func _apply_supply_effect(effect_id: String) -> void:
+	var gm = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+	match effect_id:
+		"heal":
+			for m in gm.squad_members:
+				if m and is_instance_valid(m) and not m.is_dead:
+					m.current_hp = min(m.current_hp + m.max_hp * 0.4, m.max_hp)
+					m.emit_signal("hp_changed", m.current_hp, m.max_hp)
+		"ammo":
+			for m in gm.squad_members:
+				if m and is_instance_valid(m) and m.has_method("reset_ultimate_cd"):
+					m.reset_ultimate_cd()
 
 func _connect_signals() -> void:
 	pass

@@ -81,6 +81,9 @@ func _rebuild_owned_list() -> void:
 		if sm.has_method("has_card") and sm.has_card(card_id):
 			_owned_list.append(card_id)
 
+	# 過濾：已在陣容的卡不出現在下方可選清單
+	_owned_list = _owned_list.filter(func(cid): return not (cid in _current_squad))
+
 	_owned_list.sort_custom(func(a: String, b: String) -> bool:
 		var ca: String = _cards[a].get("class_id", _cards[a].get("char_class", ""))
 		var cb: String = _cards[b].get("class_id", _cards[b].get("char_class", ""))
