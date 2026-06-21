@@ -5,12 +5,14 @@ extends Node2D
 
 # ─── 節點引用（在 _ready 中取得）───
 var coins_label: Label
+var stamina_label: Label
 var squad_slots: Array = []        # 4 個 Button，代表已選陣容
 var class_buttons: Array = []      # 6 個職業選擇按鈕
 var offline_popup: Panel
 var offline_msg_label: Label
 var offline_confirm_btn: Button
 var mission_buttons: Array = []    # 任務板按鈕
+var ticket_label: Label
 
 # 職業清單（6 個，對應 characters.json id）
 const ALL_CLASSES: Array = [
@@ -62,6 +64,12 @@ func _build_ui() -> void:
 	# ── 出發按鈕 ──
 	_add_launch_button()
 
+	# ── 招募中心按鈕 ──
+	_add_gacha_button()
+
+	# ── 升級管理按鈕 ──
+	_add_upgrade_button()
+
 	# ── 離線金幣彈窗（預設隱藏）──
 	_add_offline_popup()
 
@@ -90,6 +98,20 @@ func _add_top_bar() -> void:
 	coins_label.modulate = Color(1.0, 0.9, 0.3)
 	coins_label.name = "CoinsLabel"
 	top.add_child(coins_label)
+
+	ticket_label = Label.new()
+	ticket_label.position = Vector2(700, 58)
+	ticket_label.add_theme_font_size_override("font_size", 18)
+	ticket_label.modulate = Color(0.6, 0.8, 1.0)
+	ticket_label.name = "TicketLabel"
+	top.add_child(ticket_label)
+
+	stamina_label = Label.new()
+	stamina_label.position = Vector2(700, 80)
+	stamina_label.add_theme_font_size_override("font_size", 18)
+	stamina_label.modulate = Color(0.4, 1.0, 0.6)
+	stamina_label.name = "StaminaLabel"
+	top.add_child(stamina_label)
 
 func _add_mission_board() -> void:
 	# 區塊標題
@@ -253,6 +275,33 @@ func _add_launch_button() -> void:
 	btn.pressed.connect(_on_launch_pressed)
 	add_child(btn)
 
+func _add_gacha_button() -> void:
+	var btn = Button.new()
+	btn.text = "招募中心"
+	btn.position = Vector2(290, 1010)
+	btn.custom_minimum_size = Vector2(500, 70)
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.name = "GachaBtn"
+	_style_button(btn, Color(0.15, 0.10, 0.35))
+	btn.pressed.connect(_open_gacha)
+	add_child(btn)
+
+func _add_upgrade_button() -> void:
+	var btn = Button.new()
+	btn.text = "升級管理"
+	btn.position = Vector2(290, 1100)
+	btn.custom_minimum_size = Vector2(500, 70)
+	btn.add_theme_font_size_override("font_size", 26)
+	btn.name = "UpgradeBtn"
+	_style_button(btn, Color(0.10, 0.25, 0.15))
+	btn.pressed.connect(_open_upgrade_panel)
+	add_child(btn)
+
+func _open_upgrade_panel() -> void:
+	AudioManager.play_sfx("btn_click")
+	var panel = load("res://scenes/UpgradePanel.tscn").instantiate()
+	get_tree().root.add_child(panel)
+
 func _add_offline_popup() -> void:
 	offline_popup = Panel.new()
 	offline_popup.name = "OfflinePopup"
@@ -308,6 +357,8 @@ func _load_state() -> void:
 	_update_coins_display()
 	_update_squad_display()
 	_update_class_buttons()
+	_update_ticket_display()
+	_update_stamina_display()
 
 func _update_coins_display() -> void:
 	if coins_label:
@@ -332,21 +383,68 @@ func _update_squad_display() -> void:
 
 func _update_class_buttons() -> void:
 	var selected = SaveManager.selected_squad
+	var owned = SaveManager.owned_characters
 	for i in range(ALL_CLASSES.size()):
 		var cls = ALL_CLASSES[i]
 		var btn = class_buttons[i]
-		if cls["id"] in selected:
+		var char_id = cls["id"]
+		var is_owned = char_id in owned
+		var rarity = SaveManager.character_rarity.get(char_id, 0)
+
+		# 稀有度後綴
+		var rarity_suffix = ""
+		if rarity == 1:
+			rarity_suffix = " [SR]"
+		elif rarity >= 2:
+			rarity_suffix = " [SSR]"
+
+		if not is_owned:
+			btn.disabled = true
+			btn.modulate = Color(0.3, 0.3, 0.3)
+			btn.text = cls["name"] + " [鎖定]"
+			# 清除邊框樣式
+			_style_button(btn, Color(0.12, 0.20, 0.28))
+		elif char_id in selected:
+			btn.disabled = false
 			btn.modulate = cls["color"]
-			btn.text = cls["name"] + " ✓"
+			btn.text = cls["name"] + rarity_suffix + " ✓"
+			# 選中且有稀有度 → 加邊框
+			if rarity >= 2:
+				_style_button_with_border(btn, Color(0.12, 0.20, 0.28), Color(1.0, 0.85, 0.2), 4)
+			elif rarity == 1:
+				_style_button_with_border(btn, Color(0.12, 0.20, 0.28), Color(0.82, 0.87, 1.0), 2)
+			else:
+				_style_button(btn, Color(0.12, 0.20, 0.28))
 		else:
-			btn.modulate = Color(0.75, 0.75, 0.75)
-			btn.text = cls["name"]
+			btn.disabled = false
+			var alpha = 0.7 if rarity == 0 else 1.0
+			btn.modulate = Color(cls["color"].r, cls["color"].g, cls["color"].b, alpha)
+			btn.text = cls["name"] + rarity_suffix
+			if rarity >= 2:
+				_style_button_with_border(btn, Color(0.12, 0.20, 0.28), Color(1.0, 0.85, 0.2), 4)
+			elif rarity == 1:
+				_style_button_with_border(btn, Color(0.12, 0.20, 0.28), Color(0.82, 0.87, 1.0), 2)
+			else:
+				_style_button(btn, Color(0.12, 0.20, 0.28))
 
 func _get_class_data(char_id: String) -> Dictionary:
 	for cls in ALL_CLASSES:
 		if cls["id"] == char_id:
 			return cls
 	return {}
+
+func _update_ticket_display() -> void:
+	if ticket_label:
+		ticket_label.text = "藍票：" + str(SaveManager.blue_tickets) + "  金票：" + str(SaveManager.gold_tickets)
+
+func _update_stamina_display() -> void:
+	if stamina_label:
+		stamina_label.text = "體力：" + str(SaveManager.stamina) + "/" + str(SaveManager.max_stamina)
+
+func _open_gacha() -> void:
+	AudioManager.play_sfx("btn_click")
+	var gacha_panel = load("res://scenes/GachaPanel.tscn").instantiate()
+	get_tree().root.add_child(gacha_panel)
 
 # ─────────────────────────────────────────
 #  離線金幣
@@ -457,7 +555,15 @@ func _on_launch_pressed() -> void:
 	# Bug3: 存入選擇的任務 ID 供 Main.gd 讀取
 	GameManager.current_mission_id = selected_mission_id
 
-	get_tree().change_scene_to_file("res://scenes/Main.tscn")
+	# 消耗體力
+	if not SaveManager.spend_stamina():
+		_show_error("體力不足！稍後再試。")
+		return
+	_update_stamina_display()
+
+	# 打開陣容確認面板
+	var confirm_panel = load("res://scenes/SquadConfirmPanel.tscn").instantiate()
+	get_tree().root.add_child(confirm_panel)
 
 func _show_error(msg: String) -> void:
 	# 短暫顯示錯誤訊息（複用 offline_msg_label 邏輯，用獨立 label）
@@ -497,5 +603,20 @@ func _style_button(btn: Button, bg_color: Color) -> void:
 	hover_style.bg_color = Color(bg_color.r + 0.1, bg_color.g + 0.1, bg_color.b + 0.1)
 	hover_style.border_color = Color(bg_color.r + 0.3, bg_color.g + 0.3, bg_color.b + 0.3, 0.9)
 	hover_style.set_border_width_all(2)
+	hover_style.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("hover", hover_style)
+
+func _style_button_with_border(btn: Button, bg_color: Color, border_color: Color, border_width: int) -> void:
+	var style = StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.set_corner_radius_all(6)
+	btn.add_theme_stylebox_override("normal", style)
+
+	var hover_style = StyleBoxFlat.new()
+	hover_style.bg_color = Color(bg_color.r + 0.1, bg_color.g + 0.1, bg_color.b + 0.1)
+	hover_style.border_color = border_color
+	hover_style.set_border_width_all(border_width)
 	hover_style.set_corner_radius_all(6)
 	btn.add_theme_stylebox_override("hover", hover_style)

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://squad_confirm_panel"]
+
+[ext_resource type="Script" path="res://scripts/squad_confirm_panel.gd" id="1_scp"]
+
+[node name="SquadConfirmPanel" type="CanvasLayer"]
+layer = 8
+script = ExtResource("1_scp")

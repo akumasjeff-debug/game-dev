@@ -15,27 +15,27 @@ extends CanvasLayer
 @onready var retry_btn: Button = $GameResultPanel/VBox/RetryBtn
 @onready var restart_btn: Button = $GameResultPanel/VBox/RestartBtn
 
-# 顏色常數（對應 HUD_SPEC 職業顏色）
-const COLOR_NORMAL_BG     := Color(0.102, 0.169, 0.102, 1.0)   # #1A2B1A
-const COLOR_NORMAL_BORDER := Color(0.227, 0.290, 0.227, 1.0)   # #3A4A3A
-const COLOR_READY_BORDER  := Color(0.910, 0.376, 0.039, 1.0)   # #E8600A
-const COLOR_DEAD_OVERLAY  := Color(0.800, 0.133, 0.133, 0.30)  # #CC2222 30%
-const COLOR_CD_OVERLAY    := Color(0.0,   0.0,   0.0,   0.55)  # #000000 55%
-const COLOR_HP_HIGH       := Color(0.267, 0.800, 0.267, 1.0)   # #44CC44
-const COLOR_HP_MID        := Color(0.910, 0.627, 0.039, 1.0)   # #E8A00A
-const COLOR_HP_LOW        := Color(0.800, 0.133, 0.133, 1.0)   # #CC2222
-const COLOR_HP_BG         := Color(0.227, 0.227, 0.227, 1.0)   # #3A3A3A
-const COLOR_CARD_BOTTOM   := Color(0.133, 0.200, 0.133, 1.0)   # #223322
-const COLOR_CD_LABEL      := Color(0.533, 0.533, 0.533, 1.0)   # #888888
-const COLOR_TEXT_MAIN     := Color(0.941, 0.941, 0.941, 1.0)   # #F0F0F0
-const COLOR_READY_TEXT    := Color(0.267, 0.800, 0.267, 1.0)   # #44CC44
-const COLOR_DEAD_TEXT     := Color(0.800, 0.133, 0.133, 1.0)   # #CC2222
-const COLOR_ORANGE        := Color(0.910, 0.376, 0.039, 1.0)   # #E8600A
+# 顏色常數
+const COLOR_NORMAL_BORDER := Color(0.25, 0.25, 0.30, 1.0)    # 普通邊框灰
+const COLOR_READY_BORDER  := Color(0.13, 0.80, 0.27, 1.0)    # 就緒綠 #22CC44
+const COLOR_DEAD_OVERLAY  := Color(0.60, 0.04, 0.04, 0.72)   # 死亡暗紅遮罩
+const COLOR_CD_OVERLAY    := Color(0.0,  0.0,  0.0,  0.62)   # CD 黑色遮罩
+const COLOR_HP_HIGH       := Color(0.13, 0.80, 0.13, 1.0)    # HP 高 #22CC22
+const COLOR_HP_MID        := Color(0.91, 0.63, 0.04, 1.0)    # HP 中 #E8A00A
+const COLOR_HP_LOW        := Color(0.80, 0.13, 0.13, 1.0)    # HP 低 #CC2222
+const COLOR_HP_BG         := Color(0.10, 0.10, 0.12, 0.85)   # HP 背景
+const COLOR_TEXT_MAIN     := Color(0.95, 0.95, 0.95, 1.0)    # 主文字白
+const COLOR_DEAD_TEXT     := Color(1.00, 0.30, 0.30, 1.0)    # 死亡紅
+const COLOR_ORANGE        := Color(0.91, 0.38, 0.04, 1.0)    # 橙色 #E8600A
+const COLOR_NAMEPLATE_BG  := Color(0.0,  0.0,  0.0,  0.65)  # 名牌半透明黑
 
-# 卡片尺寸（HUD_SPEC: 236×178px，觸控區 240×190px）
+# 卡片尺寸（TCG 卡牌風格：portrait 填滿，外框變色）
 const CARD_W: float = 236.0
 const CARD_H: float = 178.0
-const CIRCLE_SIZE: float = 44.0  # 職業圓圈直徑 44px
+# PORTRAIT_H：角色圖佔據上方 60% 高度，底部留給技能狀態區
+const PORTRAIT_H: float = 110.0
+const NAMEPLATE_H: float = 28.0
+const HP_BAR_H: float = 10.0
 
 # 角色卡片
 var card_nodes: Array = []
@@ -96,24 +96,146 @@ func setup_cards(squad: Array) -> void:
 		card_nodes.append(card)
 
 func _create_character_card(member) -> Control:
-	# 外層容器（觸控區保證 >= 120×120px）
+	# ── 外層容器 ──────────────────────────────────────────────
 	var card = Control.new()
 	card.custom_minimum_size = Vector2(CARD_W, CARD_H)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	# --- 卡片背景 Panel ---
-	var bg = Panel.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var style = StyleBoxFlat.new()
-	style.bg_color = COLOR_NORMAL_BG
-	style.border_color = COLOR_NORMAL_BORDER
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	bg.add_theme_stylebox_override("panel", style)
-	bg.name = "BG"
-	card.add_child(bg)
+	# ── 卡片底色（深黑，portrait 填滿後幾乎看不見）──────────
+	var bg_fill = ColorRect.new()
+	bg_fill.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg_fill.color = Color(0.06, 0.07, 0.10, 1.0)
+	card.add_child(bg_fill)
 
-	# --- 死亡遮罩（紅色半透明）---
+	# ── ① HP 血條（卡面最上方，全寬 4px 細條）────────────────
+	var hp_bg_rect = ColorRect.new()
+	hp_bg_rect.size = Vector2(CARD_W, HP_BAR_H)
+	hp_bg_rect.position = Vector2(0, 0)
+	hp_bg_rect.color = COLOR_HP_BG
+	hp_bg_rect.name = "HPBgRect"
+	card.add_child(hp_bg_rect)
+
+	var hp_bar = ProgressBar.new()
+	hp_bar.size = Vector2(CARD_W, HP_BAR_H)
+	hp_bar.position = Vector2(0, 0)
+	hp_bar.min_value = 0.0
+	hp_bar.max_value = member.max_hp
+	hp_bar.value = member.current_hp
+	hp_bar.show_percentage = false
+	hp_bar.name = "HPBar"
+	var hp_fill_style = StyleBoxFlat.new()
+	hp_fill_style.bg_color = COLOR_HP_HIGH
+	var hp_bg_style = StyleBoxFlat.new()
+	hp_bg_style.bg_color = Color(0, 0, 0, 0)
+	hp_bar.add_theme_stylebox_override("fill", hp_fill_style)
+	hp_bar.add_theme_stylebox_override("background", hp_bg_style)
+	card.add_child(hp_bar)
+
+	# ── ② Portrait SVG 填滿卡面（HP條下方到底部技能區上方）──
+	var portrait_top = HP_BAR_H
+	var portrait_h = CARD_H - HP_BAR_H - clamp(CARD_H - PORTRAIT_H - HP_BAR_H, 0.0, 50.0) - 38
+	# 簡化：portrait 佔 HP_BAR_H 到 PORTRAIT_H+HP_BAR_H
+	var portrait_path = "res://resources/art/portraits/" + member.char_id + "_portrait.svg"
+	if ResourceLoader.exists(portrait_path):
+		var tex_rect = TextureRect.new()
+		tex_rect.position = Vector2(0, HP_BAR_H)
+		tex_rect.size = Vector2(CARD_W, PORTRAIT_H)
+		tex_rect.texture = load(portrait_path)
+		tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tex_rect.name = "Portrait"
+		card.add_child(tex_rect)
+	else:
+		# 回退：職業色塊填充 portrait 區
+		var color_fill = ColorRect.new()
+		color_fill.position = Vector2(0, HP_BAR_H)
+		color_fill.size = Vector2(CARD_W, PORTRAIT_H)
+		color_fill.color = Color(member.body_color.r, member.body_color.g, member.body_color.b, 0.5)
+		color_fill.name = "Portrait"
+		card.add_child(color_fill)
+
+	# ── ③ 名牌條（疊在 portrait 頂部，半透明黑底）────────────
+	var nameplate = ColorRect.new()
+	nameplate.position = Vector2(0, HP_BAR_H)
+	nameplate.size = Vector2(CARD_W, NAMEPLATE_H)
+	nameplate.color = COLOR_NAMEPLATE_BG
+	nameplate.name = "Nameplate"
+	card.add_child(nameplate)
+
+	var name_lbl = Label.new()
+	var display_name = member.char_name
+	if display_name.length() > 4:
+		display_name = display_name.substr(0, 4) + "…"
+	name_lbl.text = display_name
+	name_lbl.position = Vector2(8, HP_BAR_H + 5)
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	name_lbl.modulate = COLOR_TEXT_MAIN
+	name_lbl.name = "NameLabel"
+	card.add_child(name_lbl)
+
+	# HP% 數字（名牌右側）
+	var hp_lbl = Label.new()
+	var hp_pct = int(member.current_hp * 100.0 / member.max_hp) if member.max_hp > 0 else 0
+	hp_lbl.text = str(hp_pct) + "%"
+	hp_lbl.position = Vector2(CARD_W - 44, HP_BAR_H + 5)
+	hp_lbl.add_theme_font_size_override("font_size", 13)
+	hp_lbl.modulate = COLOR_HP_HIGH
+	hp_lbl.name = "HPLabel"
+	card.add_child(hp_lbl)
+
+	# ── ④ 技能狀態區（卡片底部 38px）────────────────────────
+	var skill_bar_y = HP_BAR_H + PORTRAIT_H
+	var skill_bar_h = CARD_H - skill_bar_y
+
+	var skill_bg = ColorRect.new()
+	skill_bg.position = Vector2(0, skill_bar_y)
+	skill_bg.size = Vector2(CARD_W, skill_bar_h)
+	skill_bg.color = Color(0.05, 0.08, 0.05, 0.95)
+	skill_bg.name = "SkillBG"
+	card.add_child(skill_bg)
+
+	# 技能名稱（左側小字）
+	var ult_name_lbl = Label.new()
+	ult_name_lbl.text = member.ultimate_name if member.get("ultimate_name") else "大招"
+	ult_name_lbl.position = Vector2(6, skill_bar_y + 2)
+	ult_name_lbl.add_theme_font_size_override("font_size", 11)
+	ult_name_lbl.modulate = Color(0.6, 0.7, 0.6, 1.0)
+	ult_name_lbl.name = "UltNameLabel"
+	card.add_child(ult_name_lbl)
+
+	# 技能狀態主標籤（右側：就緒 / CD秒數）
+	var ult_lbl = Label.new()
+	ult_lbl.text = "就緒"
+	ult_lbl.position = Vector2(CARD_W - 48, skill_bar_y + 2)
+	ult_lbl.size = Vector2(44, skill_bar_h)
+	ult_lbl.add_theme_font_size_override("font_size", 13)
+	ult_lbl.modulate = COLOR_READY_BORDER
+	ult_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	ult_lbl.name = "UltLabel"
+	card.add_child(ult_lbl)
+
+	# ── ⑤ CD 遮罩（portrait 區半透明黑，顯示大 CD 數字）─────
+	var cd_overlay = ColorRect.new()
+	cd_overlay.position = Vector2(0, HP_BAR_H)
+	cd_overlay.size = Vector2(CARD_W, PORTRAIT_H)
+	cd_overlay.color = COLOR_CD_OVERLAY
+	cd_overlay.visible = false
+	cd_overlay.name = "CDOverlay"
+	card.add_child(cd_overlay)
+
+	# CD 大數字（疊在 portrait 中央）
+	var cd_num_lbl = Label.new()
+	cd_num_lbl.position = Vector2(0, HP_BAR_H + PORTRAIT_H * 0.25)
+	cd_num_lbl.size = Vector2(CARD_W, PORTRAIT_H * 0.5)
+	cd_num_lbl.add_theme_font_size_override("font_size", 44)
+	cd_num_lbl.modulate = Color(0.85, 0.85, 0.95, 1.0)
+	cd_num_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cd_num_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cd_num_lbl.visible = false
+	cd_num_lbl.name = "CDNumLabel"
+	card.add_child(cd_num_lbl)
+
+	# ── ⑥ 死亡遮罩 ───────────────────────────────────────────
 	var dead_overlay = ColorRect.new()
 	dead_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dead_overlay.color = COLOR_DEAD_OVERLAY
@@ -121,182 +243,127 @@ func _create_character_card(member) -> Control:
 	dead_overlay.name = "DeadOverlay"
 	card.add_child(dead_overlay)
 
-	# --- CD 遮罩（黑色漸層）---
-	var cd_overlay = ColorRect.new()
-	cd_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	cd_overlay.color = COLOR_CD_OVERLAY
-	cd_overlay.visible = false
-	cd_overlay.name = "CDOverlay"
-	card.add_child(cd_overlay)
+	var dead_lbl = Label.new()
+	dead_lbl.text = "✕"
+	dead_lbl.position = Vector2(0, HP_BAR_H + PORTRAIT_H * 0.2)
+	dead_lbl.size = Vector2(CARD_W, PORTRAIT_H * 0.6)
+	dead_lbl.add_theme_font_size_override("font_size", 48)
+	dead_lbl.modulate = Color(1.0, 0.25, 0.25, 0.9)
+	dead_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dead_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	dead_lbl.visible = false
+	dead_lbl.name = "DeadLabel"
+	card.add_child(dead_lbl)
 
-	# ===== 上區（高 56px）：職業圓圈 + 角色名 =====
-	# 職業顏色圓圈（44px 正方形，代表職業色）
-	var circle = ColorRect.new()
-	circle.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
-	circle.position = Vector2(10, 6)
-	circle.color = member.body_color
-	circle.name = "ClassCircle"
-	card.add_child(circle)
+	# ── ⑦ 外框 Panel（最上層，邊框變色：就緒=綠/CD=灰/死=紅）
+	var border = Panel.new()
+	border.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var border_style = _make_border_style(COLOR_READY_BORDER, 3)
+	border.add_theme_stylebox_override("panel", border_style)
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.name = "Border"
+	card.add_child(border)
 
-	# 角色名（最多 4 字）
-	var name_lbl = Label.new()
-	var display_name = member.char_name
-	if display_name.length() > 4:
-		display_name = display_name.substr(0, 4) + "…"
-	name_lbl.text = display_name
-	name_lbl.position = Vector2(10 + CIRCLE_SIZE + 8, 16)
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	name_lbl.modulate = COLOR_TEXT_MAIN
-	name_lbl.name = "NameLabel"
-	card.add_child(name_lbl)
-
-	# ===== 中區（y=58~78）：HP 血條 =====
-	# 血條背景
-	var hp_bg = ColorRect.new()
-	hp_bg.size = Vector2(CARD_W - 20, 10)
-	hp_bg.position = Vector2(10, 58)
-	hp_bg.color = COLOR_HP_BG
-	card.add_child(hp_bg)
-
-	# 血條前景
-	var hp_bar = ProgressBar.new()
-	hp_bar.size = Vector2(CARD_W - 20, 10)
-	hp_bar.position = Vector2(10, 58)
-	hp_bar.min_value = 0.0
-	hp_bar.max_value = member.max_hp
-	hp_bar.value = member.current_hp
-	hp_bar.show_percentage = false
-	hp_bar.name = "HPBar"
-	var hp_fill = StyleBoxFlat.new()
-	hp_fill.bg_color = COLOR_HP_HIGH
-	hp_fill.set_corner_radius_all(5)
-	var hp_bg_style = StyleBoxFlat.new()
-	hp_bg_style.bg_color = Color(0, 0, 0, 0)  # 透明，讓背景 ColorRect 顯示
-	hp_bar.add_theme_stylebox_override("fill", hp_fill)
-	hp_bar.add_theme_stylebox_override("background", hp_bg_style)
-	card.add_child(hp_bar)
-
-	# HP 百分比數字（血條右上方）
-	var hp_lbl = Label.new()
-	var hp_pct = int(member.current_hp * 100.0 / member.max_hp) if member.max_hp > 0 else 0
-	hp_lbl.text = str(hp_pct) + "%"
-	hp_lbl.position = Vector2(CARD_W - 46, 44)
-	hp_lbl.add_theme_font_size_override("font_size", 11)
-	hp_lbl.modulate = COLOR_TEXT_MAIN
-	hp_lbl.name = "HPLabel"
-	card.add_child(hp_lbl)
-
-	# ===== 下區（y=88~178）：大招狀態區 =====
-	var ult_bg = ColorRect.new()
-	ult_bg.size = Vector2(CARD_W, CARD_H - 88)
-	ult_bg.position = Vector2(0, 88)
-	ult_bg.color = COLOR_CARD_BOTTOM
-	ult_bg.name = "UltBG"
-	card.add_child(ult_bg)
-
-	# CD 標籤（小字，預設隱藏）
-	var cd_tag = Label.new()
-	cd_tag.text = "CD"
-	cd_tag.position = Vector2(CARD_W * 0.5 - 8, 92)
-	cd_tag.add_theme_font_size_override("font_size", 10)
-	cd_tag.modulate = COLOR_CD_LABEL
-	cd_tag.name = "CDTag"
-	cd_tag.visible = false
-	card.add_child(cd_tag)
-
-	# 大招狀態主標籤（就緒 / CD 倒數 / 倒下）
-	var ult_lbl = Label.new()
-	ult_lbl.text = "大招就緒"
-	ult_lbl.position = Vector2(0, 108)
-	ult_lbl.size = Vector2(CARD_W, 50)
-	ult_lbl.add_theme_font_size_override("font_size", 13)
-	ult_lbl.modulate = COLOR_READY_TEXT
-	ult_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	ult_lbl.name = "UltLabel"
-	card.add_child(ult_lbl)
-
-	# 隱形按鈕覆蓋下區，捕捉點擊（觸控區 >= 120px）
+	# ── ⑧ 點擊按鈕（覆蓋全卡，捕捉大招點擊）────────────────
 	var ult_btn = Button.new()
-	ult_btn.position = Vector2(0, 88)
-	ult_btn.custom_minimum_size = Vector2(CARD_W, CARD_H - 88)
+	ult_btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ult_btn.flat = true
 	var btn_empty = StyleBoxEmpty.new()
-	ult_btn.add_theme_stylebox_override("normal", btn_empty)
-	ult_btn.add_theme_stylebox_override("hover", btn_empty)
-	ult_btn.add_theme_stylebox_override("pressed", btn_empty)
-	ult_btn.add_theme_stylebox_override("focus", btn_empty)
+	for s in ["normal","hover","pressed","focus"]:
+		ult_btn.add_theme_stylebox_override(s, btn_empty)
 	ult_btn.name = "UltBtn"
 	ult_btn.pressed.connect(_on_ultimate_pressed.bind(member, card))
 	card.add_child(ult_btn)
 
-	# 連接信號
+	# ── 信號連接 ─────────────────────────────────────────────
 	member.hp_changed.connect(_on_hp_changed.bind(hp_bar, hp_lbl, card))
-	member.ultimate_ready.connect(_on_ultimate_ready.bind(card))
+	member.ultimate_ready.connect(_on_ultimate_ready.bind(card, member.char_id))
 	member.ultimate_used.connect(_on_ultimate_used.bind(card))
 	member.character_died.connect(_on_character_died.bind(card))
 
 	return card
 
+func _make_border_style(border_color: Color, width: int) -> StyleBoxFlat:
+	var s = StyleBoxFlat.new()
+	s.bg_color = Color(0, 0, 0, 0)      # 透明底，只顯示邊框
+	s.border_color = border_color
+	s.set_border_width_all(width)
+	s.set_corner_radius_all(6)
+	s.draw_center = false
+	return s
+
 # ---- 卡片狀態切換 ----
 
 func _set_card_ready_state(card: Control) -> void:
-	var cd_overlay = card.find_child("CDOverlay", false, false)
-	if cd_overlay:
-		cd_overlay.visible = false
+	# 隱藏 CD 遮罩與大數字
+	var cd_ov = card.find_child("CDOverlay", false, false)
+	if cd_ov: cd_ov.visible = false
+	var cd_num = card.find_child("CDNumLabel", false, false) as Label
+	if cd_num: cd_num.visible = false
+	# 技能標籤顯示「就緒」綠字
 	var ult_lbl = card.find_child("UltLabel", false, false) as Label
 	if ult_lbl:
-		ult_lbl.text = "大招就緒"
+		ult_lbl.text = "就緒"
 		ult_lbl.add_theme_font_size_override("font_size", 13)
-		ult_lbl.modulate = COLOR_READY_TEXT
-	var cd_tag = card.find_child("CDTag", false, false)
-	if cd_tag:
-		cd_tag.visible = false
+		ult_lbl.modulate = COLOR_READY_BORDER
+	# 邊框改回綠色（_process 脈衝控制）
+	var border = card.find_child("Border", false, false) as Panel
+	if border:
+		border.add_theme_stylebox_override("panel", _make_border_style(COLOR_READY_BORDER, 3))
 	var btn = card.find_child("UltBtn", false, false) as Button
-	if btn:
-		btn.disabled = false
+	if btn: btn.disabled = false
 
 func _set_card_cd_state(card: Control, remaining: float) -> void:
-	var cd_overlay = card.find_child("CDOverlay", false, false)
-	if cd_overlay:
-		cd_overlay.visible = true
 	var secs = int(remaining) + 1 if remaining > 0.0 else 0
+	# 顯示 portrait 上的 CD 遮罩 + 大數字
+	var cd_ov = card.find_child("CDOverlay", false, false)
+	if cd_ov: cd_ov.visible = true
+	var cd_num = card.find_child("CDNumLabel", false, false) as Label
+	if cd_num:
+		cd_num.text = str(secs)
+		cd_num.visible = true
+		cd_num.modulate = COLOR_ORANGE if secs <= 5 else Color(0.85, 0.85, 0.95, 1.0)
+	# 技能標籤顯示 CDxs
 	var ult_lbl = card.find_child("UltLabel", false, false) as Label
 	if ult_lbl:
-		ult_lbl.text = str(secs)
-		if secs <= 5:
-			ult_lbl.add_theme_font_size_override("font_size", 40)
-			ult_lbl.modulate = COLOR_ORANGE
-		else:
-			ult_lbl.add_theme_font_size_override("font_size", 36)
-			ult_lbl.modulate = COLOR_TEXT_MAIN
-	var cd_tag = card.find_child("CDTag", false, false)
-	if cd_tag:
-		cd_tag.visible = true
+		ult_lbl.text = str(secs) + "s"
+		ult_lbl.add_theme_font_size_override("font_size", 13)
+		ult_lbl.modulate = COLOR_ORANGE if secs <= 5 else Color(0.6, 0.6, 0.7, 1.0)
+	# 邊框灰色
+	var border = card.find_child("Border", false, false) as Panel
+	if border:
+		border.add_theme_stylebox_override("panel",
+			_make_border_style(Color(0.3, 0.3, 0.35, 1.0), 2))
 	var btn = card.find_child("UltBtn", false, false) as Button
-	if btn:
-		btn.disabled = true
+	if btn: btn.disabled = true
 
 func _set_card_dead_state(card: Control) -> void:
-	var dead_overlay = card.find_child("DeadOverlay", false, false)
-	if dead_overlay:
-		dead_overlay.visible = true
-	var circle = card.find_child("ClassCircle", false, false) as ColorRect
-	if circle:
-		circle.color = Color(0.8, 0.1, 0.1)
+	# 顯示死亡遮罩 + ✕
+	var dead_ov = card.find_child("DeadOverlay", false, false)
+	if dead_ov: dead_ov.visible = true
+	var dead_lbl = card.find_child("DeadLabel", false, false) as Label
+	if dead_lbl: dead_lbl.visible = true
+	# 隱藏 CD 相關
+	var cd_ov = card.find_child("CDOverlay", false, false)
+	if cd_ov: cd_ov.visible = false
+	var cd_num = card.find_child("CDNumLabel", false, false)
+	if cd_num: cd_num.visible = false
+	# 名稱變暗紅
 	var name_lbl = card.find_child("NameLabel", false, false) as Label
-	if name_lbl:
-		name_lbl.modulate = COLOR_DEAD_TEXT
+	if name_lbl: name_lbl.modulate = COLOR_DEAD_TEXT
+	# HP% 清零
+	var hp_lbl = card.find_child("HPLabel", false, false) as Label
+	if hp_lbl: hp_lbl.text = "0%"
+	# 技能標籤隱藏
 	var ult_lbl = card.find_child("UltLabel", false, false) as Label
-	if ult_lbl:
-		ult_lbl.text = "X"
-		ult_lbl.add_theme_font_size_override("font_size", 36)
-		ult_lbl.modulate = COLOR_DEAD_TEXT
-	var cd_tag = card.find_child("CDTag", false, false)
-	if cd_tag:
-		cd_tag.visible = false
+	if ult_lbl: ult_lbl.text = ""
+	# 邊框改紅
+	var border = card.find_child("Border", false, false) as Panel
+	if border:
+		border.add_theme_stylebox_override("panel",
+			_make_border_style(Color(0.7, 0.1, 0.1, 1.0), 3))
 	var btn = card.find_child("UltBtn", false, false) as Button
-	if btn:
-		btn.disabled = true
+	if btn: btn.disabled = true
 
 # ---- 信號回調 ----
 
@@ -306,6 +373,8 @@ func _on_ultimate_pressed(member, card: Control) -> void:
 	if member.use_ultimate():
 		AudioManager.play_ult(member.char_id)
 		_set_card_cd_state(card, member.get_cd_remaining())
+		var tm = get_node_or_null("/root/TutorialManager")
+		if tm: tm.notify_ult_used(member.char_id)
 
 func _on_hp_changed(current: float, max_val: float, hp_bar: ProgressBar, hp_lbl: Label, card: Control) -> void:
 	if hp_bar and is_instance_valid(hp_bar):
@@ -325,10 +394,13 @@ func _on_hp_changed(current: float, max_val: float, hp_bar: ProgressBar, hp_lbl:
 		var pct = int(current * 100.0 / max_val) if max_val > 0.0 else 0
 		hp_lbl.text = str(pct) + "%"
 
-func _on_ultimate_ready(card: Control) -> void:
+func _on_ultimate_ready(card: Control, char_id: String = "") -> void:
 	if card and is_instance_valid(card):
 		_set_card_ready_state(card)
 		AudioManager.play_sfx("ult_ready")
+		if char_id != "":
+			var tm2 = get_node_or_null("/root/TutorialManager")
+			if tm2: tm2.notify_ult_ready(char_id)
 
 func _on_ultimate_used(card: Control) -> void:
 	if card and is_instance_valid(card):
@@ -363,22 +435,16 @@ func _process(delta: float) -> void:
 		if not member.is_ultimate_ready:
 			_set_card_cd_state(card, member.get_cd_remaining())
 		else:
-			# 大招就緒：邊框脈衝（1.2 秒週期）
+			# 大招就緒：Border 綠色脈衝（1.2 秒週期，邊框寬度 3~5px）
 			var pulse = (sin(_pulse_timer * TAU / 1.2) + 1.0) * 0.5
-			var bg = card.find_child("BG", false, false) as Panel
-			if bg:
-				var style = StyleBoxFlat.new()
-				style.bg_color = COLOR_NORMAL_BG
-				var alpha = lerp(0.5, 1.0, pulse)
-				style.border_color = Color(
-					COLOR_READY_BORDER.r,
-					COLOR_READY_BORDER.g,
-					COLOR_READY_BORDER.b,
-					alpha
-				)
-				style.set_border_width_all(2)
-				style.set_corner_radius_all(8)
-				bg.add_theme_stylebox_override("panel", style)
+			var border = card.find_child("Border", false, false) as Panel
+			if border:
+				var glow_r = 0.13 + pulse * 0.15
+				var glow_g = 0.80 + pulse * 0.20
+				var glow_b = 0.27 + pulse * 0.05
+				var bw = 3 + int(pulse * 2)
+				border.add_theme_stylebox_override("panel",
+					_make_border_style(Color(glow_r, glow_g, glow_b, 1.0), bw))
 
 	# 預警 Toast 倒計時
 	if _recon_toast and _recon_toast.visible:
@@ -390,10 +456,18 @@ func _on_game_won() -> void:
 	game_result_panel.show()
 	result_label.text = "任務完成！"
 	result_label.modulate = Color(0.3, 1.0, 0.4)
-	result_desc.text = "小隊成功完成任務，所有目標已達成。\n獲得 200 金幣！"
 	AudioManager.play_sfx("victory")
 	# 任務成功：給予獎勵並存檔
-	SaveManager.add_coins(200)
+	var reward_coins = 200
+	SaveManager.add_coins(reward_coins)
+	# 根據任務類型給票
+	var ticket_text = ""
+	if GameManager.current_mission_id == "demo_01":
+		SaveManager.gold_tickets += 1
+		ticket_text = " + 1 金票"
+	else:
+		SaveManager.blue_tickets += 1
+		ticket_text = " + 1 藍票"
 	SaveManager.save_game()
 	# 勝利時：只顯示「返回基地」
 	if retry_btn:
@@ -401,17 +475,32 @@ func _on_game_won() -> void:
 	if restart_btn:
 		restart_btn.text = "返回基地"
 		restart_btn.visible = true
+	# 金幣數字動畫（count-up 1.5 秒）
+	var tween = create_tween()
+	tween.tween_method(_update_coin_display, 0, reward_coins, 1.5)
+	# 動畫結束後顯示最終文字（含票券資訊）
+	var final_ticket_text = ticket_text
+	tween.tween_callback(func():
+		if result_desc and is_instance_valid(result_desc):
+			result_desc.text = "小隊成功完成任務！\n獲得 " + str(reward_coins) + " 金幣" + final_ticket_text + "！"
+	)
 
 func _on_game_lost() -> void:
-	game_result_panel.show()
-	result_label.text = "全員倒下"
-	result_label.modulate = Color(1.0, 0.3, 0.3)
-	result_desc.text = "小隊全員陣亡，任務宣告失敗。\n基地繼續產出金幣，可立即重試。"
 	AudioManager.play_sfx("defeat")
-	# 存檔（記錄離開時間供離線計算）
+	# 安慰獎勵
+	SaveManager.add_coins(30)
 	SaveManager.save_game()
+	# 短暫延遲後顯示結算面板（電影感停頓）
+	await get_tree().create_timer(0.5).timeout
+	if not is_instance_valid(game_result_panel):
+		return
+	game_result_panel.show()
+	result_label.text = "任務失敗"
+	result_label.modulate = Color(0.8, 0.1, 0.1)
+	result_desc.text = "小隊無法完成任務。\n獲得安慰獎勵 30 金幣，繼續努力！"
 	# 失敗時：顯示「重試」和「返回基地」
 	if retry_btn:
+		retry_btn.text = "重試任務"
 		retry_btn.visible = true
 	if restart_btn:
 		restart_btn.text = "返回基地"
@@ -424,3 +513,7 @@ func _on_retry_pressed() -> void:
 func _on_restart_pressed() -> void:
 	# 返回基地
 	get_tree().change_scene_to_file("res://scenes/Base.tscn")
+
+func _update_coin_display(coins_shown: int) -> void:
+	if result_desc and is_instance_valid(result_desc):
+		result_desc.text = "小隊成功完成任務！\n獲得金幣：" + str(coins_shown)

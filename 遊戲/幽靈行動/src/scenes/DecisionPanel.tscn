@@ -25,10 +25,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -340.0
-offset_top = -350.0
-offset_right = 340.0
-offset_bottom = 350.0
+offset_left = -500.0
+offset_top = -320.0
+offset_right = 500.0
+offset_bottom = 320.0
 
 [node name="VBox" type="VBoxContainer" parent="Root/Panel"]
 layout_mode = 1
@@ -55,6 +55,6 @@ text = "選擇行動方案"
 [node name="Separator" type="HSeparator" parent="Root/Panel/VBox"]
 layout_mode = 2
 
-[node name="ButtonsContainer" type="VBoxContainer" parent="Root/Panel/VBox"]
+[node name="ButtonsContainer" type="HBoxContainer" parent="Root/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
