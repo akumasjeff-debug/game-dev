@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" shape-rendering="crispEdges">
+  <!-- 綠色醫療兵蹲伏姿態（俯視角，32×32） -->
+
+  <!-- 陰影 -->
+  <rect x="6" y="26" width="20" height="3" fill="#001A00" opacity="0.4"/>
+
+  <!-- 醫療背包（背後，蹲伏時更明顯，淺綠十字標誌） -->
+  <rect x="12" y="8" width="8" height="6" fill="#155C15"/>
+  <rect x="12" y="8" width="8" height="1" fill="#1E7A1E"/>
+  <!-- 十字標誌 -->
+  <rect x="15" y="9" width="2" height="4" fill="#CCFFCC"/>
+  <rect x="14" y="11" width="4" height="2" fill="#CCFFCC"/>
+
+  <!-- 身體（深綠軍裝） -->
+  <rect x="8" y="12" width="16" height="13" fill="#1A5C1A"/>
+  <!-- 左肩高光 -->
+  <rect x="8" y="12" width="5" height="6" fill="#207020"/>
+  <!-- 右側暗部 -->
+  <rect x="21" y="12" width="3" height="13" fill="#124412"/>
+  <!-- 醫療背心紅十字臂章 -->
+  <rect x="8" y="16" width="5" height="4" fill="#CC0000"/>
+  <rect x="9" y="15" width="3" height="6" fill="#CC0000"/>
+  <rect x="9" y="17" width="3" height="2" fill="#FFFFFF"/>
+  <rect x="10" y="16" width="1" height="4" fill="#FFFFFF"/>
+
+  <!-- 頭盔（8×8，醫療標誌） -->
+  <rect x="12" y="4" width="8" height="8" fill="#1A5C1A"/>
+  <rect x="12" y="4" width="8" height="2" fill="#227022"/>
+  <rect x="12" y="4" width="2" height="8" fill="#227022"/>
+  <rect x="18" y="4" width="2" height="8" fill="#124412"/>
+  <!-- 頭盔護目鏡 -->
+  <rect x="13" y="6" width="6" height="3" fill="#0A1A0A"/>
+  <rect x="14" y="7" width="4" height="1" fill="#183018"/>
+
+  <!-- 手槍（靠身右手持） -->
+  <rect x="22" y="15" width="8" height="4" fill="#282828"/>
+  <rect x="22" y="15" width="8" height="1" fill="#383838"/>
+  <rect x="26" y="13" width="2" height="2" fill="#222222"/>
+
+  <!-- 下肢（蹲伏） -->
+  <rect x="8" y="23" width="6" height="4" fill="#124412"/>
+  <rect x="18" y="23" width="6" height="4" fill="#124412"/>
+
+  <!-- 急救袋（腰側） -->
+  <rect x="4" y="17" width="5" height="5" fill="#0E400E"/>
+  <rect x="5" y="18" width="3" height="3" fill="#118811"/>
+</svg>

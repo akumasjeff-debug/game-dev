@@ -1,0 +1,31 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 底色：深棕木板 -->
+  <rect width="64" height="64" fill="#1E1510"/>
+  <!-- 橫向木板縫（每 16px 一條，2px 寬） -->
+  <rect x="0" y="15" width="64" height="2" fill="#0A0806"/>
+  <rect x="0" y="31" width="64" height="2" fill="#0A0806"/>
+  <rect x="0" y="47" width="64" height="2" fill="#0A0806"/>
+  <!-- 木板紋理：各木板內 1px 淡色橫條 -->
+  <rect x="0" y="7" width="64" height="1" fill="#2A1E14"/>
+  <rect x="0" y="23" width="64" height="1" fill="#2A1E14"/>
+  <rect x="0" y="39" width="64" height="1" fill="#2A1E14"/>
+  <rect x="0" y="55" width="64" height="1" fill="#2A1E14"/>
+  <!-- 木板縱向接縫（讓木板感更明確） -->
+  <rect x="20" y="0" width="1" height="15" fill="#0F0C09"/>
+  <rect x="44" y="17" width="1" height="14" fill="#0F0C09"/>
+  <rect x="10" y="33" width="1" height="14" fill="#0F0C09"/>
+  <rect x="52" y="49" width="1" height="15" fill="#0F0C09"/>
+  <!-- 節眼1：約 (20, 12) -->
+  <rect x="20" y="10" width="4" height="4" fill="#0F0B08"/>
+  <rect x="21" y="11" width="2" height="2" fill="#080604"/>
+  <!-- 節眼2：約 (44, 36) -->
+  <rect x="44" y="34" width="4" height="4" fill="#0F0B08"/>
+  <rect x="45" y="35" width="2" height="2" fill="#080604"/>
+  <!-- 海水汙跡：右側淡青色褪色斑塊 -->
+  <rect x="58" y="20" width="3" height="5" fill="#0A1A1E"/>
+  <rect x="57" y="22" width="2" height="3" fill="#0A1A1E"/>
+  <rect x="59" y="18" width="2" height="3" fill="#0A1A1E"/>
+  <!-- 輕微海鹽白化痕跡 -->
+  <rect x="56" y="28" width="4" height="2" fill="#12161A"/>
+  <rect x="60" y="10" width="3" height="4" fill="#0D1A1E"/>
+</svg>

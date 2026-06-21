@@ -179,10 +179,11 @@ func _check_cleared() -> void:
 	if timer_node:
 		timer_node.queue_free()
 	emit_signal("room_cleared")
-	# 通知 GameManager 繼續推進
+	# 通知 GameManager 繼續推進並更新房間計數
 	var gm = get_node_or_null("/root/GameManager")
 	if gm:
 		gm.resume_squad()
+		gm.advance_room()
 
 func get_alive_enemy_count() -> int:
 	return _get_alive_enemies().size()

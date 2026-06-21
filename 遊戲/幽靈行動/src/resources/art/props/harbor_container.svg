@@ -1,0 +1,32 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 地面底色 -->
+  <rect x="0" y="0" width="64" height="64" fill="#0A1520"/>
+  <!-- 貨櫃主體 -->
+  <rect x="4" y="8" width="56" height="48" fill="#1A4A6A"/>
+  <!-- 頂面高光（俯視受光面） -->
+  <rect x="4" y="8" width="56" height="6" fill="#245A80"/>
+  <!-- 邊框 -->
+  <rect x="4"  y="8"  width="2"  height="48" fill="#0F2A3F"/>
+  <rect x="58" y="8"  width="2"  height="48" fill="#0F2A3F"/>
+  <rect x="4"  y="8"  width="56" height="2"  fill="#0F2A3F"/>
+  <rect x="4"  y="54" width="56" height="2"  fill="#0F2A3F"/>
+  <!-- 門縫橫線（水平條紋，每 8px 一條） -->
+  <rect x="6" y="16" width="52" height="1" fill="#0F2A3F"/>
+  <rect x="6" y="24" width="52" height="1" fill="#0F2A3F"/>
+  <rect x="6" y="32" width="52" height="1" fill="#0F2A3F"/>
+  <rect x="6" y="40" width="52" height="1" fill="#0F2A3F"/>
+  <rect x="6" y="48" width="52" height="1" fill="#0F2A3F"/>
+  <!-- 中央門縫垂直線 -->
+  <rect x="31" y="8" width="2" height="48" fill="#0F2A3F"/>
+  <!-- 左側鎖扣（兩個） -->
+  <rect x="6"  y="20" width="4" height="6" fill="#888888"/>
+  <rect x="6"  y="36" width="4" height="6" fill="#888888"/>
+  <!-- 右側鎖扣（兩個） -->
+  <rect x="54" y="20" width="4" height="6" fill="#888888"/>
+  <rect x="54" y="36" width="4" height="6" fill="#888888"/>
+  <!-- 鎖扣高光 -->
+  <rect x="7"  y="21" width="2" height="2" fill="#AAAAAA"/>
+  <rect x="7"  y="37" width="2" height="2" fill="#AAAAAA"/>
+  <rect x="55" y="21" width="2" height="2" fill="#AAAAAA"/>
+  <rect x="55" y="37" width="2" height="2" fill="#AAAAAA"/>
+</svg>

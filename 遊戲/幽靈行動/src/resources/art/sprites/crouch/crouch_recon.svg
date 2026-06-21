@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" shape-rendering="crispEdges">
+  <!-- 青綠色偵察手蹲伏姿態（俯視角，32×32） -->
+
+  <!-- 陰影 -->
+  <rect x="6" y="26" width="20" height="3" fill="#001A14" opacity="0.4"/>
+
+  <!-- 身體（壓低，深青綠戰術裝） -->
+  <rect x="8" y="13" width="16" height="13" fill="#006655"/>
+  <!-- 左肩高光 -->
+  <rect x="8" y="13" width="5" height="6" fill="#007A65"/>
+  <!-- 右側暗部 -->
+  <rect x="21" y="13" width="3" height="13" fill="#004D3F"/>
+  <!-- 戰術裝備帶 -->
+  <rect x="8" y="17" width="16" height="1" fill="#004D3F"/>
+  <rect x="14" y="13" width="1" height="13" fill="#004D3F"/>
+
+  <!-- 頭盔（8×8，夜視鏡朝前，最突出特徵） -->
+  <rect x="12" y="4" width="8" height="8" fill="#006655"/>
+  <rect x="12" y="4" width="8" height="2" fill="#007A65"/>
+  <rect x="12" y="4" width="2" height="8" fill="#007A65"/>
+  <rect x="18" y="4" width="2" height="8" fill="#004D3F"/>
+
+  <!-- 夜視鏡（頭盔前方突出，朝前方向） -->
+  <rect x="10" y="5" width="12" height="4" fill="#1A1A1A"/>
+  <rect x="10" y="5" width="12" height="1" fill="#2A2A2A"/>
+  <!-- 夜視鏡鏡頭（兩眼） -->
+  <rect x="11" y="6" width="4" height="3" fill="#002A22"/>
+  <rect x="17" y="6" width="4" height="3" fill="#002A22"/>
+  <!-- 鏡頭高光（夜視發光綠） -->
+  <rect x="12" y="7" width="2" height="1" fill="#00AA88"/>
+  <rect x="18" y="7" width="2" height="1" fill="#00AA88"/>
+  <!-- 夜視鏡支架 -->
+  <rect x="14" y="4" width="4" height="2" fill="#333333"/>
+
+  <!-- 手持武器（短衝鋒槍，緊貼身體前方） -->
+  <rect x="9" y="20" width="14" height="3" fill="#222222"/>
+  <rect x="9" y="20" width="14" height="1" fill="#333333"/>
+  <!-- 彈匣 -->
+  <rect x="14" y="23" width="3" height="4" fill="#1A1A1A"/>
+
+  <!-- 下肢（蹲伏） -->
+  <rect x="8" y="23" width="6" height="4" fill="#004D3F"/>
+  <rect x="18" y="23" width="6" height="4" fill="#004D3F"/>
+
+  <!-- 戰術腰包（左側） -->
+  <rect x="4" y="16" width="5" height="5" fill="#005A4A"/>
+  <rect x="4" y="16" width="5" height="1" fill="#007060"/>
+
+  <!-- 通訊天線（右肩後方） -->
+  <rect x="24" y="9" width="1" height="6" fill="#448877"/>
+  <rect x="24" y="9" width="1" height="1" fill="#66BBAA"/>
+</svg>

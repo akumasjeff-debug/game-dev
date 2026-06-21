@@ -1,0 +1,36 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 地面底色 -->
+  <rect x="0" y="0" width="64" height="64" fill="#0A1520"/>
+  <!-- 輪胎（4個） -->
+  <rect x="10" y="12" width="8" height="8" fill="#222222"/>
+  <rect x="30" y="12" width="8" height="8" fill="#222222"/>
+  <rect x="10" y="44" width="8" height="8" fill="#222222"/>
+  <rect x="30" y="44" width="8" height="8" fill="#222222"/>
+  <!-- 車體主體 -->
+  <rect x="8" y="16" width="36" height="32" fill="#CC5500"/>
+  <!-- 車體頂面高光 -->
+  <rect x="8" y="16" width="36" height="4" fill="#DD6611"/>
+  <!-- 車體右側陰影 -->
+  <rect x="40" y="16" width="4" height="32" fill="#AA4400"/>
+  <!-- 駕駛艙（頂視） -->
+  <rect x="20" y="20" width="20" height="18" fill="#BB4400"/>
+  <rect x="22" y="22" width="16" height="14" fill="#992200"/>
+  <!-- 駕駛艙高光 -->
+  <rect x="22" y="22" width="16" height="2" fill="#AA3300"/>
+  <!-- 配重塊（後端） -->
+  <rect x="8"  y="20" width="10" height="24" fill="#993300"/>
+  <!-- 叉臂支架 -->
+  <rect x="44" y="22" width="4" height="20" fill="#666666"/>
+  <!-- 叉臂左（細長） -->
+  <rect x="44" y="24" width="18" height="4" fill="#888888"/>
+  <!-- 叉臂右（細長） -->
+  <rect x="44" y="36" width="18" height="4" fill="#888888"/>
+  <!-- 叉臂高光 -->
+  <rect x="44" y="24" width="18" height="1" fill="#AAAAAA"/>
+  <rect x="44" y="36" width="18" height="1" fill="#AAAAAA"/>
+  <!-- 叉臂末端 -->
+  <rect x="60" y="24" width="2" height="4" fill="#555555"/>
+  <rect x="60" y="36" width="2" height="4" fill="#555555"/>
+  <!-- 警示燈（頂部橙黃小點） -->
+  <rect x="34" y="17" width="4" height="3" fill="#FFAA00"/>
+</svg>

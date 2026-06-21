@@ -1,0 +1,48 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 狙擊手 — 俯視，超長狙擊槍向前伸出到畫面外最顯眼，鬼影斗篷寬大 -->
+
+  <!-- 落地陰影（鬼影斗篷讓陰影更寬） -->
+  <ellipse cx="32" cy="56" rx="20" ry="5" fill="#000" opacity="0.35"/>
+
+  <!-- 鬼影斗篷（最寬的區塊，蓋住全身） -->
+  <rect x="8"  y="18" width="48" height="30" fill="#1A2812"/>
+  <!-- 斗篷紋路（不規則草葉感，用小方塊模擬） -->
+  <rect x="8"  y="20" width="4"  height="4"  fill="#243618"/>
+  <rect x="16" y="18" width="4"  height="6"  fill="#1E3014"/>
+  <rect x="24" y="16" width="4"  height="6"  fill="#243818"/>
+  <rect x="32" y="17" width="4"  height="5"  fill="#1C2E10"/>
+  <rect x="40" y="18" width="4"  height="6"  fill="#243618"/>
+  <rect x="48" y="20" width="4"  height="4"  fill="#1E3014"/>
+  <rect x="10" y="38" width="4"  height="6"  fill="#1A2810"/>
+  <rect x="50" y="36" width="4"  height="6"  fill="#1A2810"/>
+  <rect x="18" y="42" width="4"  height="4"  fill="#1E3012"/>
+  <rect x="42" y="42" width="4"  height="4"  fill="#1E3012"/>
+  <!-- 紫色識別緞帶 -->
+  <rect x="22" y="20" width="20" height="3"  fill="#7755AA"/>
+  <rect x="10" y="22" width="4"  height="2"  fill="#7755AA" opacity="0.7"/>
+  <rect x="50" y="22" width="4"  height="2"  fill="#7755AA" opacity="0.7"/>
+
+  <!-- 狙擊槍（超長，貫穿畫面往上，最強識別特徵） -->
+  <!-- 超長槍管 -->
+  <rect x="30" y="0"  width="4"  height="22" fill="#222230"/>
+  <!-- 消音器 -->
+  <rect x="29" y="0"  width="6"  height="6"  fill="#2A2A3A"/>
+  <!-- 瞄準鏡 -->
+  <rect x="28" y="10" width="8"  height="5"  fill="#333348"/>
+  <rect x="30" y="11" width="4"  height="3"  fill="#7755AA" opacity="0.8"/>
+  <!-- 槍機 -->
+  <rect x="26" y="20" width="12" height="8"  fill="#2A2A38"/>
+  <!-- 槍托 -->
+  <rect x="28" y="26" width="8"  height="6"  fill="#1A1A28"/>
+
+  <!-- 兩手握槍（從斗篷下伸出） -->
+  <rect x="22" y="16" width="8"  height="4"  fill="#1A2010"/>
+  <rect x="34" y="20" width="8"  height="4"  fill="#1A2010"/>
+
+  <!-- 頭（藏在斗篷下） -->
+  <rect x="26" y="20" width="12" height="8"  fill="#1A2614"/>
+
+  <!-- 腿 -->
+  <rect x="24" y="50" width="6"  height="6"  fill="#0E180A"/>
+  <rect x="34" y="50" width="6"  height="6"  fill="#0E180A"/>
+</svg>

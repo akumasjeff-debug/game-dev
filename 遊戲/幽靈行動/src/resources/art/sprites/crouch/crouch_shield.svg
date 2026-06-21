@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" shape-rendering="crispEdges">
+  <!-- 藍色盾兵蹲伏姿態（俯視角，32×32） -->
+
+  <!-- 陰影（地面投影，橢圓用矩形近似） -->
+  <rect x="6" y="25" width="20" height="4" fill="#0D1A3A" opacity="0.4"/>
+
+  <!-- 盾牌（前方蜷縮，深藍帶金邊） -->
+  <rect x="4" y="8" width="10" height="14" fill="#0F2A7A"/>
+  <rect x="4" y="8" width="2" height="14" fill="#1E4FBF"/>
+  <rect x="4" y="8" width="10" height="2" fill="#1E4FBF"/>
+  <rect x="12" y="8" width="2" height="14" fill="#0A1E60"/>
+  <!-- 盾牌徽記 -->
+  <rect x="7" y="12" width="4" height="6" fill="#1E3A9A"/>
+  <rect x="8" y="13" width="2" height="4" fill="#2A5ACC"/>
+
+  <!-- 身體（24×24 緊湊，深藍軍裝） -->
+  <rect x="8" y="10" width="16" height="14" fill="#1A3A8C"/>
+  <!-- 身體高光（左肩） -->
+  <rect x="8" y="10" width="4" height="6" fill="#2250B8"/>
+  <!-- 身體暗部（右側） -->
+  <rect x="20" y="10" width="4" height="14" fill="#122D70"/>
+
+  <!-- 頭盔（8×8，比例突出，俯視角看到頂面） -->
+  <rect x="12" y="4" width="8" height="8" fill="#1A3A8C"/>
+  <rect x="12" y="4" width="8" height="2" fill="#2A50C0"/>
+  <rect x="12" y="4" width="2" height="8" fill="#2A50C0"/>
+  <rect x="18" y="4" width="2" height="8" fill="#102880"/>
+  <!-- 頭盔護目鏡 -->
+  <rect x="13" y="6" width="6" height="3" fill="#0A1E5A"/>
+  <rect x="14" y="7" width="4" height="1" fill="#1A3A9A"/>
+
+  <!-- 靴子 / 下肢（蹲伏，腿縮起） -->
+  <rect x="9" y="22" width="5" height="4" fill="#142E70"/>
+  <rect x="18" y="22" width="5" height="4" fill="#142E70"/>
+
+  <!-- 步槍（收在身側，靠右） -->
+  <rect x="22" y="12" width="4" height="10" fill="#303030"/>
+  <rect x="22" y="12" width="2" height="10" fill="#404040"/>
+</svg>

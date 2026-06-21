@@ -12,6 +12,7 @@ var offline_popup: Panel
 var offline_msg_label: Label
 var offline_confirm_btn: Button
 var mission_buttons: Array = []    # 任務板按鈕
+var _mission_cards: Array = []     # 任務卡片節點（Panel 容器）
 var ticket_label: Label
 
 # 放置橫帶
@@ -45,19 +46,19 @@ const ALL_CLASSES: Array = [
 	{"id": "recon",   "name": "偵察手","color": Color(0.0, 0.8, 1.0)},
 ]
 
-# 任務資料（Demo 只顯示單一任務）
-const MISSIONS: Array = [
-	{
-		"id": "demo_01",
-		"type": "main",
-		"title": "辦公大樓清查",
-		"difficulty": "★★",
-		"reward": "200 金幣",
-		"desc": "情報顯示敵軍盤踞於廢棄辦公大樓，小隊需逐層清查並消滅指揮官。",
-	},
-]
+# 預設任務（GameManager 尚未載入時的後備）
+const FALLBACK_MISSION: Dictionary = {
+	"id": "demo_01",
+	"name": "辦公大樓清查",
+	"difficulty": 2,
+	"reward_coins": 200,
+	"reward_gold_tickets": 1,
+	"reward_blue_tickets": 0,
+	"description": "情報顯示敵軍盤踞於廢棄辦公大樓，小隊需逐層清查並消滅指揮官。",
+	"tags": ["DEMO"],
+}
 
-# Demo 固定選中唯一任務
+# 選中的任務 ID（預設為第一個）
 var selected_mission_id: String = "demo_01"
 
 func _ready() -> void:
@@ -156,82 +157,179 @@ func _add_mission_board() -> void:
 	sep.color = Color(0.3, 0.5, 0.3, 0.7)
 	add_child(sep)
 
+	# 取得任務資料（從 GameManager，否則用預設值）
+	var missions: Array = _get_missions_list()
+
+	# 最多顯示 3 個任務卡片，高度 140px，間距 16px
 	var y_offset: float = 170.0
-	for i in range(MISSIONS.size()):
-		var mission = MISSIONS[i]
-		var card = _create_mission_card(mission, y_offset)
+	var show_count: int = mini(missions.size(), 3)
+	for i in range(show_count):
+		var card = _create_mission_card(missions[i], y_offset)
+		card.name = "MissionCard_" + missions[i].get("id", str(i))
 		add_child(card)
-		y_offset += 190.0
+		_mission_cards.append(card)
+		y_offset += 156.0
+
+	# 預設選中第一個任務並更新視覺
+	if missions.size() > 0:
+		selected_mission_id = missions[0].get("id", "demo_01")
+		_update_mission_selection_visual(selected_mission_id)
+
+func _get_missions_list() -> Array:
+	var gm = get_node_or_null("/root/GameManager")
+	if gm != null and gm.missions_data.size() > 0:
+		return gm.missions_data
+	return [FALLBACK_MISSION]
 
 func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	var card = Control.new()
 	card.position = Vector2(30, y)
-	card.custom_minimum_size = Vector2(1020, 175)
+	card.custom_minimum_size = Vector2(1020, 140)
+
+	# 可點擊的整體按鈕區（覆蓋整張卡片）
+	var hit_btn = Button.new()
+	hit_btn.size = Vector2(1020, 140)
+	hit_btn.flat = true
+	hit_btn.name = "HitBtn"
+	var mission_id = mission.get("id", "demo_01")
+	hit_btn.pressed.connect(_select_mission.bind(mission_id))
+	card.add_child(hit_btn)
 
 	# 卡片背景
 	var bg = ColorRect.new()
-	bg.size = Vector2(1020, 175)
-	var is_main = mission["type"] == "main"
-	bg.color = Color(0.08, 0.12, 0.08) if is_main else Color(0.08, 0.10, 0.12)
+	bg.size = Vector2(1020, 140)
+	bg.color = Color(0.08, 0.12, 0.08)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(bg)
 
-	# 邊框色條（左側）
-	var border = ColorRect.new()
-	border.position = Vector2(0, 0)
-	border.size = Vector2(6, 175)
-	border.color = Color(0.9, 0.7, 0.1) if is_main else Color(0.3, 0.7, 0.9)
-	card.add_child(border)
+	# 邊框（StyleBoxFlat 套在 Panel 上，初始灰色）
+	var frame = Panel.new()
+	frame.size = Vector2(1020, 140)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.name = "Frame"
+	var frame_style = StyleBoxFlat.new()
+	frame_style.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	frame_style.border_color = Color(0.35, 0.35, 0.35, 0.8)
+	frame_style.set_border_width_all(3)
+	frame_style.set_corner_radius_all(4)
+	frame.add_theme_stylebox_override("panel", frame_style)
+	card.add_child(frame)
 
-	# 類型標籤
+	# 左側色條（難度色）
+	var diff_val: int = mission.get("difficulty", 1)
+	var bar_color = _difficulty_color(diff_val)
+	var border_bar = ColorRect.new()
+	border_bar.position = Vector2(0, 0)
+	border_bar.size = Vector2(6, 140)
+	border_bar.color = bar_color
+	border_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(border_bar)
+
+	# 標籤：任務類型
+	var tags: Array = mission.get("tags", [])
+	var tag_text: String = "[主線]" if "MAIN" in tags or tags.is_empty() else "[" + tags[0] + "]"
+	if "DEMO" in tags:
+		tag_text = "[DEMO]"
 	var type_lbl = Label.new()
-	type_lbl.text = "[主線]" if is_main else "[支線]"
-	type_lbl.position = Vector2(18, 10)
-	type_lbl.add_theme_font_size_override("font_size", 16)
-	type_lbl.modulate = Color(1.0, 0.8, 0.2) if is_main else Color(0.5, 0.9, 1.0)
+	type_lbl.text = tag_text
+	type_lbl.position = Vector2(18, 8)
+	type_lbl.add_theme_font_size_override("font_size", 15)
+	type_lbl.modulate = Color(0.9, 0.7, 0.3)
+	type_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(type_lbl)
 
-	# 任務名稱
+	# 任務名稱（大字）
 	var title_lbl = Label.new()
-	title_lbl.text = mission["title"]
-	title_lbl.position = Vector2(18, 34)
+	title_lbl.text = mission.get("name", "未知任務")
+	title_lbl.position = Vector2(18, 30)
 	title_lbl.add_theme_font_size_override("font_size", 24)
 	title_lbl.modulate = Color.WHITE
+	title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(title_lbl)
 
-	# 難度
+	# 難度星號
 	var diff_lbl = Label.new()
-	diff_lbl.text = "難度：" + mission["difficulty"]
-	diff_lbl.position = Vector2(18, 70)
-	diff_lbl.add_theme_font_size_override("font_size", 18)
-	diff_lbl.modulate = Color(1.0, 0.6, 0.2)
+	diff_lbl.text = "難度：" + "★".repeat(diff_val) + "☆".repeat(maxi(0, 5 - diff_val))
+	diff_lbl.position = Vector2(18, 62)
+	diff_lbl.add_theme_font_size_override("font_size", 17)
+	diff_lbl.modulate = bar_color
+	diff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(diff_lbl)
 
-	# 說明
+	# 任務說明（小字，截斷）
 	var desc_lbl = Label.new()
-	desc_lbl.text = mission["desc"]
-	desc_lbl.position = Vector2(18, 96)
-	desc_lbl.add_theme_font_size_override("font_size", 15)
-	desc_lbl.modulate = Color(0.75, 0.75, 0.75)
-	desc_lbl.custom_minimum_size = Vector2(700, 0)
+	desc_lbl.text = mission.get("description", "")
+	desc_lbl.position = Vector2(18, 88)
+	desc_lbl.add_theme_font_size_override("font_size", 14)
+	desc_lbl.modulate = Color(0.7, 0.7, 0.7)
+	desc_lbl.custom_minimum_size = Vector2(680, 0)
+	desc_lbl.clip_text = true
+	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(desc_lbl)
 
-	# 獎勵
-	var reward_lbl = Label.new()
-	reward_lbl.text = "獎勵：" + mission["reward"]
-	reward_lbl.position = Vector2(18, 138)
-	reward_lbl.add_theme_font_size_override("font_size", 16)
-	reward_lbl.modulate = Color(0.5, 1.0, 0.5)
-	card.add_child(reward_lbl)
+	# 右側獎勵區塊
+	var reward_coins = mission.get("reward_coins", 0)
+	var reward_gold = mission.get("reward_gold_tickets", 0)
+	var reward_blue = mission.get("reward_blue_tickets", 0)
 
-	# Demo 單一任務：顯示「已選取」標示，不需要選擇按鈕
-	var selected_lbl = Label.new()
-	selected_lbl.text = "[ DEMO 任務 ]"
-	selected_lbl.position = Vector2(830, 70)
-	selected_lbl.add_theme_font_size_override("font_size", 18)
-	selected_lbl.modulate = Color(0.4, 1.0, 0.4)
-	card.add_child(selected_lbl)
+	var coins_lbl = Label.new()
+	coins_lbl.text = str(reward_coins) + " 金幣"
+	coins_lbl.position = Vector2(740, 24)
+	coins_lbl.add_theme_font_size_override("font_size", 20)
+	coins_lbl.modulate = Color(1.0, 0.9, 0.3)
+	coins_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(coins_lbl)
+
+	var tickets_lbl = Label.new()
+	var ticket_parts: Array = []
+	if reward_gold > 0:
+		ticket_parts.append("金票 x" + str(reward_gold))
+	if reward_blue > 0:
+		ticket_parts.append("藍票 x" + str(reward_blue))
+	tickets_lbl.text = " / ".join(ticket_parts) if ticket_parts.size() > 0 else "—"
+	tickets_lbl.position = Vector2(740, 52)
+	tickets_lbl.add_theme_font_size_override("font_size", 15)
+	tickets_lbl.modulate = Color(0.6, 0.85, 1.0)
+	tickets_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(tickets_lbl)
 
 	return card
+
+func _difficulty_color(diff: int) -> Color:
+	match diff:
+		1: return Color(0.4, 0.9, 0.4)   # 綠：簡單
+		2: return Color(0.9, 0.7, 0.1)   # 橙：普通
+		3: return Color(1.0, 0.4, 0.1)   # 橙紅：困難
+		4: return Color(0.9, 0.1, 0.1)   # 紅：極難
+		_: return Color(0.7, 0.2, 0.9)   # 紫：BOSS
+
+func _select_mission(mission_id: String) -> void:
+	AudioManager.play_sfx("btn_click")
+	selected_mission_id = mission_id
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.set_mission(mission_id)
+	_update_mission_selection_visual(mission_id)
+
+func _update_mission_selection_visual(selected_id: String) -> void:
+	for card in _mission_cards:
+		if not is_instance_valid(card):
+			continue
+		var frame = card.get_node_or_null("Frame")
+		if frame == null:
+			continue
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+		style.set_corner_radius_all(4)
+		# 判斷是否為選中卡片（卡片 name = "MissionCard_" + id）
+		var card_id = card.name.replace("MissionCard_", "")
+		if card_id == selected_id:
+			style.border_color = Color(1.0, 0.6, 0.1, 1.0)  # 橙色選中
+			style.set_border_width_all(4)
+		else:
+			style.border_color = Color(0.35, 0.35, 0.35, 0.8)  # 灰色未選
+			style.set_border_width_all(2)
+		frame.add_theme_stylebox_override("panel", style)
 
 func _add_squad_panel() -> void:
 	var y_base: float = 760.0
@@ -562,8 +660,127 @@ func _on_launch_pressed() -> void:
 	if SaveManager.selected_squad.size() < 4:
 		_show_error("請先選滿 4 名隊員！")
 		return
-	# Demo 固定任務，無需選擇
-	selected_mission_id = "demo_01"
+
+	# 取得當前任務資料，顯示確認面板
+	var gm = get_node_or_null("/root/GameManager")
+	var mission: Dictionary = {}
+	if gm != null and not gm.current_mission_data.is_empty():
+		mission = gm.current_mission_data
+	else:
+		mission = FALLBACK_MISSION
+	_show_mission_confirm_panel(mission)
+
+func _show_mission_confirm_panel(mission: Dictionary) -> void:
+	# 半透明遮罩（直接掛在場景根節點，確保在最上層）
+	var overlay = ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.75)
+	overlay.size = Vector2(1080, 1920)
+	overlay.position = Vector2.ZERO
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(overlay)
+
+	# 面板容器
+	var panel = PanelContainer.new()
+	panel.size = Vector2(700, 520)
+	panel.position = Vector2(190, 620)
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.06, 0.09, 0.06, 0.98)
+	panel_style.border_color = Color(0.5, 0.75, 0.3, 0.9)
+	panel_style.set_border_width_all(3)
+	panel_style.set_corner_radius_all(10)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	overlay.add_child(panel)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 22)
+	panel.add_child(vbox)
+
+	# 標題
+	var header = Label.new()
+	header.text = "出擊確認"
+	header.add_theme_font_size_override("font_size", 24)
+	header.modulate = Color(0.7, 1.0, 0.7)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(header)
+
+	# 分隔線
+	var sep = ColorRect.new()
+	sep.custom_minimum_size = Vector2(0, 2)
+	sep.color = Color(0.3, 0.5, 0.3, 0.6)
+	vbox.add_child(sep)
+
+	# 任務名稱
+	var title = Label.new()
+	title.text = mission.get("name", "任務")
+	title.add_theme_font_size_override("font_size", 32)
+	title.modulate = Color(1.0, 0.85, 0.3)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	# 難度星級（最多 5 星，與任務卡一致）
+	var diff: int = mission.get("difficulty", 1)
+	var filled: int = clampi(diff, 0, 5)
+	var star_text: String = "★".repeat(filled) + "☆".repeat(maxi(0, 5 - filled))
+	var diff_label = Label.new()
+	diff_label.text = "難度：" + star_text
+	diff_label.add_theme_font_size_override("font_size", 26)
+	diff_label.modulate = _difficulty_color(diff)
+	diff_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(diff_label)
+
+	# 獎勵預覽
+	var coins: int = mission.get("reward_coins", 0)
+	var gold_t: int = mission.get("reward_gold_tickets", 0)
+	var blue_t: int = mission.get("reward_blue_tickets", 0)
+	var reward_str: String = "完成獎勵：" + str(coins) + " 金幣"
+	if gold_t > 0:
+		reward_str += "　金票 ×" + str(gold_t)
+	if blue_t > 0:
+		reward_str += "　藍票 ×" + str(blue_t)
+	var reward_label = Label.new()
+	reward_label.text = reward_str
+	reward_label.add_theme_font_size_override("font_size", 22)
+	reward_label.modulate = Color(1.0, 0.95, 0.6)
+	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(reward_label)
+
+	# 體力提示
+	var stamina_hint = Label.new()
+	stamina_hint.text = "消耗體力：1"
+	stamina_hint.add_theme_font_size_override("font_size", 18)
+	stamina_hint.modulate = Color(0.5, 0.9, 0.5)
+	stamina_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(stamina_hint)
+
+	# 按鈕列
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 50)
+	vbox.add_child(hbox)
+
+	var cancel_btn = Button.new()
+	cancel_btn.text = "取消"
+	cancel_btn.custom_minimum_size = Vector2(180, 65)
+	cancel_btn.add_theme_font_size_override("font_size", 24)
+	_style_button(cancel_btn, Color(0.25, 0.10, 0.10))
+	cancel_btn.pressed.connect(overlay.queue_free)
+	hbox.add_child(cancel_btn)
+
+	var confirm_btn = Button.new()
+	confirm_btn.text = "出擊！"
+	confirm_btn.custom_minimum_size = Vector2(220, 65)
+	confirm_btn.add_theme_font_size_override("font_size", 28)
+	_style_button(confirm_btn, Color(0.55, 0.25, 0.0))
+	confirm_btn.modulate = Color(1.0, 0.85, 0.5)
+	confirm_btn.pressed.connect(func():
+		overlay.queue_free()
+		_start_mission()
+	)
+	hbox.add_child(confirm_btn)
+
+func _start_mission() -> void:
+	# selected_mission_id 由玩家在任務板點選後設定，此處保留玩家選擇
 
 	# 存檔（包含當前陣容選擇）
 	SaveManager.save_game()

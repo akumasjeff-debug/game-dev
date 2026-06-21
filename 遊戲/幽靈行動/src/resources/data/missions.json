@@ -1,0 +1,61 @@
+{
+  "missions": [
+    {
+      "id": "demo_01",
+      "name": "辦公大樓清查",
+      "name_en": "Office Building Sweep",
+      "description": "確認滲透目標的佈防情況，清除警衛人員。",
+      "difficulty": 1,
+      "difficulty_label": "★☆☆",
+      "reward_coins": 200,
+      "reward_blue_tickets": 0,
+      "reward_gold_tickets": 1,
+      "enemy_config": {
+        "room_a": {"normal": 2, "elite": 0, "boss": 0},
+        "room_b": {"normal": 1, "elite": 1, "boss": 0},
+        "room_c": {"normal": 0, "elite": 1, "boss": 0},
+        "boss_room": {"normal": 0, "elite": 0, "boss": 1}
+      },
+      "unlock_condition": "default",
+      "tags": ["主線", "DEMO"]
+    },
+    {
+      "id": "warehouse_01",
+      "name": "地下停車場突擊",
+      "name_en": "Underground Parking Assault",
+      "description": "敵方在地下停車場儲藏武器，務必全數清除並帶回情報。",
+      "difficulty": 2,
+      "difficulty_label": "★★☆",
+      "reward_coins": 350,
+      "reward_blue_tickets": 1,
+      "reward_gold_tickets": 0,
+      "enemy_config": {
+        "room_a": {"normal": 3, "elite": 0, "boss": 0},
+        "room_b": {"normal": 2, "elite": 1, "boss": 0},
+        "room_c": {"normal": 1, "elite": 2, "boss": 0},
+        "boss_room": {"normal": 1, "elite": 0, "boss": 1}
+      },
+      "unlock_condition": "default",
+      "tags": ["支線", "可重複"]
+    },
+    {
+      "id": "harbor_01",
+      "name": "港口貨運站狙殺",
+      "name_en": "Harbor Freight Terminal",
+      "description": "目標藏匿在港口貨運站，精英衛隊嚴密保護，需要精準行動。",
+      "difficulty": 3,
+      "difficulty_label": "★★★",
+      "reward_coins": 500,
+      "reward_blue_tickets": 2,
+      "reward_gold_tickets": 0,
+      "enemy_config": {
+        "room_a": {"normal": 2, "elite": 1, "boss": 0},
+        "room_b": {"normal": 1, "elite": 2, "boss": 0},
+        "room_c": {"normal": 0, "elite": 2, "boss": 0},
+        "boss_room": {"normal": 2, "elite": 1, "boss": 1}
+      },
+      "unlock_condition": "default",
+      "tags": ["主線", "高難度"]
+    }
+  ]
+}

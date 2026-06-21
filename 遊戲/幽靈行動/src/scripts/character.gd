@@ -22,10 +22,18 @@ var current_hp: float = 100.0
 var cd_timer: float = 0.0
 var is_ultimate_ready: bool = true
 var is_dead: bool = false
+var in_cover: bool = false           # 是否在掩體後
+var _crouch_texture: Texture2D = null  # 蹲伏精靈（預載）
+var _stand_texture: Texture2D = null   # 站立精靈（預載）
 
 # 自動攻擊計時器
 var _auto_attack_timer: float = 0.0
 var auto_attack_interval: float = 1.5  # 每 1.5 秒攻擊一次（狙擊手覆寫為 3.0）
+
+# 醫療兵被動回血
+var _heal_timer: float = 0.0
+const HEAL_INTERVAL: float = 5.0
+const HEAL_AMOUNT_RATIO: float = 0.08  # 8% 最大 HP
 
 # 爆破手首次大招 CD 標記（Demo 教學特例：首次 CD 縮短為 20 秒）
 var _first_ult_used: bool = false
@@ -46,6 +54,9 @@ func _ready() -> void:
 		auto_attack_interval = 3.0
 	# 初始計時器錯開，避免所有角色同時發射
 	_auto_attack_timer = randf_range(0.0, auto_attack_interval)
+	# 醫療兵首次回血隨機延遲 1~3 秒，避免開局立即觸發
+	if char_id == "medic":
+		_heal_timer = randf_range(1.0, 3.0)
 
 func _build_visual() -> void:
 	# 優先載入像素方塊 SVG sprite，無則退回職業色塊
@@ -56,6 +67,11 @@ func _build_visual() -> void:
 		sprite.centered = true
 		sprite.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)  # 64px SVG 縮至 40px 顯示
 		_body = sprite
+		# 預載站立與蹲伏貼圖
+		_stand_texture = sprite.texture
+		var crouch_path = "res://resources/art/sprites/crouch/crouch_" + char_id + ".svg"
+		if ResourceLoader.exists(crouch_path):
+			_crouch_texture = load(crouch_path)
 	else:
 		var cr = ColorRect.new()
 		cr.size = Vector2(40, 40)
@@ -97,6 +113,12 @@ func _process(delta: float) -> void:
 	if _auto_attack_timer <= 0.0:
 		_auto_attack_timer = auto_attack_interval
 		_try_auto_attack()
+	# 醫療兵被動回血
+	if char_id == "medic":
+		_heal_timer -= delta
+		if _heal_timer <= 0.0:
+			_heal_timer = HEAL_INTERVAL
+			_do_passive_heal()
 
 func take_damage(amount: float) -> void:
 	if is_dead:
@@ -105,6 +127,9 @@ func take_damage(amount: float) -> void:
 	if _hp_bar:
 		_hp_bar.value = current_hp
 	emit_signal("hp_changed", current_hp, max_hp)
+	if current_hp > 0.0:
+		if AudioManager:
+			AudioManager.play_sfx("impact_hit")
 	if current_hp <= 0.0:
 		die()
 
@@ -138,6 +163,8 @@ func fire_shot() -> void:
 		AudioManager.play_sfx("gunshot")
 
 func _apply_ultimate_effect() -> void:
+	if AudioManager:
+		AudioManager.play_sfx("ult_activate")
 	# 各職業大招效果 — P1 實作
 	var gm = _get_gm()
 	if gm == null:
@@ -181,7 +208,20 @@ func _apply_ultimate_effect() -> void:
 				if OS.is_debug_build():
 					print("[狙擊手大招] 精準鎖定標記！下次進入房間觸發。")
 		"medic":
-			# 全隊立即恢復 30% 最大 HP
+			# Lv.6+ 「戰場復甦」：優先復活最近倒下的隊員（本關限一次）
+			# Lv.1-5 維持原效果：全隊立即恢復 30% 最大 HP
+			if level >= 6 and not gm.medic_revive_used:
+				var revive_target = gm.find_dead_member()
+				if revive_target != null:
+					gm.medic_revive_used = true
+					revive_target.revive(0.5)
+					if OS.is_debug_build():
+						print("[醫療兵大招 Lv.6] 戰場復甦：復活 %s！" % revive_target.char_name)
+					return
+				# 沒有倒下隊員時降級為全隊回血
+				if OS.is_debug_build():
+					print("[醫療兵大招 Lv.6] 無倒下隊員，改為全隊回血")
+			# 預設效果：全隊立即恢復 30% 最大 HP
 			for member in gm.squad_members:
 				if member != null and is_instance_valid(member) and not member.is_dead:
 					member.heal(member.max_hp * 0.3)
@@ -208,6 +248,26 @@ func die() -> void:
 	var gm = _get_gm()
 	if gm:
 		gm.check_defeat()
+
+func revive(hp_ratio: float = 0.5) -> void:
+	if not is_dead:
+		return
+	is_dead = false
+	current_hp = max_hp * hp_ratio
+	if _hp_bar:
+		_hp_bar.max_value = max_hp
+		_hp_bar.value = current_hp
+	if _name_label:
+		_name_label.modulate = Color.WHITE
+	emit_signal("hp_changed", current_hp, max_hp)
+	# 復活特效：閃白光
+	if _body:
+		_body.modulate = Color(1, 1, 1, 1)
+		var tw = create_tween()
+		tw.tween_property(_body, "modulate", Color(2, 2, 2, 1), 0.15)
+		tw.tween_property(_body, "modulate", Color(1, 1, 1, 1), 0.3)
+	if OS.is_debug_build():
+		print("[復活] %s 以 %.0f%% HP 復活（HP: %.1f / %.1f）" % [char_name, hp_ratio * 100.0, current_hp, max_hp])
 
 func get_hp_ratio() -> float:
 	if max_hp <= 0:
@@ -261,13 +321,82 @@ func _try_auto_attack() -> void:
 	# 發射子彈
 	_fire_player_bullet(best_target, total_atk)
 
+func _do_passive_heal() -> void:
+	var gm = _get_gm()
+	if gm == null:
+		return
+	# 找 HP 比例最低的存活隊員（含自己）
+	var lowest_target: Node = null
+	var lowest_ratio: float = 1.0
+	for member in gm.squad_members:
+		if member == null or not is_instance_valid(member):
+			continue
+		if member.is_dead:
+			continue
+		var ratio: float = member.current_hp / member.max_hp if member.max_hp > 0.0 else 1.0
+		if ratio < lowest_ratio:
+			lowest_ratio = ratio
+			lowest_target = member
+
+	# 全員滿血則跳過
+	if lowest_target == null or lowest_ratio >= 0.99:
+		return
+
+	var heal_amount: float = lowest_target.max_hp * HEAL_AMOUNT_RATIO
+	lowest_target.heal(heal_amount)  # 呼叫 heal() 同步更新 HP bar 並發射 hp_changed signal
+
+	_show_heal_text(lowest_target, heal_amount)
+	if OS.is_debug_build():
+		print("[醫療兵被動] 對 %s 回血 %.1f（HP比例 %.0f%%→%.0f%%）" % [
+			lowest_target.char_name,
+			heal_amount,
+			lowest_ratio * 100.0,
+			(lowest_target.current_hp / lowest_target.max_hp) * 100.0
+		])
+
+func _show_heal_text(target: Node, amount: float) -> void:
+	var lbl := Label.new()
+	lbl.text = "+%dhp" % int(amount)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.modulate = Color(0.3, 1.0, 0.3)
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+	tree.current_scene.add_child(lbl)
+	# 飄字位置：目標全域座標轉換為主場景本地座標
+	lbl.global_position = target.global_position + Vector2(-15.0, -40.0)
+	var tw := get_tree().create_tween()
+	tw.tween_property(lbl, "position:y", lbl.position.y - 30.0, 0.8)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(lbl.queue_free)
+
+func set_cover_mode(value: bool) -> void:
+	in_cover = value
+	if _body is Sprite2D:
+		if value and _crouch_texture:
+			_body.texture = _crouch_texture
+			_body.scale = Vector2(40.0 / 32.0, 40.0 / 32.0)  # 32px SVG 縮至 40px 顯示
+		elif _stand_texture:
+			_body.texture = _stand_texture
+			_body.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)  # 64px SVG 縮至 40px 顯示
+
 func _pop_up_animation() -> void:
 	# 射擊站起動畫：向上彈出 12px 再回原位
+	# 若在掩體中，暫時切換到站立精靈
+	if in_cover and _body is Sprite2D and _stand_texture:
+		_body.texture = _stand_texture
+		_body.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)
 	var start_y: float = global_position.y
 	var tween = create_tween()
 	tween.tween_property(self, "global_position:y", start_y - 12.0, 0.08)
 	tween.tween_interval(0.15)
 	tween.tween_property(self, "global_position:y", start_y, 0.08)
+	# 動畫結束後回到蹲伏精靈
+	tween.tween_callback(func():
+		if in_cover and _body is Sprite2D and _crouch_texture:
+			_body.texture = _crouch_texture
+			_body.scale = Vector2(40.0 / 32.0, 40.0 / 32.0)
+	)
 
 func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 	var bullet_script = load("res://scripts/bullet.gd")

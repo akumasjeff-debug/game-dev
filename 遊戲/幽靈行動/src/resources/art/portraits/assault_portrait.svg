@@ -1,0 +1,41 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="clip">
+      <circle cx="32" cy="32" r="30"/>
+    </clipPath>
+  </defs>
+  <!-- Background -->
+  <circle cx="32" cy="32" r="32" fill="#0A140A"/>
+  <g clip-path="url(#clip)">
+    <!-- Bottom color fill -->
+    <rect x="0" y="48" width="64" height="16" fill="#E8600A" opacity="0.3"/>
+    <!-- Standard shoulders -->
+    <rect x="16" y="29" width="8" height="10" fill="#2A2A1A" rx="2"/>
+    <rect x="40" y="29" width="8" height="10" fill="#2A2A1A" rx="2"/>
+    <!-- Body (standard vest, multiple pockets) -->
+    <rect x="21" y="29" width="22" height="23" fill="#2A3020" rx="2"/>
+    <!-- Chest pocket detail -->
+    <rect x="23" y="31" width="7" height="5" fill="#202818" rx="1"/>
+    <rect x="34" y="31" width="7" height="5" fill="#202818" rx="1"/>
+    <!-- Helmet (tactical, goggles raised) -->
+    <rect x="22" y="13" width="20" height="17" fill="#2A3020" rx="4"/>
+    <!-- Goggles (raised on forehead, orange) -->
+    <rect x="23" y="13" width="18" height="5" fill="#E8600A" rx="2"/>
+    <!-- Goggles lens detail -->
+    <rect x="24" y="14" width="7" height="3" fill="#FF8833" rx="1" opacity="0.8"/>
+    <rect x="33" y="14" width="7" height="3" fill="#FF8833" rx="1" opacity="0.8"/>
+    <!-- Face visible below goggles -->
+    <rect x="24" y="18" width="16" height="12" fill="#1A2010" rx="2"/>
+    <!-- ASSAULT RIFLE (diagonal, key identifier) -->
+    <!-- Receiver -->
+    <rect x="34" y="26" width="20" height="7" fill="#333" rx="2" transform="rotate(-15 44 30)"/>
+    <!-- Orange foregrip -->
+    <rect x="30" y="37" width="5" height="8" fill="#E8600A" rx="1" transform="rotate(-15 32 41)"/>
+    <!-- Barrel extension -->
+    <rect x="46" y="22" width="12" height="4" fill="#2A2A2A" rx="1" transform="rotate(-15 52 24)"/>
+    <!-- Magazine -->
+    <rect x="36" y="34" width="4" height="10" fill="#222" rx="1" transform="rotate(-15 38 39)"/>
+  </g>
+  <!-- Class color ring -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#E8600A" stroke-width="3"/>
+</svg>

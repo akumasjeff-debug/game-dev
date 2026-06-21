@@ -74,8 +74,40 @@ func _is_char_in_squad(char_id: String) -> bool:
 			return true
 	return false
 
+func _get_room_event_flavor() -> Dictionary:
+	var gm = get_node_or_null("/root/GameManager")
+	var mission_id = gm.current_mission_id if gm else "demo_01"
+
+	match mission_id:
+		"warehouse_01":
+			return {
+				"title": "地下停車場遭遇",
+				"scenarios": [
+					{"key": "charge",    "name": "正面清除",  "desc": "隊伍全速突入，以火力壓制停車場警衛。\n風險：地形複雜，敵人可能躲在車輛後方。"},
+					{"key": "stealth",   "name": "繞行側翼",  "desc": "利用車輛掩護，從側面包抄目標位置。\n風險：移動時間較長，可能觸發增援。"},
+					{"key": "explosive", "name": "引爆油箱",  "desc": "爆破手引爆停車場油箱，造成範圍爆炸。\n風險：消耗爆炸物，但可快速清場。"},
+				]
+			}
+		"harbor_01":
+			return {
+				"title": "港口貨輪接觸",
+				"scenarios": [
+					{"key": "charge",    "name": "登船突擊",  "desc": "從舷梯強行登船，以近戰火力清除甲板守衛。\n風險：狹小通道對衝突優勢不利。"},
+					{"key": "stealth",   "name": "水中滲透",  "desc": "偵察手在夜色掩護下悄悄接近目標集裝箱。\n風險：一旦暴露，撤退路線將被封鎖。"},
+					{"key": "explosive", "name": "炸毀吊車",  "desc": "引爆港口吊車，製造混亂分散敵方注意力。\n風險：會引來港口其他警衛增援。"},
+				]
+			}
+		_:  # demo_01 辦公大樓 — 保留現有文字，不覆蓋
+			return {}
+
 func _populate(data: Dictionary) -> void:
 	title_label.text = data.get("title", "決策")
+
+	# 根據任務 ID 覆蓋 room 事件標題（warehouse_01 / harbor_01）
+	if data.get("type", "") == "room":
+		var flavor = _get_room_event_flavor()
+		if not flavor.is_empty() and flavor.has("title"):
+			title_label.text = flavor["title"]
 
 	# 偵察手情報：若小隊有偵察手且為 room 類型，在描述中加入敵人數量情報
 	var base_desc = data.get("description", "")

@@ -1,0 +1,47 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 突擊手 — 俯視，雙手持突擊步槍向前伸出最顯眼 -->
+
+  <!-- 落地陰影 -->
+  <ellipse cx="32" cy="56" rx="16" ry="5" fill="#000" opacity="0.35"/>
+
+  <!-- 突擊步槍（向前朝上伸出，最大特徵） -->
+  <!-- 槍管 -->
+  <rect x="29" y="0"  width="6"  height="20" fill="#2A2A2A"/>
+  <!-- 護木（橙色，識別色） -->
+  <rect x="28" y="14" width="8"  height="6"  fill="#E8600A"/>
+  <!-- 槍身 -->
+  <rect x="26" y="18" width="12" height="10" fill="#333"/>
+  <!-- 彈匣（往下） -->
+  <rect x="29" y="26" width="6"  height="8"  fill="#222"/>
+  <!-- 托架 -->
+  <rect x="27" y="28" width="10" height="6"  fill="#2A2A2A"/>
+
+  <!-- 雙手握槍 -->
+  <rect x="20" y="16" width="8"  height="6"  fill="#1C2810"/>  <!-- 左手 -->
+  <rect x="36" y="16" width="8"  height="6"  fill="#1C2810"/>  <!-- 右手 -->
+
+  <!-- 雙臂前伸 -->
+  <rect x="16" y="22" width="10" height="4"  fill="#1A2010"/>
+  <rect x="38" y="22" width="10" height="4"  fill="#1A2010"/>
+
+  <!-- 身體（標準戰術背心，多口袋） -->
+  <rect x="20" y="26" width="24" height="24" fill="#1E2A18"/>
+  <!-- 彈匣袋 -->
+  <rect x="21" y="27" width="6"  height="5"  fill="#162012"/>
+  <rect x="37" y="27" width="6"  height="5"  fill="#162012"/>
+  <rect x="21" y="34" width="6"  height="5"  fill="#162012"/>
+  <rect x="37" y="34" width="6"  height="5"  fill="#162012"/>
+
+  <!-- 頭盔（戰術盔，俯視頂面） -->
+  <rect x="23" y="22" width="18" height="6"  fill="#222A18"/>
+  <!-- 護目鏡（橙色，已抬起放在盔頂） -->
+  <rect x="24" y="22" width="16" height="3"  fill="#E8600A"/>
+
+  <!-- 腿 -->
+  <rect x="22" y="50" width="8"  height="6"  fill="#0E1408"/>
+  <rect x="34" y="50" width="8"  height="6"  fill="#0E1408"/>
+
+  <!-- 膝護 -->
+  <rect x="23" y="46" width="6"  height="5"  fill="#2A3418"/>
+  <rect x="35" y="46" width="6"  height="5"  fill="#2A3418"/>
+</svg>

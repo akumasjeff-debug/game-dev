@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="18" shape-rendering="crispEdges">
+  <!-- 底部陰影邊 -->
+  <rect x="0" y="16" width="280" height="2" fill="#1E2228"/>
+  <!-- 主體混凝土 -->
+  <rect x="0" y="2" width="280" height="14" fill="#3A3F4A"/>
+  <!-- 頂部亮邊高光 -->
+  <rect x="0" y="0" width="280" height="2" fill="#505A68"/>
+
+  <!-- 分格縫 x=40 -->
+  <rect x="40" y="2" width="1" height="14" fill="#1E2228"/>
+  <!-- 分格縫 x=80 -->
+  <rect x="80" y="2" width="1" height="14" fill="#1E2228"/>
+  <!-- 分格縫 x=120 -->
+  <rect x="120" y="2" width="1" height="14" fill="#1E2228"/>
+  <!-- 分格縫 x=160 -->
+  <rect x="160" y="2" width="1" height="14" fill="#1E2228"/>
+  <!-- 分格縫 x=200 -->
+  <rect x="200" y="2" width="1" height="14" fill="#1E2228"/>
+  <!-- 分格縫 x=240 -->
+  <rect x="240" y="2" width="1" height="14" fill="#1E2228"/>
+
+  <!-- 左端護角加固（深色方塊） -->
+  <rect x="0" y="2" width="10" height="14" fill="#2D3240"/>
+  <rect x="0" y="2" width="2" height="14" fill="#505A68"/>
+
+  <!-- 右端護角加固 -->
+  <rect x="270" y="2" width="10" height="14" fill="#2D3240"/>
+  <rect x="278" y="2" width="2" height="14" fill="#505A68"/>
+
+  <!-- 微高光細節（中間偏亮帶） -->
+  <rect x="10" y="3" width="230" height="2" fill="#424855"/>
+</svg>

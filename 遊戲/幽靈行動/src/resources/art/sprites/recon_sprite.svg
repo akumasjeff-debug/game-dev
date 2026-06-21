@@ -1,0 +1,66 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 偵察手 — 俯視，夜視鏡往前突出（T形），綠色發光鏡頭最顯眼 -->
+
+  <!-- 落地陰影 -->
+  <ellipse cx="32" cy="56" rx="14" ry="4" fill="#000" opacity="0.35"/>
+
+  <!-- NVG 夜視鏡（T形往前突出，最大特徵） -->
+  <!-- 橫向夾具 -->
+  <rect x="18" y="8"  width="28" height="6"  fill="#1A2A1A"/>
+  <!-- 右鏡頭管 -->
+  <rect x="18" y="0"  width="10" height="10" fill="#1A1A1A"/>
+  <!-- 左鏡頭管 -->
+  <rect x="36" y="0"  width="10" height="10" fill="#1A1A1A"/>
+  <!-- 右鏡頭玻璃（綠色發光） -->
+  <rect x="19" y="1"  width="8"  height="8"  fill="#33CC55"/>
+  <!-- 左鏡頭玻璃（綠色發光） -->
+  <rect x="37" y="1"  width="8"  height="8"  fill="#33CC55"/>
+  <!-- 鏡頭高光 -->
+  <rect x="20" y="2"  width="3"  height="3"  fill="#88FF88"/>
+  <rect x="38" y="2"  width="3"  height="3"  fill="#88FF88"/>
+  <!-- 鏡頭深色中心 -->
+  <rect x="22" y="4"  width="3"  height="3"  fill="#006600"/>
+  <rect x="40" y="4"  width="3"  height="3"  fill="#006600"/>
+  <!-- 中央橋接 -->
+  <rect x="28" y="2"  width="8"  height="6"  fill="#223322"/>
+  <!-- 綠色光暈（發光感） -->
+  <rect x="16" y="0"  width="4"  height="10" fill="#33CC55" opacity="0.25"/>
+  <rect x="44" y="0"  width="4"  height="10" fill="#33CC55" opacity="0.25"/>
+
+  <!-- 頭盔（輕型，NVG 後方） -->
+  <rect x="24" y="10" width="16" height="12" fill="#1A2A1A"/>
+  <!-- 頭盔邊緣 -->
+  <rect x="22" y="14" width="20" height="4"  fill="#162216"/>
+
+  <!-- 細身體（最輕裝備） -->
+  <rect x="24" y="22" width="16" height="26" fill="#182218"/>
+  <!-- 輕型背心分隔線 -->
+  <rect x="31" y="22" width="2"  height="26" fill="#101810"/>
+
+  <!-- 兩側臂 -->
+  <rect x="18" y="24" width="8"  height="4"  fill="#162016"/>
+  <rect x="38" y="24" width="8"  height="4"  fill="#162016"/>
+
+  <!-- 小型背包（右肩） -->
+  <rect x="40" y="18" width="8"  height="12" fill="#121C12"/>
+  <rect x="41" y="20" width="6"  height="4"  fill="#0E180E"/>
+
+  <!-- 偵察鏡（右肩，圓形感但用方塊） -->
+  <rect x="42" y="22" width="5"  height="5"  fill="#0A1A0A"/>
+  <rect x="43" y="23" width="3"  height="3"  fill="#33CC55" opacity="0.6"/>
+
+  <!-- 手槍（左腰，小型） -->
+  <rect x="16" y="36" width="8"  height="4"  fill="#1A1A1A"/>
+  <rect x="18" y="40" width="4"  height="6"  fill="#222"/>
+
+  <!-- 煙霧彈（腰帶，圓柱用方塊） -->
+  <rect x="26" y="44" width="5"  height="5"  fill="#2A3A2A"/>
+  <rect x="33" y="44" width="5"  height="5"  fill="#2A3A2A"/>
+  <!-- 拉環 -->
+  <rect x="28" y="43" width="2"  height="2"  fill="#33CC55"/>
+  <rect x="35" y="43" width="2"  height="2"  fill="#33CC55"/>
+
+  <!-- 腿（細長） -->
+  <rect x="24" y="50" width="6"  height="6"  fill="#0E180E"/>
+  <rect x="34" y="50" width="6"  height="6"  fill="#0E180E"/>
+</svg>

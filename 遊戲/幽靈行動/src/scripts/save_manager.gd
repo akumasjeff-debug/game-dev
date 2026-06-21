@@ -6,10 +6,10 @@ extends Node
 const SAVE_PATH: String = "user://save_data.cfg"
 
 # 離線金幣規格
-const COINS_PER_HOUR: float = 100.0
+const COINS_PER_HOUR: float = 50.0
 const COINS_PER_SECOND: float = COINS_PER_HOUR / 3600.0
 const MAX_OFFLINE_HOURS: float = 24.0
-const MAX_OFFLINE_COINS: float = COINS_PER_HOUR * MAX_OFFLINE_HOURS  # 2400
+const MAX_OFFLINE_COINS: float = COINS_PER_HOUR * MAX_OFFLINE_HOURS  # 1200
 
 # 預設值
 const DEFAULT_COINS: int = 0
@@ -36,6 +36,7 @@ var character_rarity: Dictionary = {}   # {char_id: int} 0=灰,1=銀,2=金
 var character_copies: Dictionary = {}   # {char_id: int} 備份張數銀行（不含初始解鎖那張）
 var stamina: int = 10
 var max_stamina: int = 10
+var completed_missions: Array = []  # 已完成的 mission_id 清單
 
 func _ready() -> void:
 	character_levels = DEFAULT_LEVELS.duplicate()
@@ -74,6 +75,7 @@ func save_game() -> void:
 	cfg.set_value("gacha", "character_rarity", character_rarity)
 	cfg.set_value("gacha", "character_copies", character_copies)
 	cfg.set_value("player", "stamina", stamina)
+	cfg.set_value("progress", "completed_missions", completed_missions)
 
 	var err = cfg.save(SAVE_PATH)
 	if err != OK:
@@ -112,6 +114,7 @@ func load_game() -> void:
 	for id in saved_copies:
 		character_copies[id] = saved_copies[id]
 	stamina = cfg.get_value("player", "stamina", 10)
+	completed_missions = cfg.get_value("progress", "completed_missions", [])
 
 # ─────────────────────────────────────────
 #  離線金幣計算
@@ -126,8 +129,8 @@ func calculate_offline_reward() -> Dictionary:
 	var now: int = int(Time.get_unix_time_from_system())
 	var elapsed_seconds: float = float(now - last_exit_timestamp)
 
-	if elapsed_seconds < 60.0:
-		# 少於 1 分鐘，不顯示
+	if elapsed_seconds < 300.0:
+		# 少於 5 分鐘，不顯示
 		last_exit_timestamp = 0
 		return {"minutes": 0, "coins": 0}
 
@@ -208,4 +211,24 @@ func spend_stamina() -> bool:
 
 # 記錄退出時間（在 game 關閉前呼叫）
 func record_exit_time() -> void:
+	save_game()
+
+# ─────────────────────────────────────────
+#  任務完成記錄
+# ─────────────────────────────────────────
+
+func mark_mission_complete(mission_id: String) -> void:
+	if mission_id not in completed_missions:
+		completed_missions.append(mission_id)
+	save_game()
+
+func is_mission_completed(mission_id: String) -> bool:
+	return mission_id in completed_missions
+
+# ─────────────────────────────────────────
+#  藍票入帳
+# ─────────────────────────────────────────
+
+func add_blue_tickets(amount: int) -> void:
+	blue_tickets += amount
 	save_game()

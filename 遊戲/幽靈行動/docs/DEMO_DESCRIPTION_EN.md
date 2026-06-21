@@ -86,6 +86,20 @@ Current build uses placeholder art assets and synthesized audio. The full game w
 
 ---
 
+### Controls
+
+**Mouse / Touchscreen**
+
+| Action | Input |
+|--------|-------|
+| Select decision option | Click / Tap the option button |
+| Use character skill | Click / Tap the character card in the bottom HUD |
+| Navigate base menus | Click / Tap buttons and cards |
+
+No keyboard required. Designed for one-hand mobile play.
+
+---
+
 ## Tags (itch.io, max 10)
 
 ```

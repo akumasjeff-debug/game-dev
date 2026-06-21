@@ -20,6 +20,19 @@ var _crossfade_timer: float = 0.0
 var _crossfade_duration: float = 0.5
 var _is_crossfading: bool = false
 
+# ─── BGM 名稱對應檔案路徑 ───
+# 對應 AUDIO_SPEC 1-A 到 1-F
+const BGM_MAP: Dictionary = {
+	"base":          "res://audio/bgm/base_bgm.wav",        # 1-A 基地主題 BPM 76
+	"mission":       "res://audio/bgm/mission_bgm.wav",     # 1-B 任務推進 BPM 96
+	"high_alert":    "res://audio/bgm/high_alert_bgm.wav",  # 1-C 高警戒 BPM 116
+	"boss":          "res://audio/bgm/boss_bgm.wav",        # 1-D Boss 戰 BPM 100
+	"victory":       "res://audio/bgm/victory_bgm.wav",     # 1-E 任務勝利（單次）
+	"defeat":        "res://audio/bgm/defeat_bgm.wav",      # 1-F 任務失敗（單次）
+	"warehouse_bgm": "res://audio/bgm/warehouse_bgm.wav",   # 1-G 地下停車場任務 BPM 70
+	"harbor_bgm":    "res://audio/bgm/harbor_bgm.wav",      # 1-H 港口夜間任務 BPM 95
+}
+
 # ─── 音效名稱對應檔案路徑 ───
 const SFX_MAP: Dictionary = {
 	"btn_click":        "res://audio/ui/btn_click.wav",
@@ -29,8 +42,12 @@ const SFX_MAP: Dictionary = {
 	"victory":          "res://audio/ui/victory.wav",
 	"defeat":           "res://audio/ui/defeat.wav",
 	"gunshot":          "res://audio/combat/gunshot.wav",
+	"gunshot_enemy":    "res://audio/combat/gunshot_enemy.wav",
+	"impact_hit":       "res://audio/combat/impact_hit.wav",
 	"explosion":        "res://audio/combat/explosion.wav",
 	"footstep":         "res://audio/combat/footstep.wav",
+	"victory_sting":    "res://audio/ui/victory_sting.wav",
+	"ult_activate":     "res://audio/ult/ult_activate.wav",
 }
 
 # ─── 大招音效對應（char_id → 檔案路徑）───
@@ -89,10 +106,16 @@ func play_sfx(name: String) -> void:
 	player.play()
 
 func play_bgm(name: String) -> void:
-	if not SFX_MAP.has(name) and not name.begins_with("res://"):
+	if not BGM_MAP.has(name) and not SFX_MAP.has(name) and not name.begins_with("res://"):
 		push_warning("AudioManager: 未知 BGM '%s'" % name)
 		return
-	var path: String = name if name.begins_with("res://") else SFX_MAP[name]
+	var path: String
+	if name.begins_with("res://"):
+		path = name
+	elif BGM_MAP.has(name):
+		path = BGM_MAP[name]
+	else:
+		path = SFX_MAP[name]
 	var stream = _load_stream(path)
 	if stream == null:
 		return

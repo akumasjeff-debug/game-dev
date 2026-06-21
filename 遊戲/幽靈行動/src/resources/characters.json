@@ -370,7 +370,7 @@
       },
 
       "ultimate": {
-        "name": "電磁脈衝",
+        "name": "煙霧封鎖",
         "type": "crowd_control",
         "target": "all_enemies",
         "_base": {"stun_duration": 5.0, "cd": 35.0},

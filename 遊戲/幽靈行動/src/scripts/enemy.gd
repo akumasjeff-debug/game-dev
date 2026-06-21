@@ -135,6 +135,8 @@ func _fire_bullet(target_node: Node) -> void:
 			gm.apply_damage_to_member(target_node, attack_power)
 		return
 
+	if AudioManager:
+		AudioManager.play_sfx("gunshot_enemy")
 	var bullet = Node2D.new()
 	bullet.set_script(bullet_script)
 	# 加到主場景根節點（讓子彈不隨房間移動）
@@ -172,14 +174,67 @@ func take_damage(amount: float) -> void:
 
 func die() -> void:
 	is_dead = true
-	if _body:
-		_body.modulate = Color(0.3, 0.3, 0.3, 0.6)
-	if _name_label:
-		_name_label.modulate = Color(0.4, 0.4, 0.4)
 	emit_signal("enemy_died", self)
-	# 延遲 0.3 秒後從場景移除（讓死亡顏色閃一下）
-	var t = get_tree().create_timer(0.3)
-	t.timeout.connect(queue_free)
+	_spawn_kill_effect()
+
+	# 停止 HP bar 與名稱標籤
+	if _hp_bar:
+		_hp_bar.hide()
+	if _name_label:
+		_name_label.hide()
+
+	# 死亡動畫序列
+	var tw = create_tween()
+
+	# 1. 閃白（被擊中感）
+	if _body:
+		tw.tween_property(_body, "modulate", Color(3.0, 3.0, 3.0, 1.0), 0.05)
+
+	# 2. 膨脹再縮小（爆炸感）
+	tw.tween_property(self, "scale", Vector2(1.4, 1.4), 0.08)
+	tw.tween_property(self, "scale", Vector2(0.6, 0.6), 0.12)
+
+	# 3. 旋轉倒下（Boss 以外）
+	if enemy_type != EnemyType.BOSS:
+		tw.parallel().tween_property(self, "rotation", PI * 0.5, 0.2)
+		tw.parallel().tween_property(_body if _body else self, "modulate", Color(0.2, 0.0, 0.0, 0.4), 0.2)
+	else:
+		# Boss：更戲劇化，往後仰並變紫黑色
+		tw.parallel().tween_property(self, "scale", Vector2(1.8, 1.8), 0.15)
+		tw.parallel().tween_property(_body if _body else self, "modulate", Color(0.4, 0.0, 0.6, 0.8), 0.15)
+		tw.tween_property(self, "scale", Vector2(0.0, 0.0), 0.3)
+
+	# 4. 淡出
+	tw.tween_property(self, "modulate:a", 0.0, 0.25)
+
+	# 5. 移除節點
+	tw.tween_callback(queue_free)
+
+func _spawn_kill_effect() -> void:
+	var scene_root = get_tree().current_scene
+	if scene_root == null:
+		return
+
+	var lbl = Label.new()
+	var kill_text = "ELIMINATED"
+	var kill_color = Color(1.0, 0.3, 0.3)
+	if enemy_type == EnemyType.ELITE:
+		kill_text = "ELITE DOWN"
+		kill_color = Color(1.0, 0.6, 0.1)
+	elif enemy_type == EnemyType.BOSS:
+		kill_text = "BOSS DEFEATED"
+		kill_color = Color(0.8, 0.2, 1.0)
+
+	lbl.text = kill_text
+	lbl.add_theme_font_size_override("font_size", 20 if enemy_type == EnemyType.NORMAL else 26)
+	lbl.modulate = kill_color
+	lbl.position = global_position + Vector2(-60, -30)
+	scene_root.add_child(lbl)
+
+	var tw = create_tween()
+	tw.tween_property(lbl, "position:y", lbl.position.y - 50, 0.6)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(lbl.queue_free)
 
 func get_hp_ratio() -> float:
 	if max_hp <= 0.0:

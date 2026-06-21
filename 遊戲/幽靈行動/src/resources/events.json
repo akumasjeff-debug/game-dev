@@ -595,6 +595,135 @@
           "effect": "hidden_recon_full_reveal"
         }
       ]
+    },
+    {
+      "id": "warehouse_cctv",
+      "type": "room",
+      "mission_filter": ["warehouse_01"],
+      "title": "監視攝影機",
+      "description": "地下停車場的監控系統還在運作。硬闖會觸發警報，但有人可以悄悄切掉電源。",
+      "options": [
+        {
+          "id": "cut_power",
+          "label": "切斷電源（偵察手）",
+          "desc": "悄悄入侵電源箱，監控黑屏",
+          "effect": "warehouse_cctv_cut_power",
+          "requires": { "class": "recon" }
+        },
+        {
+          "id": "charge_through",
+          "label": "直接衝",
+          "desc": "警報大作，但敵人忙著回應",
+          "effect": "warehouse_cctv_charge"
+        }
+      ]
+    },
+    {
+      "id": "warehouse_guardroom",
+      "type": "room",
+      "mission_filter": ["warehouse_01"],
+      "title": "警衛室",
+      "description": "小隊發現一間廢棄的警衛室。桌上的急救箱落滿灰塵，但封口還沒開過。",
+      "options": [
+        {
+          "id": "loot_medkit",
+          "label": "搜刮急救箱",
+          "desc": "打開來，裡面的東西還能用",
+          "effect": "warehouse_guardroom_heal"
+        },
+        {
+          "id": "skip",
+          "label": "繼續前進，不浪費時間",
+          "desc": "目標優先，省下的時間就是錢",
+          "effect": "warehouse_guardroom_skip"
+        }
+      ]
+    },
+    {
+      "id": "warehouse_oilcar",
+      "type": "room",
+      "mission_filter": ["warehouse_01"],
+      "title": "漏油的汽車",
+      "description": "一輛破舊轎車漏油成一灘，蔓延到前方走道。爆破手眼睛一亮——這是個機會。",
+      "options": [
+        {
+          "id": "ignite",
+          "label": "引爆燃油（爆破手）",
+          "desc": "一顆火花，前方一片火海",
+          "effect": "warehouse_oilcar_ignite",
+          "requires": { "class": "demolitions" }
+        },
+        {
+          "id": "bypass",
+          "label": "迂迴前進，保持低調",
+          "desc": "繞開油灘，保留奇襲優勢",
+          "effect": "warehouse_oilcar_bypass"
+        }
+      ]
+    },
+    {
+      "id": "harbor_container_ambush",
+      "type": "room",
+      "mission_filter": ["harbor_01"],
+      "title": "貨櫃間",
+      "description": "狙擊手透過夜視鏡發現前方貨櫃後有動靜。是陷阱還是機會，五秒內得決定。",
+      "options": [
+        {
+          "id": "sniper_suppress",
+          "label": "狙擊手先制壓制",
+          "desc": "精準點名，打亂敵人節奏",
+          "effect": "harbor_container_sniper_suppress",
+          "requires": { "class": "sniper" }
+        },
+        {
+          "id": "flank_route",
+          "label": "繞道迂迴",
+          "desc": "繞開雷區，多走一段但更安全",
+          "effect": "harbor_container_flank"
+        }
+      ]
+    },
+    {
+      "id": "harbor_smuggle_cargo",
+      "type": "room",
+      "mission_filter": ["harbor_01"],
+      "title": "走私貨物",
+      "description": "一個撬開的貨櫃裡裝著各種物資，整整齊齊。看起來是留給誰的——現在歸我們了。",
+      "options": [
+        {
+          "id": "confiscate",
+          "label": "沒收物資",
+          "desc": "全部打包，裝進行動背囊",
+          "effect": "harbor_smuggle_confiscate"
+        },
+        {
+          "id": "track",
+          "label": "原封不動，繼續追蹤",
+          "desc": "留著當誘餌，等交易對象出現",
+          "effect": "harbor_smuggle_track"
+        }
+      ]
+    },
+    {
+      "id": "harbor_night_fog",
+      "type": "room",
+      "mission_filter": ["harbor_01"],
+      "title": "港口夜霧",
+      "description": "濃霧從海面飄來，能見度驟降到五公尺。這對我們有利——也對敵人有利。",
+      "options": [
+        {
+          "id": "fog_assault",
+          "label": "趁霧突襲",
+          "desc": "先打先贏，但對方也可能盲射",
+          "effect": "harbor_fog_assault"
+        },
+        {
+          "id": "fog_wait",
+          "label": "等霧散再行動",
+          "desc": "耐心等待，下一場戰鬥敵人慢半拍",
+          "effect": "harbor_fog_wait"
+        }
+      ]
     }
   ]
 }

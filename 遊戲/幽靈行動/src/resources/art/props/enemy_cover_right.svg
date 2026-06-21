@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="16" shape-rendering="crispEdges">
+  <!-- 主體 — 右側略厚 -->
+  <rect x="0" y="0" width="80" height="16" fill="#2A2A2A"/>
+
+  <!-- 頂部高光 -->
+  <rect x="0" y="0" width="80" height="1" fill="#3A3A3A"/>
+
+  <!-- 底部陰影 -->
+  <rect x="0" y="15" width="80" height="1" fill="#181818"/>
+
+  <!-- 左側頂部碎裂缺口 -->
+  <rect x="0" y="0" width="5" height="4" fill="#1A1A1A"/>
+  <rect x="8" y="0" width="3" height="3" fill="#1A1A1A"/>
+
+  <!-- 磨損紋理左段 -->
+  <rect x="15" y="5" width="3" height="2" fill="#222222"/>
+  <rect x="22" y="9" width="4" height="2" fill="#222222"/>
+  <rect x="10" y="12" width="5" height="2" fill="#222222"/>
+  <rect x="30" y="4" width="2" height="3" fill="#222222"/>
+
+  <!-- 磨損紋理右段（較少，較厚實） -->
+  <rect x="52" y="6" width="3" height="2" fill="#222222"/>
+  <rect x="60" y="11" width="4" height="2" fill="#222222"/>
+
+  <!-- 右端護角加固（金屬角架） -->
+  <rect x="70" y="0" width="10" height="16" fill="#2E2E2E"/>
+  <rect x="78" y="0" width="2" height="16" fill="#3A3A3A"/>
+
+  <!-- 頂部金屬角架水平條 -->
+  <rect x="68" y="0" width="12" height="2" fill="#353535"/>
+  <rect x="70" y="2" width="10" height="1" fill="#404040"/>
+
+  <!-- 右角架鉚釘點 -->
+  <rect x="72" y="4" width="2" height="2" fill="#3F3F3F"/>
+  <rect x="72" y="10" width="2" height="2" fill="#3F3F3F"/>
+
+  <!-- 左端薄邊 -->
+  <rect x="0" y="4" width="2" height="12" fill="#323232"/>
+</svg>

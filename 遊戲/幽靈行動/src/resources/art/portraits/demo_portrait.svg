@@ -1,0 +1,55 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="clip">
+      <circle cx="32" cy="32" r="30"/>
+    </clipPath>
+  </defs>
+  <!-- Background -->
+  <circle cx="32" cy="32" r="32" fill="#140E00"/>
+  <g clip-path="url(#clip)">
+    <!-- Bottom color fill -->
+    <rect x="0" y="48" width="64" height="16" fill="#DDAA00" opacity="0.3"/>
+    <!-- MASSIVE EXPLOSIVE BACKPACK (right side — key identifier) -->
+    <rect x="40" y="16" width="16" height="30" fill="#1A1A0A" rx="3"/>
+    <!-- Hazard stripes on backpack -->
+    <rect x="40" y="20" width="16" height="4" fill="#DDAA00" opacity="0.9"/>
+    <rect x="40" y="28" width="16" height="4" fill="#DDAA00" opacity="0.9"/>
+    <rect x="40" y="36" width="16" height="4" fill="#DDAA00" opacity="0.9"/>
+    <!-- Black stripes between yellow -->
+    <rect x="40" y="24" width="16" height="4" fill="#111" opacity="0.8"/>
+    <rect x="40" y="32" width="16" height="4" fill="#111" opacity="0.8"/>
+    <!-- Backpack clasp -->
+    <rect x="43" y="13" width="10" height="4" fill="#888" rx="1"/>
+    <!-- Stocky wide shoulders -->
+    <rect x="14" y="29" width="9" height="11" fill="#2A2A14" rx="2"/>
+    <rect x="41" y="29" width="8" height="11" fill="#2A2A14" rx="2"/>
+    <!-- Wide body (stocky) -->
+    <rect x="19" y="29" width="23" height="23" fill="#2A2A18" rx="2"/>
+    <!-- Work gloves (thick, on body sides) -->
+    <rect x="13" y="38" width="8" height="10" fill="#1A1A10" rx="3"/>
+    <!-- Helmet (stocky) -->
+    <rect x="21" y="13" width="22" height="17" fill="#252514" rx="3"/>
+    <!-- YELLOW BLAST GOGGLES (key identifier — spans full face) -->
+    <rect x="21" y="20" width="22" height="7" fill="#DDAA00" rx="2"/>
+    <!-- Goggle lens inner -->
+    <rect x="22" y="21" width="9" height="5" fill="#FFCC33" rx="1" opacity="0.8"/>
+    <rect x="33" y="21" width="9" height="5" fill="#FFCC33" rx="1" opacity="0.8"/>
+    <!-- Goggle bridge -->
+    <rect x="31" y="22" width="2" height="3" fill="#AA8800" rx="0.5"/>
+    <!-- Helmet chin strap -->
+    <rect x="23" y="30" width="2" height="5" fill="#333" rx="1"/>
+    <rect x="39" y="30" width="2" height="5" fill="#333" rx="1"/>
+    <!-- Shotgun (compact, on left) -->
+    <rect x="8" y="34" width="12" height="5" fill="#2A2A2A" rx="2"/>
+    <rect x="5" y="35" width="5" height="3" fill="#333" rx="1"/>
+    <!-- Explosive charges on belt -->
+    <circle cx="23" cy="50" r="3" fill="#3A3A1A"/>
+    <circle cx="30" cy="51" r="3" fill="#3A3A1A"/>
+    <circle cx="37" cy="50" r="3" fill="#3A3A1A"/>
+    <!-- Fuse lines -->
+    <line x1="23" y1="47" x2="23" y2="44" stroke="#DDAA00" stroke-width="1"/>
+    <line x1="30" y1="48" x2="30" y2="45" stroke="#DDAA00" stroke-width="1"/>
+  </g>
+  <!-- Class color ring -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#DDAA00" stroke-width="3"/>
+</svg>

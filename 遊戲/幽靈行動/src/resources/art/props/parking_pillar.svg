@@ -1,0 +1,18 @@
+<svg viewBox="0 0 16 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 地面底色 -->
+  <rect x="0" y="0" width="16" height="48" fill="#0D1017"/>
+  <!-- 柱身主體 -->
+  <rect x="2" y="2" width="12" height="44" fill="#1E2228"/>
+  <!-- 左側高光 -->
+  <rect x="2" y="2" width="2" height="44" fill="#2A2F38"/>
+  <!-- 右側陰影 -->
+  <rect x="12" y="2" width="2" height="44" fill="#141820"/>
+  <!-- 頂部淡化層一 -->
+  <rect x="2" y="2" width="12" height="4" fill="#2A2F38"/>
+  <!-- 頂部淡化層二 -->
+  <rect x="3" y="2" width="10" height="2" fill="#343B44"/>
+  <!-- 底部強調線 -->
+  <rect x="2" y="44" width="12" height="2" fill="#141820"/>
+  <!-- 中段橫紋（結構感） -->
+  <rect x="2" y="22" width="12" height="2" fill="#252B33"/>
+</svg>

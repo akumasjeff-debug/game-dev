@@ -1,0 +1,8 @@
+<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 外殼（黃銅色） -->
+  <rect x="2" y="1" width="4" height="6" fill="#D4A017"/>
+  <!-- 彈頭（銀色尖端） -->
+  <rect x="3" y="0" width="2" height="2" fill="#E8E8E8"/>
+  <!-- 光澤 -->
+  <rect x="2" y="2" width="1" height="4" fill="#E8C020"/>
+</svg>

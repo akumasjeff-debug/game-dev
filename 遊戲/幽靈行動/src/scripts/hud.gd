@@ -49,14 +49,49 @@ const TOAST_DURATION: float = 5.0
 # 脈衝動畫計時器
 var _pulse_timer: float = 0.0
 
+# 頂部任務狀態欄
+var _mission_name_label: Label = null
+var _room_progress_label: Label = null
+var _total_rooms: int = 4
+
 func _ready() -> void:
 	game_result_panel.hide()
 	GameManager.game_won.connect(_on_game_won)
 	GameManager.game_lost.connect(_on_game_lost)
 	_build_recon_toast()
+	_add_top_bar()
 	# 連接重試按鈕
 	if retry_btn:
 		retry_btn.pressed.connect(_on_retry_pressed)
+
+func _add_top_bar() -> void:
+	# 任務名稱（左側，y=20）
+	_mission_name_label = Label.new()
+	_mission_name_label.name = "MissionNameLabel"
+	_mission_name_label.position = Vector2(30, 20)
+	_mission_name_label.add_theme_font_size_override("font_size", 20)
+	_mission_name_label.modulate = Color(1.0, 0.85, 0.3)
+	_mission_name_label.text = GameManager.current_mission_data.get("name", "任務")
+	add_child(_mission_name_label)
+
+	# 房間進度（右側，y=20）
+	_room_progress_label = Label.new()
+	_room_progress_label.name = "RoomProgressLabel"
+	_room_progress_label.size = Vector2(200, 30)
+	_room_progress_label.position = Vector2(850, 20)
+	_room_progress_label.add_theme_font_size_override("font_size", 20)
+	_room_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_room_progress_label.modulate = Color(0.85, 0.95, 1.0)
+	_room_progress_label.text = "待進入房間"
+	add_child(_room_progress_label)
+
+	# 連接 room_advanced 信號
+	if GameManager.has_signal("room_advanced"):
+		GameManager.room_advanced.connect(_on_room_advanced)
+
+func _on_room_advanced(room_index: int) -> void:
+	if _room_progress_label and is_instance_valid(_room_progress_label):
+		_room_progress_label.text = "房間 " + str(room_index) + " / " + str(_total_rooms)
 
 func _build_recon_toast() -> void:
 	# 偵察手預警 Toast：固定顯示在頂部進度條下方
@@ -453,22 +488,48 @@ func _process(delta: float) -> void:
 			_recon_toast.visible = false
 
 func _on_game_won() -> void:
+	# 先顯示故事片段，完成後再顯示結算
+	var story_script = load("res://scripts/story_panel.gd")
+	if story_script:
+		var story = CanvasLayer.new()
+		story.set_script(story_script)
+		get_tree().root.add_child(story)
+		story.show_story(
+			GameManager.current_mission_id,
+			func(): _show_victory_panel()  # 故事結束後才顯示結算
+		)
+	else:
+		_show_victory_panel()  # 回退：直接顯示結算
+
+func _show_victory_panel() -> void:
+	if AudioManager:
+		AudioManager.play_sfx("victory_sting")
 	game_result_panel.show()
-	result_label.text = "任務完成！"
+	# 從 GameManager 讀取任務名稱
+	var mission_name: String = GameManager.current_mission_data.get("name", "任務完成")
+	result_label.text = mission_name + " 完成！"
 	result_label.modulate = Color(0.3, 1.0, 0.4)
 	AudioManager.play_sfx("victory")
-	# 任務成功：給予獎勵並存檔
-	var reward_coins = 200
+	# 從 GameManager 讀取獎勵配置
+	var mission_data = GameManager.current_mission_data
+	var reward_coins: int = mission_data.get("reward_coins", 200)
+	var reward_gold: int = mission_data.get("reward_gold_tickets", 0)
+	var reward_blue: int = mission_data.get("reward_blue_tickets", 0)
 	SaveManager.add_coins(reward_coins)
-	# 根據任務類型給票
+	# 記錄任務完成（防止重複領獎）
+	var mission_id: String = mission_data.get("id", "")
+	if mission_id != "":
+		SaveManager.mark_mission_complete(mission_id)
 	var ticket_text = ""
-	if GameManager.current_mission_id == "demo_01":
-		SaveManager.gold_tickets += 1
-		ticket_text = " + 1 金票"
+	if reward_gold > 0:
+		SaveManager.gold_tickets += reward_gold
+		SaveManager.save_game()
+		ticket_text = " + %d 金票" % reward_gold
+	elif reward_blue > 0:
+		SaveManager.add_blue_tickets(reward_blue)
+		ticket_text = " + %d 藍票" % reward_blue
 	else:
-		SaveManager.blue_tickets += 1
-		ticket_text = " + 1 藍票"
-	SaveManager.save_game()
+		SaveManager.save_game()
 	# 勝利時：只顯示「返回基地」
 	if retry_btn:
 		retry_btn.visible = false
@@ -480,9 +541,10 @@ func _on_game_won() -> void:
 	tween.tween_method(_update_coin_display, 0, reward_coins, 1.5)
 	# 動畫結束後顯示最終文字（含票券資訊）
 	var final_ticket_text = ticket_text
+	var final_coins = reward_coins
 	tween.tween_callback(func():
 		if result_desc and is_instance_valid(result_desc):
-			result_desc.text = "小隊成功完成任務！\n獲得 " + str(reward_coins) + " 金幣" + final_ticket_text + "！"
+			result_desc.text = "小隊成功完成任務！\n獲得 " + str(final_coins) + " 金幣" + final_ticket_text + "！"
 	)
 
 func _on_game_lost() -> void:

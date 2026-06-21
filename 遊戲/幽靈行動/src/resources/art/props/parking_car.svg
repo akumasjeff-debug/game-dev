@@ -1,0 +1,27 @@
+<svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 地面底色 -->
+  <rect x="0" y="0" width="64" height="48" fill="#0D1017"/>
+  <!-- 輪胎（四角，8×8） -->
+  <rect x="4"  y="8"  width="8" height="8" fill="#111111"/>
+  <rect x="52" y="8"  width="8" height="8" fill="#111111"/>
+  <rect x="4"  y="32" width="8" height="8" fill="#111111"/>
+  <rect x="52" y="32" width="8" height="8" fill="#111111"/>
+  <!-- 車身主體 -->
+  <rect x="8" y="10" width="48" height="28" fill="#2A2E35"/>
+  <!-- 車身圓角模擬（前後削角） -->
+  <rect x="9"  y="10" width="46" height="2"  fill="#2A2E35"/>
+  <rect x="9"  y="36" width="46" height="2"  fill="#2A2E35"/>
+  <!-- 車窗（俯視，佔中段偏前） -->
+  <rect x="16" y="14" width="28" height="14" fill="#1A1F28"/>
+  <!-- 車窗分隔柱 -->
+  <rect x="30" y="14" width="2" height="14" fill="#2A2E35"/>
+  <!-- 車頭細節（前格柵） -->
+  <rect x="10" y="10" width="44" height="3" fill="#222831"/>
+  <rect x="14" y="10" width="4"  height="2" fill="#3A3F48"/>
+  <rect x="46" y="10" width="4"  height="2" fill="#3A3F48"/>
+  <!-- 車尾細節（後燈） -->
+  <rect x="14" y="37" width="4" height="2" fill="#552222"/>
+  <rect x="46" y="37" width="4" height="2" fill="#552222"/>
+  <!-- 車頂高光線 -->
+  <rect x="16" y="12" width="28" height="1" fill="#3A3F48"/>
+</svg>

@@ -92,6 +92,23 @@ func _ready() -> void:
 	_connect_hud()
 	_connect_signals()
 	_connect_restart()
+	_start_mission_bgm()
+
+func _start_mission_bgm() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am == null:
+		return
+	var mission_id: String = ""
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		mission_id = gm.current_mission_id
+	match mission_id:
+		"warehouse_01":
+			am.play_bgm("warehouse_bgm")
+		"harbor_01":
+			am.play_bgm("harbor_bgm")
+		_:
+			am.play_bgm("mission")
 
 func _setup_camera() -> void:
 	_camera = Camera2D.new()
@@ -146,24 +163,48 @@ func _advance_camera_to_next_room() -> void:
 		print("[Camera] 到位，恢復跟隨")
 	)
 
+func _get_mission_room_color() -> Color:
+	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mission_id:
+		"warehouse_01":
+			return Color(0.05, 0.063, 0.09)   # 深灰黑，停車場
+		"harbor_01":
+			return Color(0.04, 0.083, 0.125)  # 深海藍，港口
+		_:
+			return Color(0.102, 0.125, 0.208) # 辦公大樓 #1A2035
+
+func _get_mission_corridor_color() -> Color:
+	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mission_id:
+		"warehouse_01":
+			return Color(0.07, 0.08, 0.10)   # 深灰黑走廊
+		"harbor_01":
+			return Color(0.05, 0.09, 0.13)   # 深海藍走廊
+		_:
+			return Color(0.15, 0.15, 0.18)   # 辦公大樓走廊（原本）
+
 func _build_map() -> void:
+	var room_base = _get_mission_room_color()
+	var corridor_col = _get_mission_corridor_color()
+
 	# 繪製路徑背景（深色通道）
 	var path_visual = Line2D.new()
 	path_visual.name = "PathVisual"
 	path_visual.width = 120.0
-	path_visual.default_color = Color(0.15, 0.15, 0.18)
+	path_visual.default_color = corridor_col
 	for wp in WAYPOINTS:
 		path_visual.add_point(wp)
 	add_child(path_visual)
 
 	# 地板紋理（用 ColorRect 模擬房間區域）
-	# 房間A
-	_add_room_visual(Vector2(390, 1150), Vector2(300, 200), Color(0.12, 0.16, 0.22), "房間A")
-	# 房間B
-	_add_room_visual(Vector2(390, 750),  Vector2(300, 200), Color(0.12, 0.14, 0.22), "房間B")
-	# 房間C
-	_add_room_visual(Vector2(390, 260),  Vector2(300, 180), Color(0.16, 0.10, 0.22), "房間C")
-	# Boss 房
+	# 各房間以任務主題色為基底，保留原有明暗層次偏移
+	# 房間A（偏冷藍）
+	_add_room_visual(Vector2(390, 1150), Vector2(300, 200), room_base.lightened(0.04), "房間A")
+	# 房間B（略暗）
+	_add_room_visual(Vector2(390, 750),  Vector2(300, 200), room_base, "房間B")
+	# 房間C（略帶紫調，僅 demo_01 明顯）
+	_add_room_visual(Vector2(390, 260),  Vector2(300, 180), room_base.darkened(0.04), "房間C")
+	# Boss 房（維持深紅警示，不跟主題色）
 	_add_room_visual(Vector2(380, 120),  Vector2(320, 120), Color(0.25, 0.08, 0.08), "Boss")
 
 	# 起點標記
@@ -171,70 +212,110 @@ func _build_map() -> void:
 	# 終點標記
 	_add_text_label(Vector2(440, 60), "任務完成", Color(1.0, 0.9, 0.3))
 
+func _get_floor_tile_path() -> String:
+	var mission_id: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mission_id:
+		"warehouse_01":
+			return "res://resources/art/props/floor_tile_warehouse.svg"
+		"harbor_01":
+			return "res://resources/art/props/floor_tile_harbor.svg"
+		_:
+			return "res://resources/art/props/floor_tile_office.svg"
+
 func _add_room_visual(pos: Vector2, size: Vector2, color: Color, label: String) -> void:
 	var rect = ColorRect.new()
 	rect.position = pos
 	rect.size = size
 	rect.color = color
 	add_child(rect)
+	# 地板紋理 TextureRect（tile 模式，依任務 ID 選擇對應 SVG）
+	if label != "Boss":
+		var tile_tex = load(_get_floor_tile_path())
+		if tile_tex:
+			var tex_rect = TextureRect.new()
+			tex_rect.texture = tile_tex
+			tex_rect.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+			tex_rect.stretch_mode = TextureRect.STRETCH_TILE
+			tex_rect.position = Vector2.ZERO
+			tex_rect.size = size
+			tex_rect.modulate = Color(1.0, 1.0, 1.0, 0.35)
+			rect.add_child(tex_rect)
 	_add_text_label(pos + Vector2(10, 10), label, Color(0.8, 0.8, 0.8))
 	_add_room_props(rect, size, label == "Boss")
 	_add_battle_covers(pos, size, rect)
+
+func _make_cover_node(svg_path: String, size: Vector2) -> Node2D:
+	var container = Node2D.new()
+	if ResourceLoader.exists(svg_path):
+		var tr = TextureRect.new()
+		tr.texture = load(svg_path)
+		tr.size = size
+		tr.position = Vector2.ZERO
+		tr.stretch_mode = TextureRect.STRETCH_SCALE
+		container.add_child(tr)
+	else:
+		# 回退：保留 ColorRect
+		var cr = ColorRect.new()
+		cr.size = size
+		cr.position = Vector2.ZERO
+		cr.color = Color(0.23, 0.25, 0.29)
+		container.add_child(cr)
+	return container
 
 func _add_battle_covers(room_pos: Vector2, room_size: Vector2, room_node: Node2D) -> void:
 	# 玩家側掩體（房間下方，角色躲在其後方）
 	# 使用相對座標（相對 room_node.position 即 room_pos）
 	var cover_width: float = min(280.0, room_size.x - 20.0)
 	var cover_x: float = (room_size.x - cover_width) / 2.0
+	var cover_y: float = room_size.y - 55
 
-	# 掩體主體
-	var player_cover = ColorRect.new()
-	player_cover.size = Vector2(cover_width, 18)
-	player_cover.position = Vector2(cover_x, room_size.y - 55)
-	player_cover.color = Color(0.30, 0.30, 0.34)
+	# 掩體主體（SVG TextureRect，回退 ColorRect）
+	var player_cover = _make_cover_node(
+		"res://resources/art/props/player_cover.svg",
+		Vector2(cover_width, 18)
+	)
+	player_cover.position = Vector2(cover_x, cover_y)
 	room_node.add_child(player_cover)
 
-	# 掩體頂部高光
+	# 掩體頂部高光（裝飾層保留）
 	var cover_highlight = ColorRect.new()
 	cover_highlight.size = Vector2(cover_width, 5)
-	cover_highlight.position = Vector2(cover_x, room_size.y - 55)
-	cover_highlight.color = Color(0.42, 0.42, 0.48)
+	cover_highlight.position = Vector2(cover_x, cover_y)
+	cover_highlight.color = Color(0.42, 0.42, 0.48, 0.5)
 	room_node.add_child(cover_highlight)
 
-	# 掩體底部陰影線
+	# 掩體底部陰影線（裝飾層保留）
 	var cover_shadow = ColorRect.new()
 	cover_shadow.size = Vector2(cover_width, 3)
-	cover_shadow.position = Vector2(cover_x, room_size.y - 55 + 15)
-	cover_shadow.color = Color(0.18, 0.18, 0.22)
+	cover_shadow.position = Vector2(cover_x, cover_y + 15)
+	cover_shadow.color = Color(0.18, 0.18, 0.22, 0.7)
 	room_node.add_child(cover_shadow)
 
 	# 敵人側掩體（房間上方，分 3 個小掩體）
 	var enemy_cover_defs: Array = [
-		{"x_ratio": 0.05, "y_off": 18},
-		{"x_ratio": 0.38, "y_off": 26},
-		{"x_ratio": 0.68, "y_off": 18},
+		{"x_ratio": 0.05, "y_off": 18, "svg": "res://resources/art/props/enemy_cover_left.svg"},
+		{"x_ratio": 0.38, "y_off": 26, "svg": "res://resources/art/props/enemy_cover_mid.svg"},
+		{"x_ratio": 0.68, "y_off": 18, "svg": "res://resources/art/props/enemy_cover_right.svg"},
 	]
 	var ec_width: float = min(80.0, room_size.x * 0.25)
 	for ecd in enemy_cover_defs:
 		var ec_x: float = room_size.x * ecd["x_ratio"]
 		var ec_y: float = float(ecd["y_off"])
-		# 敵人掩體主體（暗褐色，戰場碎石風）
-		var ec = ColorRect.new()
-		ec.size = Vector2(ec_width, 14)
+		# 敵人掩體主體（SVG TextureRect，回退 ColorRect）
+		var ec = _make_cover_node(ecd["svg"], Vector2(ec_width, 14))
 		ec.position = Vector2(ec_x, ec_y)
-		ec.color = Color(0.28, 0.24, 0.22)
 		room_node.add_child(ec)
-		# 頂部高光
+		# 頂部高光（裝飾層保留）
 		var ec_h = ColorRect.new()
 		ec_h.size = Vector2(ec_width, 4)
 		ec_h.position = Vector2(ec_x, ec_y)
-		ec_h.color = Color(0.40, 0.34, 0.30)
+		ec_h.color = Color(0.40, 0.34, 0.30, 0.5)
 		room_node.add_child(ec_h)
-		# 底部陰影
+		# 底部陰影（裝飾層保留）
 		var ec_s = ColorRect.new()
 		ec_s.size = Vector2(ec_width, 2)
 		ec_s.position = Vector2(ec_x, ec_y + 12)
-		ec_s.color = Color(0.15, 0.12, 0.10)
+		ec_s.color = Color(0.15, 0.12, 0.10, 0.7)
 		room_node.add_child(ec_s)
 
 func _add_room_props(room_node: Node2D, room_size: Vector2, is_boss: bool) -> void:
@@ -325,18 +406,13 @@ func _get_char_data(char_id: String) -> Dictionary:
 func _setup_triggers() -> void:
 	# 節點順序：房間A → 房間B → 岔路（左:補給/右:直達）→ 房間C → Boss → 終點
 
-	# 決策點1 — 房間A（2 個普通敵人）
-	_create_room_trigger(Vector2(540, 1270), "房間A", [
-		{"type": 0, "offset": Vector2(-60, -80)},
-		{"type": 0, "offset": Vector2(60, -80)},
-	])
+	# 決策點1 — 房間A（敵人數由任務配置決定）
+	_create_room_trigger(Vector2(540, 1270), "房間A",
+		_build_enemy_configs_from_mission("room_a"))
 
-	# 決策點2 — 房間B（2 個普通敵人）
-	_create_room_trigger(Vector2(540, 870), "房間B", [
-		{"type": 0, "offset": Vector2(-70, -80)},
-		{"type": 0, "offset": Vector2(0, -80)},
-		{"type": 0, "offset": Vector2(70, -80)},
-	])
+	# 決策點2 — 房間B（敵人數由任務配置決定）
+	_create_room_trigger(Vector2(540, 870), "房間B",
+		_build_enemy_configs_from_mission("room_b"))
 
 	# 岔路觸發點（左:補給繞道 / 右:直達）
 	_create_fork_trigger(Vector2(540, 700))
@@ -344,21 +420,64 @@ func _setup_triggers() -> void:
 	# 補給箱觸發（左路才會走到，但設在主路繼續路徑上也可觸發）
 	_create_trigger(Vector2(300, 460), "supply", "補給箱")
 
-	# 決策點3 — 房間C（較多敵人：3 個普通）
-	_create_room_trigger(Vector2(540, 370), "房間C", [
-		{"type": 0, "offset": Vector2(-80, -80)},
-		{"type": 0, "offset": Vector2(0, -80)},
-		{"type": 0, "offset": Vector2(80, -80)},
-	])
+	# 決策點3 — 房間C（敵人數由任務配置決定）
+	_create_room_trigger(Vector2(540, 370), "房間C",
+		_build_enemy_configs_from_mission("room_c"))
 
 	# Boss 決策點（進 Boss 房前的戰術選擇，y=280 以拉開與 Boss 房 y=210 的距離）
 	_create_boss_decision_trigger(Vector2(540, 280))
 
-	# Boss 房（5 個普通 + 1 個精英 + Boss，在 Boss 決策後生成）
+	# Boss 房（敵人數由任務配置決定，在 Boss 決策後生成）
 	_create_boss_room_trigger(Vector2(540, 210))
 
 	# 終點觸發
 	_create_end_trigger(Vector2(540, 90))
+
+# 從 GameManager 讀取指定房間的敵人配置，回傳 [{type, offset}] 陣列
+# 若 GameManager 無資料則回退到 demo_01 預設值
+func _build_enemy_configs_from_mission(room_key: String) -> Array:
+	# 取得敵人數量配置
+	var gm = get_node_or_null("/root/GameManager")
+	var cfg: Dictionary
+	if gm and gm.missions_data.size() > 0:
+		cfg = gm.get_mission_enemy_config(room_key)
+	else:
+		# 回退預設值（對應 demo_01）
+		match room_key:
+			"room_a": cfg = {"normal": 2, "elite": 0, "boss": 0}
+			"room_b": cfg = {"normal": 1, "elite": 1, "boss": 0}
+			"room_c": cfg = {"normal": 0, "elite": 1, "boss": 0}
+			"boss_room": cfg = {"normal": 0, "elite": 0, "boss": 1}
+			_: cfg = {"normal": 1, "elite": 0, "boss": 0}
+
+	var normal_count: int = cfg.get("normal", 0)
+	var elite_count: int = cfg.get("elite", 0)
+	var boss_count: int = cfg.get("boss", 0)
+	var total: int = normal_count + elite_count + boss_count
+	if total == 0:
+		total = 1
+
+	# 計算橫向間距，均分在 ±120 範圍內
+	var spacing: float = min(240.0 / float(max(total, 1)), 80.0)
+	var start_x: float = -spacing * float(total - 1) / 2.0
+
+	var result: Array = []
+	var idx: int = 0
+
+	# 先排普通兵（type=0），再精英（type=1），再 Boss（type=2）
+	for _i in range(normal_count):
+		result.append({"type": 0, "offset": Vector2(start_x + spacing * float(idx), -80)})
+		idx += 1
+	for _i in range(elite_count):
+		result.append({"type": 1, "offset": Vector2(start_x + spacing * float(idx), -80)})
+		idx += 1
+	for _i in range(boss_count):
+		result.append({"type": 2, "offset": Vector2(start_x + spacing * float(idx), -80)})
+		idx += 1
+
+	if OS.is_debug_build():
+		print("[Main] %s 敵人配置: normal=%d elite=%d boss=%d" % [room_key, normal_count, elite_count, boss_count])
+	return result
 
 func _create_room_trigger(pos: Vector2, label: String, enemy_configs: Array) -> void:
 	# 房間觸發器：進入時顯示決策面板，選擇後生成敵人開始戰鬥
@@ -405,6 +524,11 @@ func _on_room_trigger_entered(body: Node2D, area: Area2D) -> void:
 	var label = area.get_meta("label", "房間")
 	var enemy_configs = area.get_meta("enemy_configs", [])
 
+	# Boss 房特效：震屏 + 紅色危險閃光
+	if label == "Boss房":
+		_do_camera_shake(10.0, 0.5)
+		_flash_danger_overlay()
+
 	# 建立房間節點
 	var room = ROOM_SCRIPT.new()
 	room.room_label = label
@@ -445,10 +569,40 @@ func _on_room_entry_selected(opt_id: String, room: Node) -> void:
 		return
 	room.start_battle(opt_id)
 
+func _do_camera_shake(intensity: float = 8.0, duration: float = 0.4) -> void:
+	var cam = get_viewport().get_camera_2d()
+	if cam == null:
+		return
+	var original_offset = cam.offset
+	var tw = create_tween()
+	var steps = 8
+	for i in range(steps):
+		var rand_x = randf_range(-intensity, intensity)
+		var rand_y = randf_range(-intensity, intensity)
+		tw.tween_property(cam, "offset", original_offset + Vector2(rand_x, rand_y), duration / steps)
+	tw.tween_property(cam, "offset", original_offset, 0.05)
+
+func _flash_danger_overlay() -> void:
+	var overlay = ColorRect.new()
+	overlay.color = Color(0.8, 0.0, 0.0, 0.35)
+	overlay.size = Vector2(1080, 1920)
+	var cl = CanvasLayer.new()
+	cl.layer = 10
+	cl.add_child(overlay)
+	add_child(cl)
+	var tw = create_tween()
+	tw.tween_property(overlay, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(cl.queue_free)
+
 func _on_room_cleared() -> void:
 	_active_room = null
 	# GameManager.resume_squad() 已在 room.gd 的 _check_cleared() 中呼叫
 	print("[Main] 房間清空，小隊繼續推進")
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		for member in gm.squad_members:
+			if member and is_instance_valid(member) and member.has_method("set_cover_mode"):
+				member.set_cover_mode(false)
 	# 延遲 0.3 秒後播放門打開動畫，動畫結束後再推進鏡頭
 	await get_tree().create_timer(0.3).timeout
 	# 計算門的 y 座標：當前房間頂部（房間中心 y 減去半個房間高度）
@@ -605,15 +759,8 @@ func _on_boss_decision_entered(body: Node2D, area: Area2D) -> void:
 	GameManager.trigger_decision(decision_data)
 
 func _create_boss_room_trigger(pos: Vector2) -> void:
-	# Boss 房觸發（生成 Boss 敵人，在 Boss 決策後觸發）
-	_create_room_trigger(pos, "Boss房", [
-		{"type": 0, "offset": Vector2(-120, -80)},
-		{"type": 0, "offset": Vector2(-60, -80)},
-		{"type": 0, "offset": Vector2(0, -80)},
-		{"type": 0, "offset": Vector2(60, -80)},
-		{"type": 0, "offset": Vector2(120, -80)},
-		{"type": 1, "offset": Vector2(0, -140)},  # 精英
-	])
+	# Boss 房觸發（生成 Boss 敵人，在 Boss 決策後觸發，敵人數由任務配置決定）
+	_create_room_trigger(pos, "Boss房", _build_enemy_configs_from_mission("boss_room"))
 
 func _create_end_trigger(pos: Vector2) -> void:
 	var area = Area2D.new()
@@ -752,6 +899,12 @@ func _position_squad_for_combat(room_pos: Vector2, room_size: Vector2) -> void:
 	for i in range(count):
 		var member = alive_members[i]
 		member.global_position = Vector2(room_pos.x + step * float(i + 1), combat_y)
+
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		for member in gm.squad_members:
+			if member and is_instance_valid(member) and member.has_method("set_cover_mode"):
+				member.set_cover_mode(true)
 
 func _connect_signals() -> void:
 	pass

@@ -25,6 +25,11 @@ window/stretch/aspect="expand"
 GameManager="*res://scripts/game_manager.gd"
 SaveManager="*res://scripts/save_manager.gd"
 AudioManager="*res://scripts/audio_manager.gd"
+GachaManager="*res://scripts/gacha_manager.gd"
+
+[gui]
+
+theme/custom="res://resources/default_theme.tres"
 
 [rendering]
 

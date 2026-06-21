@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://ggmht90g8r2yt"]
+
+[ext_resource type="FontFile" uid="uid://duxlglatsjd4r" path="res://resources/fonts/chinese_font.ttf" id="1_font"]
+
+[resource]
+default_font = ExtResource("1_font")
+default_font_size = 20

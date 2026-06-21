@@ -17,21 +17,32 @@ var _max_distance: float = 600.0
 var _traveled: float = 0.0
 
 # 視覺節點
-var _body: ColorRect
+var _body: Node2D
 
 func _ready() -> void:
 	_build_visual()
 
 func _build_visual() -> void:
-	_body = ColorRect.new()
+	var sprite_path = "res://resources/art/sprites/bullet_player.svg"
 	if owner_type == "enemy":
-		_bullet_color = Color(1.0, 0.3, 0.3)   # 紅色（敵人子彈）
-		_body.size = Vector2(6, 6)
+		sprite_path = "res://resources/art/sprites/bullet_enemy.svg"
+
+	if ResourceLoader.exists(sprite_path):
+		var sprite = Sprite2D.new()
+		sprite.texture = load(sprite_path)
+		sprite.centered = true
+		_body = sprite
 	else:
-		_bullet_color = Color(1.0, 0.95, 0.3)  # 黃色（玩家子彈）
-		_body.size = Vector2(5, 5)
-	_body.color = _bullet_color
-	_body.position = -_body.size / 2.0
+		# 回退：保留原 ColorRect
+		var cr = ColorRect.new()
+		if owner_type == "enemy":
+			cr.color = Color(1.0, 0.3, 0.3)
+			cr.size = Vector2(6, 6)
+		else:
+			cr.color = Color(1.0, 0.95, 0.3)
+			cr.size = Vector2(5, 5)
+		cr.position = -cr.size / 2.0
+		_body = cr
 	add_child(_body)
 
 func setup(from_pos: Vector2, to_node: Node, dmg: float, btype: String) -> void:
@@ -92,9 +103,13 @@ func _on_hit() -> void:
 
 func _flash_hit() -> void:
 	if _body:
-		_body.color = Color(1.0, 1.0, 1.0)
-		_body.size = Vector2(10, 10)
-		_body.position = -_body.size / 2.0
+		if _body is ColorRect:
+			_body.color = Color(1.0, 1.0, 1.0)
+			_body.size = Vector2(10, 10)
+			_body.position = -_body.size / 2.0
+		elif _body is Sprite2D:
+			_body.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			_body.scale = Vector2(1.5, 1.5)
 	var t = get_tree().create_timer(0.05)
 	if t:
 		t.timeout.connect(queue_free)
