@@ -60,6 +60,11 @@ const WAYPOINTS: Array[Vector2] = WAYPOINTS_MAIN
 # 房間管理：追蹤當前戰鬥中的房間
 var _active_room: Node = null
 
+# 門動畫節點（左半/右半/門框）
+var _door_left: ColorRect = null
+var _door_right: ColorRect = null
+var _door_frame: ColorRect = null
+
 # 全部 6 名可招募角色資料（Lv.1 基礎數值，對應 characters.json）
 # 職業顏色對應 HUD_SPEC：盾兵#4488FF 醫療兵#44CC44 突擊手#E8600A 狙擊手#AA44FF 爆破手#CC2222 偵察手#44CCCC
 const CHAR_DATA = [
@@ -174,6 +179,63 @@ func _add_room_visual(pos: Vector2, size: Vector2, color: Color, label: String) 
 	add_child(rect)
 	_add_text_label(pos + Vector2(10, 10), label, Color(0.8, 0.8, 0.8))
 	_add_room_props(rect, size, label == "Boss")
+	_add_battle_covers(pos, size, rect)
+
+func _add_battle_covers(room_pos: Vector2, room_size: Vector2, room_node: Node2D) -> void:
+	# 玩家側掩體（房間下方，角色躲在其後方）
+	# 使用相對座標（相對 room_node.position 即 room_pos）
+	var cover_width: float = min(280.0, room_size.x - 20.0)
+	var cover_x: float = (room_size.x - cover_width) / 2.0
+
+	# 掩體主體
+	var player_cover = ColorRect.new()
+	player_cover.size = Vector2(cover_width, 18)
+	player_cover.position = Vector2(cover_x, room_size.y - 55)
+	player_cover.color = Color(0.30, 0.30, 0.34)
+	room_node.add_child(player_cover)
+
+	# 掩體頂部高光
+	var cover_highlight = ColorRect.new()
+	cover_highlight.size = Vector2(cover_width, 5)
+	cover_highlight.position = Vector2(cover_x, room_size.y - 55)
+	cover_highlight.color = Color(0.42, 0.42, 0.48)
+	room_node.add_child(cover_highlight)
+
+	# 掩體底部陰影線
+	var cover_shadow = ColorRect.new()
+	cover_shadow.size = Vector2(cover_width, 3)
+	cover_shadow.position = Vector2(cover_x, room_size.y - 55 + 15)
+	cover_shadow.color = Color(0.18, 0.18, 0.22)
+	room_node.add_child(cover_shadow)
+
+	# 敵人側掩體（房間上方，分 3 個小掩體）
+	var enemy_cover_defs: Array = [
+		{"x_ratio": 0.05, "y_off": 18},
+		{"x_ratio": 0.38, "y_off": 26},
+		{"x_ratio": 0.68, "y_off": 18},
+	]
+	var ec_width: float = min(80.0, room_size.x * 0.25)
+	for ecd in enemy_cover_defs:
+		var ec_x: float = room_size.x * ecd["x_ratio"]
+		var ec_y: float = float(ecd["y_off"])
+		# 敵人掩體主體（暗褐色，戰場碎石風）
+		var ec = ColorRect.new()
+		ec.size = Vector2(ec_width, 14)
+		ec.position = Vector2(ec_x, ec_y)
+		ec.color = Color(0.28, 0.24, 0.22)
+		room_node.add_child(ec)
+		# 頂部高光
+		var ec_h = ColorRect.new()
+		ec_h.size = Vector2(ec_width, 4)
+		ec_h.position = Vector2(ec_x, ec_y)
+		ec_h.color = Color(0.40, 0.34, 0.30)
+		room_node.add_child(ec_h)
+		# 底部陰影
+		var ec_s = ColorRect.new()
+		ec_s.size = Vector2(ec_width, 2)
+		ec_s.position = Vector2(ec_x, ec_y + 12)
+		ec_s.color = Color(0.15, 0.12, 0.10)
+		room_node.add_child(ec_s)
 
 func _add_room_props(room_node: Node2D, room_size: Vector2, is_boss: bool) -> void:
 	var prop_paths: Array
@@ -387,9 +449,79 @@ func _on_room_cleared() -> void:
 	_active_room = null
 	# GameManager.resume_squad() 已在 room.gd 的 _check_cleared() 中呼叫
 	print("[Main] 房間清空，小隊繼續推進")
-	# 延遲 0.3 秒後推進鏡頭（讓玩家看到最後一個敵人倒下）
+	# 延遲 0.3 秒後播放門打開動畫，動畫結束後再推進鏡頭
 	await get_tree().create_timer(0.3).timeout
-	_advance_camera_to_next_room()
+	# 計算門的 y 座標：當前房間頂部（房間中心 y 減去半個房間高度）
+	var door_y: float
+	if _current_room_idx < ROOM_CENTER_Y.size():
+		# 各房間高度：A=200, B=200, C=180, Boss=120；取半高估算頂部
+		var half_heights: Array = [100.0, 100.0, 90.0, 60.0]
+		var half_h: float = half_heights[_current_room_idx] if _current_room_idx < half_heights.size() else 90.0
+		door_y = ROOM_CENTER_Y[_current_room_idx] - half_h
+	else:
+		door_y = _camera.global_position.y - 120.0
+	_play_door_open_animation(door_y, func():
+		_advance_camera_to_next_room()
+	)
+
+func _play_door_open_animation(door_y: float, on_complete: Callable) -> void:
+	# 清除上一個門（若存在）
+	if _door_left and is_instance_valid(_door_left):
+		_door_left.queue_free()
+	if _door_right and is_instance_valid(_door_right):
+		_door_right.queue_free()
+	if _door_frame and is_instance_valid(_door_frame):
+		_door_frame.queue_free()
+	_door_left = null
+	_door_right = null
+	_door_frame = null
+
+	# 門的尺寸：寬 240px（約配合房間寬度 300px），高 28px
+	# x 對準鏡頭水平中心 540（世界座標）
+	var door_total_w: float = 240.0
+	var door_h: float = 28.0
+	var door_x_center: float = 540.0
+
+	# 門框（在最底層，較門板稍大）
+	_door_frame = ColorRect.new()
+	_door_frame.size = Vector2(door_total_w + 8.0, door_h + 4.0)
+	_door_frame.position = Vector2(door_x_center - door_total_w / 2.0 - 4.0, door_y - door_h / 2.0 - 2.0)
+	_door_frame.color = Color(0.25, 0.25, 0.30)
+	add_child(_door_frame)
+
+	# 左半門（右邊緣貼中線，向左滑開）
+	_door_left = ColorRect.new()
+	_door_left.size = Vector2(door_total_w / 2.0, door_h)
+	_door_left.position = Vector2(door_x_center - door_total_w / 2.0, door_y - door_h / 2.0)
+	_door_left.color = Color(0.15, 0.15, 0.18)
+	add_child(_door_left)
+
+	# 右半門（左邊緣貼中線，向右滑開）
+	_door_right = ColorRect.new()
+	_door_right.size = Vector2(door_total_w / 2.0, door_h)
+	_door_right.position = Vector2(door_x_center, door_y - door_h / 2.0)
+	_door_right.color = Color(0.15, 0.15, 0.18)
+	add_child(_door_right)
+
+	print("[Door] 播放門打開動畫，door_y=", door_y)
+
+	# Tween：門向兩側滑開（0.6 秒），結束後執行 callback 並清除節點
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_door_left, "position:x",
+		door_x_center - door_total_w, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(_door_right, "position:x",
+		door_x_center + door_total_w / 2.0, 0.6).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+	tween.set_parallel(false)
+	tween.tween_callback(on_complete)
+	var dl_ref = _door_left
+	var dr_ref = _door_right
+	var df_ref = _door_frame
+	tween.tween_callback(func():
+		if dl_ref and is_instance_valid(dl_ref): dl_ref.queue_free()
+		if dr_ref and is_instance_valid(dr_ref): dr_ref.queue_free()
+		if df_ref and is_instance_valid(df_ref): df_ref.queue_free()
+	)
 
 func _create_trigger(pos: Vector2, type: String, label: String) -> void:
 	var area = Area2D.new()
@@ -601,6 +733,25 @@ func switch_path(path_id: String) -> void:
 
 	if squad_controller and squad_controller.has_method("replace_remaining_path"):
 		squad_controller.replace_remaining_path(new_wps)
+
+func _position_squad_for_combat(room_pos: Vector2, room_size: Vector2) -> void:
+	# 戰鬥開始時，把小隊重新排列到玩家掩體後方
+	# 玩家掩體在 room_pos.y + room_size.y - 55，角色站在掩體再下方 25px
+	if not GameManager or GameManager.squad_members.size() == 0:
+		return
+	var combat_y: float = room_pos.y + room_size.y - 25.0
+	# x 槽位：在房間寬度內均分（最多 5 個）
+	var alive_members: Array = []
+	for m in GameManager.squad_members:
+		if m != null and is_instance_valid(m) and not m.is_dead:
+			alive_members.append(m)
+	var count: int = alive_members.size()
+	if count == 0:
+		return
+	var step: float = room_size.x / float(count + 1)
+	for i in range(count):
+		var member = alive_members[i]
+		member.global_position = Vector2(room_pos.x + step * float(i + 1), combat_y)
 
 func _connect_signals() -> void:
 	pass

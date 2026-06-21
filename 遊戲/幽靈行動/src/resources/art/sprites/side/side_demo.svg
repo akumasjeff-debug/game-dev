@@ -1,0 +1,52 @@
+<svg viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 爆破手 — 側視角，面朝右，紅色重型，右肩扛火箭筒 -->
+
+  <!-- 頭盔（重型，半罩面罩）-->
+  <rect x="8"  y="0"  width="16" height="2"  fill="#7A1515"/>
+  <rect x="6"  y="2"  width="18" height="10" fill="#7A1515"/>
+  <!-- 面罩（下半臉）-->
+  <rect x="16" y="8"  width="6"  height="4"  fill="#5A0E0E"/>
+  <!-- 護目鏡 -->
+  <rect x="17" y="3"  width="5"  height="3"  fill="#CC2020"/>
+  <rect x="19" y="4"  width="2"  height="2"  fill="#FF4040"/>
+  <!-- 頭盔頂加寬（厚重感）-->
+  <rect x="8"  y="0"  width="16" height="3"  fill="#CC2020"/>
+
+  <!-- 脖子 -->
+  <rect x="13" y="12" width="5"  height="2"  fill="#7A1515"/>
+
+  <!-- 身體（厚重，寬壯）-->
+  <rect x="8"  y="14" width="16" height="16" fill="#7A1515"/>
+  <!-- 重甲板 -->
+  <rect x="9"  y="15" width="12" height="12" fill="#CC2020"/>
+  <!-- 甲板分割 -->
+  <rect x="8"  y="21" width="16" height="2"  fill="#5A0E0E"/>
+  <rect x="14" y="15" width="2"  height="12" fill="#5A0E0E"/>
+  <!-- 腰甲 -->
+  <rect x="8"  y="29" width="16" height="3"  fill="#5A0E0E"/>
+
+  <!-- 左臂（後側，粗壯）-->
+  <rect x="4"  y="14" width="5"  height="12" fill="#7A1515"/>
+  <!-- 右臂（前側，抬起扛火箭筒）-->
+  <rect x="23" y="12" width="5"  height="10" fill="#7A1515"/>
+
+  <!-- 腿部（寬壯）-->
+  <rect x="9"  y="32" width="6"  height="8"  fill="#5A0E0E"/>
+  <rect x="16" y="32" width="6"  height="8"  fill="#5A0E0E"/>
+  <!-- 腳 -->
+  <rect x="8"  y="40" width="8"  height="4"  fill="#3A0808"/>
+  <rect x="15" y="40" width="8"  height="4"  fill="#3A0808"/>
+
+  <!-- 火箭筒（右肩，朝右，長管）-->
+  <!-- 管身 -->
+  <rect x="20" y="8"  width="12" height="5"  fill="#333"/>
+  <rect x="21" y="9"  width="10" height="3"  fill="#555"/>
+  <!-- 前段（砲口）-->
+  <rect x="30" y="7"  width="2"  height="7"  fill="#222"/>
+  <!-- 後段排氣口 -->
+  <rect x="20" y="7"  width="2"  height="7"  fill="#111"/>
+  <!-- 瞄準器 -->
+  <rect x="24" y="7"  width="4"  height="2"  fill="#444"/>
+  <!-- 握把 -->
+  <rect x="23" y="13" width="3"  height="5"  fill="#2A2A2A"/>
+</svg>

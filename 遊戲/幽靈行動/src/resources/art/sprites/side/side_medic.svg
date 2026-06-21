@@ -1,0 +1,53 @@
+<svg viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 醫療兵 — 側視角，面朝右，綠色，背有醫療包 -->
+
+  <!-- 頭盔（輕型醫療帽，白十字標誌）-->
+  <rect x="9"  y="1"  width="14" height="2"  fill="#1A5C1A"/>
+  <rect x="8"  y="3"  width="15" height="9"  fill="#1A5C1A"/>
+  <!-- 頭盔白十字 -->
+  <rect x="13" y="5"  width="4"  height="2"  fill="#FFFFFF"/>
+  <rect x="14" y="4"  width="2"  height="4"  fill="#FFFFFF"/>
+  <!-- 面罩側邊 -->
+  <rect x="21" y="5"  width="2"  height="4"  fill="#0F3D0F"/>
+
+  <!-- 脖子 -->
+  <rect x="13" y="12" width="5"  height="2"  fill="#1A5C1A"/>
+
+  <!-- 身體（中型）-->
+  <rect x="10" y="14" width="12" height="14" fill="#1A5C1A"/>
+  <!-- 戰術背心（綠）-->
+  <rect x="11" y="15" width="8"  height="10" fill="#2A8C2A"/>
+  <!-- 背心口袋 -->
+  <rect x="12" y="17" width="3"  height="3"  fill="#1A6A1A"/>
+  <rect x="16" y="17" width="3"  height="3"  fill="#1A6A1A"/>
+  <!-- 腰帶 -->
+  <rect x="10" y="27" width="12" height="2"  fill="#0F3D0F"/>
+
+  <!-- 醫療包（背後，白色十字）-->
+  <rect x="6"  y="14" width="6"  height="10" fill="#EEEEEE"/>
+  <rect x="7"  y="15" width="4"  height="8"  fill="#FFFFFF"/>
+  <!-- 十字標誌 -->
+  <rect x="8"  y="17" width="2"  height="4"  fill="#CC2020"/>
+  <rect x="7"  y="18" width="4"  height="2"  fill="#CC2020"/>
+  <!-- 包帶 -->
+  <rect x="12" y="16" width="2"  height="2"  fill="#1A5C1A"/>
+  <rect x="12" y="24" width="2"  height="2"  fill="#1A5C1A"/>
+
+  <!-- 左臂（後側，連醫療包帶）-->
+  <rect x="22" y="14" width="4"  height="10" fill="#1A5C1A"/>
+
+  <!-- 腿部 -->
+  <rect x="11" y="29" width="5"  height="9"  fill="#0F3D0F"/>
+  <rect x="16" y="29" width="5"  height="9"  fill="#0F3D0F"/>
+  <!-- 腳 -->
+  <rect x="10" y="38" width="7"  height="4"  fill="#082008"/>
+  <rect x="16" y="38" width="7"  height="4"  fill="#082008"/>
+
+  <!-- 手槍（右手，槍口朝右，小型）-->
+  <rect x="26" y="20" width="6"  height="2"  fill="#111"/>
+  <rect x="22" y="21" width="6"  height="3"  fill="#222"/>
+  <!-- 彈匣 -->
+  <rect x="24" y="24" width="2"  height="4"  fill="#2A2A2A"/>
+  <!-- 握把 -->
+  <rect x="22" y="22" width="2"  height="4"  fill="#333"/>
+</svg>

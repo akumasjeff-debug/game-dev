@@ -31,6 +31,24 @@ func start_battle(entry_mode: String = "charge") -> void:
 	_spawn_enemies()
 	_apply_entry_effect(entry_mode)
 	_setup_squad_auto_attack()
+	# 將小隊重新排列到玩家掩體後方戰鬥站位
+	var main = get_parent()
+	if main and main.has_method("_position_squad_for_combat"):
+		# 取得此房間在 build_map 時使用的 pos/size
+		# room 的 position 是觸發點（area）位置，需反推房間 rect
+		# 根據觸發點 y 判斷對應房間
+		var trig_y: float = position.y
+		var room_pos: Vector2
+		var room_size: Vector2
+		if trig_y > 1200.0:
+			room_pos = Vector2(390, 1150); room_size = Vector2(300, 200)
+		elif trig_y > 800.0:
+			room_pos = Vector2(390, 750);  room_size = Vector2(300, 200)
+		elif trig_y > 300.0:
+			room_pos = Vector2(390, 260);  room_size = Vector2(300, 180)
+		else:
+			room_pos = Vector2(380, 120);  room_size = Vector2(320, 120)
+		main.call("_position_squad_for_combat", room_pos, room_size)
 
 func _spawn_enemies() -> void:
 	if enemy_configs.is_empty():

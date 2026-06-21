@@ -1,0 +1,16 @@
+<svg viewBox="0 0 80 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 低矮水泥掩體（俯視），角色躲在後方 -->
+  <!-- 主體 -->
+  <rect x="0" y="8" width="80" height="22" fill="#4A4A54"/>
+  <!-- 頂面高光 -->
+  <rect x="0" y="8" width="80" height="6" fill="#5E5E6A"/>
+  <!-- 正面（朝向敵人的那側，深色） -->
+  <rect x="0" y="26" width="80" height="4" fill="#2A2A34"/>
+  <!-- 左右邊緣 -->
+  <rect x="0"  y="8" width="4" height="22" fill="#3E3E48"/>
+  <rect x="76" y="8" width="4" height="22" fill="#3E3E48"/>
+  <!-- 彈孔/損傷紋路 -->
+  <rect x="20" y="14" width="2" height="2" fill="#2A2A34"/>
+  <rect x="50" y="18" width="2" height="2" fill="#2A2A34"/>
+  <rect x="35" y="12" width="3" height="3" fill="#2A2A34"/>
+</svg>

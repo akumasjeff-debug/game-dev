@@ -14,6 +14,27 @@ var offline_confirm_btn: Button
 var mission_buttons: Array = []    # 任務板按鈕
 var ticket_label: Label
 
+# 放置橫帶
+var _idle_banner_node: Control = null
+var _idle_chars: Array = []      # 4 個角色的小圖示節點
+var _idle_enemies: Array = []    # 當前波次的敵人節點
+var _idle_bullets: Array = []    # 飛行中的子彈
+var _idle_wave_timer: float = 0.0
+var _idle_wave_interval: float = 6.0
+var _idle_bg_offset: float = 0.0  # 背景捲動偏移
+
+# 放置橫帶 SVG 路徑
+const IDLE_CHAR_SPRITES: Array[String] = [
+	"res://resources/art/sprites/side/side_shield.svg",
+	"res://resources/art/sprites/side/side_assault.svg",
+	"res://resources/art/sprites/side/side_demo.svg",
+	"res://resources/art/sprites/side/side_medic.svg",
+]
+const IDLE_ENEMY_SPRITES: Array[String] = [
+	"res://resources/art/sprites/side/side_grunt.svg",
+	"res://resources/art/sprites/side/side_elite.svg",
+]
+
 # 職業清單（6 個，對應 characters.json id）
 const ALL_CLASSES: Array = [
 	{"id": "shield",  "name": "盾兵",  "color": Color(1.0, 0.55, 0.0)},
@@ -44,6 +65,9 @@ func _ready() -> void:
 	_load_state()
 	_show_offline_reward()
 
+func _process(delta: float) -> void:
+	_update_idle_banner(delta)
+
 func _build_ui() -> void:
 	# 背景
 	var bg = ColorRect.new()
@@ -69,6 +93,9 @@ func _build_ui() -> void:
 
 	# ── 升級管理按鈕 ──
 	_add_upgrade_button()
+
+	# ── 放置橫帶（任務板與陣容選擇之間）──
+	_create_idle_banner()
 
 	# ── 離線金幣彈窗（預設隱藏）──
 	_add_offline_popup()
@@ -207,7 +234,7 @@ func _create_mission_card(mission: Dictionary, y: float) -> Control:
 	return card
 
 func _add_squad_panel() -> void:
-	var y_base: float = 560.0
+	var y_base: float = 760.0
 
 	var section_lbl = Label.new()
 	section_lbl.text = "陣容選擇（選 4 人）"
@@ -267,7 +294,7 @@ func _add_squad_panel() -> void:
 func _add_launch_button() -> void:
 	var btn = Button.new()
 	btn.text = "出發"
-	btn.position = Vector2(290, 900)
+	btn.position = Vector2(290, 1100)
 	btn.custom_minimum_size = Vector2(500, 90)
 	btn.add_theme_font_size_override("font_size", 30)
 	btn.name = "LaunchBtn"
@@ -278,7 +305,7 @@ func _add_launch_button() -> void:
 func _add_gacha_button() -> void:
 	var btn = Button.new()
 	btn.text = "招募中心"
-	btn.position = Vector2(290, 1010)
+	btn.position = Vector2(290, 1210)
 	btn.custom_minimum_size = Vector2(500, 70)
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.name = "GachaBtn"
@@ -289,7 +316,7 @@ func _add_gacha_button() -> void:
 func _add_upgrade_button() -> void:
 	var btn = Button.new()
 	btn.text = "升級管理"
-	btn.position = Vector2(290, 1100)
+	btn.position = Vector2(290, 1300)
 	btn.custom_minimum_size = Vector2(500, 70)
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.name = "UpgradeBtn"
@@ -571,13 +598,228 @@ func _show_error(msg: String) -> void:
 	if err_lbl == null:
 		err_lbl = Label.new()
 		err_lbl.name = "ErrorLabel"
-		err_lbl.position = Vector2(290, 1000)
+		err_lbl.position = Vector2(290, 1200)
 		err_lbl.add_theme_font_size_override("font_size", 22)
 		err_lbl.modulate = Color(1.0, 0.3, 0.3)
 		add_child(err_lbl)
 	err_lbl.text = msg
 	# 2 秒後自動清空
 	get_tree().create_timer(2.0).timeout.connect(func(): if is_instance_valid(err_lbl): err_lbl.text = "")
+
+# ─────────────────────────────────────────
+#  放置橫帶
+# ─────────────────────────────────────────
+
+func _create_idle_banner() -> void:
+	_idle_banner_node = Control.new()
+	_idle_banner_node.position = Vector2(0, 550)
+	_idle_banner_node.size = Vector2(1080, 180)
+	_idle_banner_node.clip_children = 1  # CLIP_CHILDREN_ENABLED
+	add_child(_idle_banner_node)
+
+	# 深色背景（室內走廊）
+	var bg = ColorRect.new()
+	bg.size = Vector2(1080, 180)
+	bg.color = Color(0.06, 0.07, 0.10)
+	_idle_banner_node.add_child(bg)
+
+	# 地板線（側視角地板）
+	var floor_line = ColorRect.new()
+	floor_line.position = Vector2(0, 140)
+	floor_line.size = Vector2(1080, 4)
+	floor_line.color = Color(0.18, 0.20, 0.24)
+	_idle_banner_node.add_child(floor_line)
+
+	# 天花板線
+	var ceil_line = ColorRect.new()
+	ceil_line.position = Vector2(0, 16)
+	ceil_line.size = Vector2(1080, 3)
+	ceil_line.color = Color(0.12, 0.14, 0.18)
+	_idle_banner_node.add_child(ceil_line)
+
+	# 捲動背景柱子（裝飾）
+	for i in range(6):
+		var pillar = ColorRect.new()
+		pillar.position = Vector2(i * 180, 20)
+		pillar.size = Vector2(8, 120)
+		pillar.color = Color(0.10, 0.12, 0.16)
+		pillar.name = "Pillar_" + str(i)
+		_idle_banner_node.add_child(pillar)
+
+	# 右上角文字：累積速率
+	var rate_lbl = Label.new()
+	rate_lbl.position = Vector2(700, 4)
+	rate_lbl.size = Vector2(374, 28)
+	rate_lbl.text = "前線累積中：100 金幣/小時"
+	rate_lbl.add_theme_font_size_override("font_size", 16)
+	rate_lbl.modulate = Color(0.7, 0.8, 0.5)
+	rate_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rate_lbl.name = "RateLabel"
+	_idle_banner_node.add_child(rate_lbl)
+
+	# 建立 4 個角色圖示（側視角）—— 優先使用 SVG，回退用 ColorRect
+	var char_colors = [
+		Color(0.2, 0.5, 1.0),    # 盾兵 藍
+		Color(0.91, 0.38, 0.04), # 突擊手 橙
+		Color(0.8, 0.13, 0.13),  # 爆破手 紅
+		Color(0.3, 0.9, 0.3),    # 醫療兵 綠
+	]
+	for i in range(4):
+		var char_node = Control.new()
+		char_node.position = Vector2(80 + i * 60, 90)
+		char_node.name = "IdleChar_" + str(i)
+
+		if ResourceLoader.exists(IDLE_CHAR_SPRITES[i]):
+			var tr = TextureRect.new()
+			tr.texture = load(IDLE_CHAR_SPRITES[i])
+			tr.size = Vector2(24, 36)
+			tr.stretch_mode = TextureRect.STRETCH_SCALE
+			tr.name = "Body"
+			char_node.add_child(tr)
+		else:
+			var body = ColorRect.new()
+			body.size = Vector2(18, 26)
+			body.color = char_colors[i]
+			body.name = "Body"
+			char_node.add_child(body)
+			var head = ColorRect.new()
+			head.size = Vector2(14, 14)
+			head.position = Vector2(2, -14)
+			head.color = Color(
+				clamp(char_colors[i].r + 0.1, 0.0, 1.0),
+				clamp(char_colors[i].g + 0.1, 0.0, 1.0),
+				clamp(char_colors[i].b + 0.1, 0.0, 1.0)
+			)
+			char_node.add_child(head)
+
+		_idle_banner_node.add_child(char_node)
+		_idle_chars.append(char_node)
+
+	# 木箱掩體裝飾（純視覺）
+	var crate_path = "res://resources/art/sprites/side/side_cover_crate.svg"
+	if ResourceLoader.exists(crate_path):
+		for ci in range(2):
+			var crate = TextureRect.new()
+			crate.texture = load(crate_path)
+			crate.size = Vector2(32, 24)
+			crate.stretch_mode = TextureRect.STRETCH_SCALE
+			crate.position = Vector2(250 + ci * 150, 115)
+			_idle_banner_node.add_child(crate)
+
+	# 開始第一波（1 秒後）
+	_idle_wave_timer = 1.0
+
+func _update_idle_banner(delta: float) -> void:
+	if not _idle_banner_node or not is_instance_valid(_idle_banner_node):
+		return
+
+	# 捲動背景柱子（向左）
+	_idle_bg_offset -= delta * 40.0
+	if _idle_bg_offset < -180.0:
+		_idle_bg_offset += 180.0
+	for i in range(6):
+		var pillar = _idle_banner_node.find_child("Pillar_" + str(i), false, false)
+		if pillar:
+			pillar.position.x = i * 180 + _idle_bg_offset
+
+	# 角色走路動畫（上下輕微彈跳）
+	for i in range(_idle_chars.size()):
+		var ch = _idle_chars[i]
+		if ch and is_instance_valid(ch):
+			var bob = sin(Time.get_ticks_msec() * 0.005 + i * 1.0) * 2.0
+			ch.position.y = 95 + bob
+
+	# 子彈移動
+	var bullets_to_remove: Array = []
+	for b in _idle_bullets:
+		if not b or not is_instance_valid(b):
+			bullets_to_remove.append(b)
+			continue
+		b.position.x += delta * 350.0
+		if b.position.x > 1100:
+			bullets_to_remove.append(b)
+	for b in bullets_to_remove:
+		_idle_bullets.erase(b)
+		if b and is_instance_valid(b):
+			b.queue_free()
+
+	# 敵人移動（向左走）
+	var enemies_dead: Array = []
+	for e in _idle_enemies:
+		if not e or not is_instance_valid(e):
+			enemies_dead.append(e)
+			continue
+		e.position.x -= delta * 60.0
+		# 敵人抵達角色陣線（x < 330）→ 消滅並飄出金幣
+		if e.position.x < 330:
+			_spawn_coin_pop(e.position)
+			enemies_dead.append(e)
+	for e in enemies_dead:
+		_idle_enemies.erase(e)
+		if e and is_instance_valid(e):
+			e.queue_free()
+
+	# 波次計時器
+	_idle_wave_timer -= delta
+	if _idle_wave_timer <= 0.0:
+		_idle_wave_timer = _idle_wave_interval
+		_spawn_enemy_wave()
+		_fire_idle_bullets()
+
+func _spawn_enemy_wave() -> void:
+	if not _idle_banner_node or not is_instance_valid(_idle_banner_node):
+		return
+	var count = randi_range(1, 3)
+	for i in range(count):
+		var enemy_node = Control.new()
+		enemy_node.position = Vector2(1020 + i * 45, 94)
+
+		var sprite_path = IDLE_ENEMY_SPRITES[randi_range(0, 1)]
+		if ResourceLoader.exists(sprite_path):
+			var tr = TextureRect.new()
+			tr.texture = load(sprite_path)
+			tr.size = Vector2(22, 32)
+			tr.stretch_mode = TextureRect.STRETCH_SCALE
+			enemy_node.add_child(tr)
+		else:
+			var body = ColorRect.new()
+			body.size = Vector2(22, 28)
+			body.color = Color(0.75, 0.15, 0.15)
+			enemy_node.add_child(body)
+			var head = ColorRect.new()
+			head.size = Vector2(16, 14)
+			head.position = Vector2(3, -14)
+			head.color = Color(0.55, 0.10, 0.10)
+			enemy_node.add_child(head)
+
+		_idle_banner_node.add_child(enemy_node)
+		_idle_enemies.append(enemy_node)
+
+func _fire_idle_bullets() -> void:
+	if not _idle_banner_node or not is_instance_valid(_idle_banner_node):
+		return
+	for i in range(_idle_chars.size()):
+		var ch = _idle_chars[i]
+		if not ch or not is_instance_valid(ch):
+			continue
+		var bullet = ColorRect.new()
+		bullet.size = Vector2(8, 4)
+		bullet.position = Vector2(ch.position.x + 20, ch.position.y + 12)
+		bullet.color = Color(1.0, 0.95, 0.3)
+		_idle_banner_node.add_child(bullet)
+		_idle_bullets.append(bullet)
+
+func _spawn_coin_pop(pos: Vector2) -> void:
+	var coin_lbl = Label.new()
+	coin_lbl.text = "+金"
+	coin_lbl.position = pos + Vector2(-10, -10)
+	coin_lbl.add_theme_font_size_override("font_size", 20)
+	coin_lbl.modulate = Color(1.0, 0.85, 0.0)
+	_idle_banner_node.add_child(coin_lbl)
+	var tween = create_tween()
+	tween.tween_property(coin_lbl, "position:y", pos.y - 50, 0.8)
+	tween.parallel().tween_property(coin_lbl, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(coin_lbl.queue_free)
 
 # ─────────────────────────────────────────
 #  通知 tree 退出（記錄退出時間）

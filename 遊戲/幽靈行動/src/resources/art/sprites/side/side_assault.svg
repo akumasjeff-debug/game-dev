@@ -1,0 +1,47 @@
+<svg viewBox="0 0 32 48" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 突擊手 — 側視角，面朝右，橙色輕甲，護目鏡 -->
+
+  <!-- 頭盔（輕型，護目鏡顯眼）-->
+  <rect x="9"  y="1"  width="14" height="2"  fill="#8C4A00"/>
+  <rect x="7"  y="3"  width="16" height="9"  fill="#8C4A00"/>
+  <!-- 護目鏡（橙色反光）-->
+  <rect x="18" y="4"  width="5"  height="3"  fill="#D46A00"/>
+  <rect x="21" y="5"  width="2"  height="2"  fill="#FF8C20"/>
+  <!-- 頭盔帶 -->
+  <rect x="7"  y="10" width="16" height="2"  fill="#6B3800"/>
+
+  <!-- 脖子 -->
+  <rect x="13" y="12" width="5"  height="2"  fill="#8C4A00"/>
+
+  <!-- 身體（輕甲，細長）-->
+  <rect x="11" y="14" width="12" height="14" fill="#8C4A00"/>
+  <!-- 戰術背心 -->
+  <rect x="12" y="15" width="8"  height="10" fill="#D46A00"/>
+  <!-- 背心口袋 -->
+  <rect x="13" y="17" width="3"  height="3"  fill="#9B5200"/>
+  <rect x="17" y="17" width="3"  height="3"  fill="#9B5200"/>
+  <!-- 腰帶 -->
+  <rect x="11" y="27" width="12" height="2"  fill="#6B3800"/>
+
+  <!-- 左臂（後側）-->
+  <rect x="7"  y="14" width="4"  height="10" fill="#8C4A00"/>
+  <!-- 右臂（前側，持槍）-->
+  <rect x="23" y="14" width="4"  height="10" fill="#8C4A00"/>
+
+  <!-- 腿部 -->
+  <rect x="12" y="29" width="5"  height="9"  fill="#6B3800"/>
+  <rect x="17" y="29" width="5"  height="9"  fill="#6B3800"/>
+  <!-- 腳 -->
+  <rect x="11" y="38" width="7"  height="4"  fill="#4A2600"/>
+  <rect x="17" y="38" width="7"  height="4"  fill="#4A2600"/>
+
+  <!-- 衝鋒槍（雙持，前方那把面朝右）-->
+  <!-- 右手衝鋒槍 -->
+  <rect x="27" y="17" width="5"  height="2"  fill="#111"/>
+  <rect x="23" y="18" width="9"  height="3"  fill="#222"/>
+  <rect x="25" y="21" width="3"  height="4"  fill="#2A2A2A"/>
+  <!-- 左手衝鋒槍（身後，短一點）-->
+  <rect x="4"  y="17" width="4"  height="2"  fill="#111"/>
+  <rect x="4"  y="18" width="6"  height="3"  fill="#222"/>
+  <rect x="5"  y="21" width="2"  height="3"  fill="#2A2A2A"/>
+</svg>

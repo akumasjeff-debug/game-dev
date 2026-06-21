@@ -261,6 +261,14 @@ func _try_auto_attack() -> void:
 	# 發射子彈
 	_fire_player_bullet(best_target, total_atk)
 
+func _pop_up_animation() -> void:
+	# 射擊站起動畫：向上彈出 12px 再回原位
+	var start_y: float = global_position.y
+	var tween = create_tween()
+	tween.tween_property(self, "global_position:y", start_y - 12.0, 0.08)
+	tween.tween_interval(0.15)
+	tween.tween_property(self, "global_position:y", start_y, 0.08)
+
 func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 	var bullet_script = load("res://scripts/bullet.gd")
 	if bullet_script == null:
@@ -280,3 +288,5 @@ func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 		# 無法取得主場景，回退直接扣血
 		if target_node.has_method("take_damage"):
 			target_node.take_damage(dmg)
+	# 射擊後站起動畫（不阻塞，Tween 非同步執行）
+	_pop_up_animation()
