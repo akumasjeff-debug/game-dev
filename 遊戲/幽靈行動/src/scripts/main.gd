@@ -148,7 +148,10 @@ func _squad_enter(on_done: Callable) -> void:
 	)
 
 func _on_room_cleared() -> void:
+	var old_room := _active_room
 	_active_room = null
+	if old_room and is_instance_valid(old_room):
+		old_room.queue_free()
 	for m in GameManager.squad_members:
 		if m and is_instance_valid(m) and m.has_method("set_cover_mode"):
 			m.set_cover_mode(false)

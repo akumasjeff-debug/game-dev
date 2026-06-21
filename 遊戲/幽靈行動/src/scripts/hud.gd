@@ -97,6 +97,9 @@ func _on_room_advanced(room_index: int) -> void:
 	if _room_progress_label and is_instance_valid(_room_progress_label):
 		var display_idx = mini(room_index + 1, _total_rooms)
 		_room_progress_label.text = "房間 " + str(display_idx) + " / " + str(_total_rooms)
+	# 同步更新進度條（room_index 已遞增，代表剛通關的房間數）
+	var ratio := float(room_index) / float(_total_rooms)
+	update_progress(ratio)
 
 func _build_recon_toast() -> void:
 	# 偵察手預警 Toast：固定顯示在頂部進度條下方
