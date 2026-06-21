@@ -51,14 +51,22 @@ func setup(from_pos: Vector2, to_node: Node, dmg: float, btype: String) -> void:
 	damage = dmg
 	owner_type = btype
 	# 依據 owner_type 調整顏色（setup 在 _ready 之前或之後都可能呼叫，需同步更新）
+	# 注意：_body 可能是 Sprite2D（無 .color/.size）或 ColorRect，需型別判斷
 	if _body:
-		if owner_type == "enemy":
-			_body.color = Color(1.0, 0.3, 0.3)
-			_body.size = Vector2(6, 6)
-		else:
-			_body.color = Color(1.0, 0.95, 0.3)
-			_body.size = Vector2(5, 5)
-		_body.position = -_body.size / 2.0
+		if _body is ColorRect:
+			if owner_type == "enemy":
+				_body.color = Color(1.0, 0.3, 0.3)
+				_body.size = Vector2(6, 6)
+			else:
+				_body.color = Color(1.0, 0.95, 0.3)
+				_body.size = Vector2(5, 5)
+			_body.position = -_body.size / 2.0
+		elif _body is Sprite2D:
+			# Sprite2D 用 modulate 調色，不調 size
+			if owner_type == "enemy":
+				_body.modulate = Color(1.0, 0.3, 0.3)
+			else:
+				_body.modulate = Color(1.0, 0.95, 0.3)
 	if target and is_instance_valid(target):
 		direction = (target.global_position - from_pos).normalized()
 	else:

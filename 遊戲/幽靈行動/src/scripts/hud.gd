@@ -67,20 +67,21 @@ func _ready() -> void:
 		restart_btn.pressed.connect(_on_restart_pressed)
 
 func _add_top_bar() -> void:
-	# 任務名稱（左側，y=20）
+	# 任務名稱（左側，x=20-360，y=10，避開中央進度條與右側房間進度）
 	_mission_name_label = Label.new()
 	_mission_name_label.name = "MissionNameLabel"
-	_mission_name_label.position = Vector2(30, 22)
+	_mission_name_label.position = Vector2(20, 10)
+	_mission_name_label.size = Vector2(340, 40)
 	_mission_name_label.add_theme_font_size_override("font_size", 24)
 	_mission_name_label.modulate = Color(1.0, 0.85, 0.3)
 	_mission_name_label.text = GameManager.current_mission_data.get("name", "任務")
 	add_child(_mission_name_label)
 
-	# 房間進度（右側，y=20）
+	# 房間進度（右側，x=730-1060，y=10，右對齊）
 	_room_progress_label = Label.new()
 	_room_progress_label.name = "RoomProgressLabel"
-	_room_progress_label.size = Vector2(220, 36)
-	_room_progress_label.position = Vector2(830, 22)
+	_room_progress_label.size = Vector2(330, 40)
+	_room_progress_label.position = Vector2(730, 10)
 	_room_progress_label.add_theme_font_size_override("font_size", 24)
 	_room_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_room_progress_label.modulate = Color(0.85, 0.95, 1.0)
@@ -108,8 +109,8 @@ func _build_recon_toast() -> void:
 	_recon_toast.anchor_top    = 0.0
 	_recon_toast.anchor_right  = 1.0
 	_recon_toast.anchor_bottom = 0.0
-	_recon_toast.offset_top    = 90.0
-	_recon_toast.offset_bottom = 120.0
+	_recon_toast.offset_top    = 110.0
+	_recon_toast.offset_bottom = 140.0
 	_recon_toast.visible = false
 	add_child(_recon_toast)
 

@@ -1,4 +1,4 @@
-extends Node2D
+﻿extends Node2D
 
 # 角色基礎節點：HP、大招 CD、視覺呈現
 
@@ -175,8 +175,22 @@ func _apply_ultimate_effect() -> void:
 			# 全隊受傷害降低 50%，持續 5 秒
 			gm.activate_shield_buff()
 		"assault":
-			# 全隊攻擊力提升 60%，持續 8 秒
-			gm.activate_assault_buff()
+			# 鎖定當前 HP 最低的敵人，造成其當前 HP 80% 的傷害
+			var a_enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
+			if a_enemies.size() > 0:
+				var a_target = a_enemies[0]
+				for e in a_enemies:
+					if e and is_instance_valid(e) and e.get("current_hp") != null:
+						if e.current_hp < a_target.current_hp:
+							a_target = e
+				if a_target and is_instance_valid(a_target) and a_target.has_method("take_damage"):
+					var a_dmg = a_target.current_hp * 0.8
+					a_target.take_damage(a_dmg)
+					if OS.is_debug_build():
+						print("[突擊手大招] 鎖定最弱敵人！造成 %.1f 傷害（當前 HP 的 80%%）" % a_dmg)
+			else:
+				if OS.is_debug_build():
+					print("[突擊手大招] 無敵人目標")
 		"sniper":
 			# 精準鎖定：目標 HP < 25% 時瞬殺；否則造成 300% 攻擊力傷害
 			var enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
@@ -197,11 +211,11 @@ func _apply_ultimate_effect() -> void:
 						if OS.is_debug_build():
 							print("[狙擊手大招] 精準鎖定！目標 HP < 25%，瞬殺！")
 					else:
-						# fallback：300% 攻擊力傷害
-						var dmg = attack_power * 3.0
-						target.take_damage(dmg)
+						# fallback：造成目標 max_hp 60% 的傷害（720 傷害對 max_hp=1200 的普通兵）
+						var sniper_dmg = target.max_hp * 0.6 if target.get("max_hp") != null else attack_power * 3.0
+						target.take_damage(sniper_dmg)
 						if OS.is_debug_build():
-							print("[狙擊手大招] 精準鎖定！目標 HP 不足，造成 %.1f 傷害。" % dmg)
+							print("[狙擊手大招] 精準鎖定！造成 %.1f 傷害（max_hp 60%%）" % sniper_dmg)
 			else:
 				# 沒有實體敵人時，設一個 pending 標記供下次決策傷害事件使用
 				gm.set_sniper_mark(null)
@@ -222,16 +236,16 @@ func _apply_ultimate_effect() -> void:
 				# 沒有倒下隊員時降級為全隊回血
 				if OS.is_debug_build():
 					print("[醫療兵大招 Lv.6] 無倒下隊員，改為全隊回血")
-			# 預設效果：全隊立即恢復 30% 最大 HP
+			# 預設效果：全隊立即恢復 80 HP（固定值，不過強）
 			for member in gm.squad_members:
 				if member != null and is_instance_valid(member) and not member.is_dead:
-					member.heal(member.max_hp * 0.3)
+					member.heal(80.0)
 		"demo":
-			# 房間內所有敵人立即扣 70% HP
+			# 房間內所有敵人立即扣 40% max_hp（AoE）
 			var targets = get_tree().get_nodes_in_group("enemies") if get_tree() else []
 			for enemy in targets:
 				if enemy != null and is_instance_valid(enemy) and enemy.has_method("take_damage"):
-					enemy.take_damage(enemy.max_hp * 0.7)
+					enemy.take_damage(enemy.max_hp * 0.4)
 			# 若無實體敵人，標記 pending 供決策傷害事件使用
 			if targets.size() == 0:
 				gm.demo_bomb_pending = true
