@@ -128,7 +128,7 @@ func check_defeat() -> void:
 		return
 	var all_dead = true
 	for member in squad_members:
-		if member != null and is_instance_valid(member) and member.current_hp > 0:
+		if member != null and is_instance_valid(member) and not member.is_dead:
 			all_dead = false
 			break
 	if all_dead:

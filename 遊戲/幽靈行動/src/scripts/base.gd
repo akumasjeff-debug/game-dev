@@ -1057,8 +1057,11 @@ func _show_mission_confirm_panel(mission: Dictionary) -> void:
 func _start_mission() -> void:
 	# selected_mission_id 由玩家在任務板點選後設定，此處保留玩家選擇
 
-	# 存檔（包含當前陣容選擇）
-	SaveManager.save_game()
+	# 先消耗體力，確認成功後才繼續（避免體力為 0 時已存檔）
+	if not SaveManager.spend_stamina():
+		_show_error("體力不足！稍後再試。")
+		return
+	_update_stamina_display()
 
 	# 重設 GameManager 狀態（避免上一局殘留）
 	GameManager.is_paused = false
@@ -1071,14 +1074,11 @@ func _start_mission() -> void:
 	GameManager.sniper_mark_pending = false
 	GameManager.demo_bomb_pending = false
 
-	# Bug3: 存入選擇的任務 ID 供 Main.gd 讀取
+	# 存入選擇的任務 ID 供 Main.gd 讀取
 	GameManager.current_mission_id = selected_mission_id
 
-	# 消耗體力
-	if not SaveManager.spend_stamina():
-		_show_error("體力不足！稍後再試。")
-		return
-	_update_stamina_display()
+	# 存檔（體力已扣除後再儲存，確保資料一致）
+	SaveManager.save_game()
 
 	# 淡出後直接進任務場景
 	var fade_layer = CanvasLayer.new()

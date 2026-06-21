@@ -1,41 +1,76 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-  <!-- 普通兵 — 俯視，面朝北（上），紅色系雜兵 -->
+<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="36" height="36">
+  <!-- 普通兵 TCG 卡牌風 — 正面半身，深紅色系 #CC2222，持步槍，臂章X標記 -->
 
-  <!-- 落地陰影 -->
-  <ellipse cx="32" cy="56" rx="14" ry="4" fill="#000" opacity="0.30"/>
+  <!-- 頭盔外框 -->
+  <rect x="10" y="2" width="16" height="13" fill="#0A0A0A"/>
+  <!-- 頭盔主體（廉價深棕紅，薄型舊式） -->
+  <rect x="11" y="3" width="14" height="11" fill="#3A1010"/>
+  <!-- 頭盔正面板（深紅識別色） -->
+  <rect x="12" y="4" width="12" height="6" fill="#7A1010"/>
+  <!-- 頭盔高光（左上，偏暗廉價感） -->
+  <rect x="12" y="4" width="3" height="2" fill="#CC2222"/>
+  <!-- 頭盔護面（薄型面罩，無縫細節，比突擊手粗糙） -->
+  <rect x="11" y="9" width="14" height="4" fill="#200808"/>
+  <!-- 面罩通氣縫 -->
+  <rect x="13" y="10" width="2" height="2" fill="#3A1010"/>
+  <rect x="17" y="10" width="2" height="2" fill="#3A1010"/>
+  <rect x="21" y="10" width="2" height="2" fill="#3A1010"/>
+  <!-- 頭盔下沿 -->
+  <rect x="11" y="13" width="14" height="1" fill="#200808"/>
 
-  <!-- 腿（兩塊短腳，朝下） -->
-  <rect x="24" y="50" width="7"  height="6" fill="#5A1010"/>
-  <rect x="33" y="50" width="7"  height="6" fill="#5A1010"/>
+  <!-- 頸部 -->
+  <rect x="15" y="14" width="6" height="3" fill="#1A0808"/>
 
-  <!-- 身體（窄，廉價戰鬥服） -->
-  <rect x="22" y="26" width="20" height="26" fill="#7A1515"/>
-  <!-- 正中衣縫 -->
-  <rect x="31" y="26" width="2"  height="26" fill="#5A0E0E"/>
-  <!-- 戰術背心 -->
-  <rect x="24" y="28" width="16" height="14" fill="#8B2020"/>
-  <!-- 背心口袋 -->
-  <rect x="25" y="30" width="5"  height="4"  fill="#6A1818"/>
-  <rect x="34" y="30" width="5"  height="4"  fill="#6A1818"/>
+  <!-- 肩甲左（簡陋單層） -->
+  <rect x="4" y="16" width="9" height="7" fill="#0A0A0A"/>
+  <rect x="5" y="17" width="7" height="5" fill="#3A1010"/>
+  <!-- 左肩識別高光 -->
+  <rect x="5" y="17" width="2" height="2" fill="#CC2222"/>
 
-  <!-- 左臂 -->
-  <rect x="16" y="28" width="6"  height="10" fill="#7A1515"/>
-  <!-- 右臂 -->
-  <rect x="42" y="28" width="6"  height="10" fill="#7A1515"/>
+  <!-- 肩甲右（簡陋，無高光） -->
+  <rect x="23" y="16" width="9" height="7" fill="#0A0A0A"/>
+  <rect x="24" y="17" width="7" height="5" fill="#3A1010"/>
 
-  <!-- 步槍（右側，斜向前方） -->
-  <rect x="46" y="22" width="4"  height="14" fill="#222"/>
-  <rect x="47" y="36" width="4"  height="6"  fill="#2A2A2A"/>
-  <!-- 槍口 -->
-  <rect x="47" y="18" width="3"  height="6"  fill="#111"/>
+  <!-- 身體胸甲外框 -->
+  <rect x="9" y="16" width="18" height="15" fill="#0A0A0A"/>
+  <!-- 身體主體（破舊深紅戰術背心） -->
+  <rect x="10" y="17" width="16" height="13" fill="#3A1010"/>
+  <!-- 胸甲正面板 -->
+  <rect x="11" y="18" width="14" height="9" fill="#4A1414"/>
+  <!-- 胸甲中線 -->
+  <rect x="17" y="18" width="2" height="9" fill="#200808"/>
+  <!-- 胸甲高光（暗，廉價感） -->
+  <rect x="11" y="18" width="4" height="2" fill="#7A1010"/>
+  <!-- 簡陋彈匣袋（單個） -->
+  <rect x="11" y="22" width="5" height="5" fill="#200808"/>
+  <rect x="12" y="23" width="3" height="3" fill="#3A1010"/>
 
-  <!-- 頭盔（俯視看頂部，扁圓形，舊式） -->
-  <rect x="24" y="10" width="16" height="18" fill="#5A0E0E"/>
-  <!-- 頭盔前緣高光 -->
-  <rect x="26" y="10" width="12" height="3"  fill="#9B2A2A"/>
-  <!-- 頭盔後遮陽片 -->
-  <rect x="24" y="26" width="16" height="3"  fill="#4A0A0A"/>
-  <!-- 護目鏡縫（兩側） -->
-  <rect x="26" y="14" width="4"  height="4"  fill="#3A0808"/>
-  <rect x="34" y="14" width="4"  height="4"  fill="#3A0808"/>
+  <!-- X臂章（右胸，敵方識別） -->
+  <rect x="21" y="20" width="4" height="5" fill="#CC2222"/>
+  <!-- X 交叉線 -->
+  <rect x="21" y="20" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="24" y="20" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="22" y="21" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="23" y="21" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="21" y="22" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="24" y="22" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="22" y="23" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="23" y="23" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="21" y="24" width="1" height="1" fill="#0A0A0A"/>
+  <rect x="24" y="24" width="1" height="1" fill="#0A0A0A"/>
+
+  <!-- 步槍（左臂，細長型） -->
+  <rect x="1" y="20" width="10" height="4" fill="#0A0A0A"/>
+  <rect x="2" y="21" width="8" height="2" fill="#1E1E1E"/>
+  <!-- 槍管前端 -->
+  <rect x="1" y="21" width="3" height="2" fill="#181818"/>
+  <!-- 彈匣（小型） -->
+  <rect x="5" y="24" width="3" height="4" fill="#222"/>
+  <rect x="6" y="25" width="1" height="2" fill="#1A1A1A"/>
+
+  <!-- 右臂（持槍後段） -->
+  <rect x="27" y="18" width="7" height="8" fill="#0A0A0A"/>
+  <rect x="28" y="19" width="5" height="7" fill="#3A1010"/>
+  <!-- 握把 -->
+  <rect x="30" y="23" width="3" height="4" fill="#200808"/>
 </svg>

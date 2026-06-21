@@ -232,18 +232,38 @@ func _build_room_visual(idx: int) -> void:
 	pshadow.color    = Color(0.15, 0.15, 0.20, 0.7)
 	visual.add_child(pshadow)
 
-	# 房間標籤
+	# 房間標籤底色（提升可讀性，半透明深色帶）
+	var lbl_bg := ColorRect.new()
+	lbl_bg.position = Vector2(0, 10)
+	lbl_bg.size     = Vector2(1080, 60)
+	lbl_bg.color    = Color(0.0, 0.0, 0.0, 0.55)
+	visual.add_child(lbl_bg)
+
+	# 房間標籤 — 主標題（大字，左側）
 	var lbl := Label.new()
-	lbl.text     = "ROOM %s%s" % [cfg["label"], "  ⚠ BOSS" if is_boss else ""]
-	lbl.position = Vector2(0, 16)
-	lbl.size     = Vector2(1080, 44)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.text     = "ROOM  %s" % cfg["label"]
+	lbl.position = Vector2(30, 14)
+	lbl.size     = Vector2(600, 46)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	lbl.add_theme_font_size_override("font_size", 32)
 	lbl.add_theme_color_override("font_color",
-		Color(0.9, 0.4, 0.4, 0.8) if is_boss else Color(0.7, 0.7, 0.8, 0.55))
+		Color(1.0, 0.5, 0.5, 1.0) if is_boss else Color(0.85, 0.92, 1.0, 1.0))
 	if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
 		lbl.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
 	visual.add_child(lbl)
+
+	# BOSS 警告標籤（右側，醒目橙紅）
+	if is_boss:
+		var boss_warn := Label.new()
+		boss_warn.text     = "! BOSS !"
+		boss_warn.position = Vector2(650, 14)
+		boss_warn.size     = Vector2(400, 46)
+		boss_warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		boss_warn.add_theme_font_size_override("font_size", 28)
+		boss_warn.add_theme_color_override("font_color", Color(1.0, 0.30, 0.15, 1.0))
+		if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
+			boss_warn.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
+		visual.add_child(boss_warn)
 
 func _add_cover(parent: Node, svg: String, pos: Vector2, size: Vector2, fallback: Color) -> void:
 	if ResourceLoader.exists(svg):

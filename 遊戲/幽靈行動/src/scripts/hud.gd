@@ -68,8 +68,8 @@ func _add_top_bar() -> void:
 	# 任務名稱（左側，y=20）
 	_mission_name_label = Label.new()
 	_mission_name_label.name = "MissionNameLabel"
-	_mission_name_label.position = Vector2(30, 20)
-	_mission_name_label.add_theme_font_size_override("font_size", 20)
+	_mission_name_label.position = Vector2(30, 22)
+	_mission_name_label.add_theme_font_size_override("font_size", 24)
 	_mission_name_label.modulate = Color(1.0, 0.85, 0.3)
 	_mission_name_label.text = GameManager.current_mission_data.get("name", "任務")
 	add_child(_mission_name_label)
@@ -77,12 +77,12 @@ func _add_top_bar() -> void:
 	# 房間進度（右側，y=20）
 	_room_progress_label = Label.new()
 	_room_progress_label.name = "RoomProgressLabel"
-	_room_progress_label.size = Vector2(200, 30)
-	_room_progress_label.position = Vector2(850, 20)
-	_room_progress_label.add_theme_font_size_override("font_size", 20)
+	_room_progress_label.size = Vector2(220, 36)
+	_room_progress_label.position = Vector2(830, 22)
+	_room_progress_label.add_theme_font_size_override("font_size", 24)
 	_room_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_room_progress_label.modulate = Color(0.85, 0.95, 1.0)
-	_room_progress_label.text = "待進入房間"
+	_room_progress_label.text = "房間 1 / " + str(_total_rooms)
 	add_child(_room_progress_label)
 
 	# 連接 room_advanced 信號
@@ -90,8 +90,10 @@ func _add_top_bar() -> void:
 		GameManager.room_advanced.connect(_on_room_advanced)
 
 func _on_room_advanced(room_index: int) -> void:
+	# room_index 是 advance_room() 遞增後的值（從 0 開始），加 1 顯示給玩家看
 	if _room_progress_label and is_instance_valid(_room_progress_label):
-		_room_progress_label.text = "房間 " + str(room_index) + " / " + str(_total_rooms)
+		var display_idx = mini(room_index + 1, _total_rooms)
+		_room_progress_label.text = "房間 " + str(display_idx) + " / " + str(_total_rooms)
 
 func _build_recon_toast() -> void:
 	# 偵察手預警 Toast：固定顯示在頂部進度條下方

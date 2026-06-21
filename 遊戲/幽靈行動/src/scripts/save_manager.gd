@@ -209,7 +209,7 @@ func coins_needed_for_level_up(char_id: String) -> int:
 
 func reset_all() -> void:
 	# DEMO 專用：清空所有存檔資料並重新初始化預設值
-	var path = "user://save.cfg"
+	var path = SAVE_PATH  # 使用統一常數，避免路徑不一致
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 	coins = 200

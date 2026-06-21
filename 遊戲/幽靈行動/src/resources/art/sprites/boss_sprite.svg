@@ -1,60 +1,147 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-  <!-- Boss — 俯視，面朝北，紫色系指揮官 Boss -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="64" height="64">
+  <!-- Boss 指揮官 TCG 卡牌風 — 正面半身，深紫色系 #8B0080，重甲，肩章，榴彈發射器 -->
 
-  <!-- 落地陰影（最大） -->
-  <ellipse cx="32" cy="58" rx="22" ry="6" fill="#000" opacity="0.40"/>
+  <!-- 指揮官頭盔（最大，帶指揮帽簷） -->
+  <!-- 頭盔外框 -->
+  <rect x="14" y="3" width="36" height="24" fill="#0A0A0A"/>
+  <!-- 頭盔主體（厚重深紫裝甲） -->
+  <rect x="15" y="4" width="34" height="22" fill="#3A003A"/>
+  <!-- 頭盔正面板 -->
+  <rect x="17" y="5" width="30" height="12" fill="#600060"/>
+  <!-- 頭盔高光（左上，鮮紫） -->
+  <rect x="17" y="5" width="8" height="3" fill="#8B0080"/>
+  <!-- 頭盔右側高光（次光） -->
+  <rect x="42" y="5" width="4" height="6" fill="#5A0055"/>
+  <!-- 頭盔側面指揮金條（肩章延伸至頭盔） -->
+  <rect x="15" y="6" width="2" height="10" fill="#CCAA00"/>
+  <rect x="47" y="6" width="2" height="10" fill="#CCAA00"/>
 
-  <!-- 腿（重甲，最粗） -->
-  <rect x="18" y="50" width="10" height="8" fill="#3A006A"/>
-  <rect x="36" y="50" width="10" height="8" fill="#3A006A"/>
-  <!-- 護甲腿板 -->
-  <rect x="19" y="50" width="8"  height="4" fill="#5A00AA"/>
-  <rect x="37" y="50" width="8"  height="4" fill="#5A00AA"/>
+  <!-- 護目鏡（雙鏡型，最精良，暗紫色） -->
+  <rect x="16" y="14" width="10" height="7" fill="#0A0A0A"/>
+  <rect x="38" y="14" width="10" height="7" fill="#0A0A0A"/>
+  <rect x="17" y="15" width="8" height="5" fill="#8B0080"/>
+  <rect x="39" y="15" width="8" height="5" fill="#8B0080"/>
+  <!-- 護目鏡高光（紫色光澤） -->
+  <rect x="17" y="15" width="3" height="2" fill="#CC44CC"/>
+  <rect x="39" y="15" width="3" height="2" fill="#CC44CC"/>
+  <!-- 護目鏡底部暗影 -->
+  <rect x="17" y="18" width="8" height="2" fill="#600060"/>
+  <rect x="39" y="18" width="8" height="2" fill="#600060"/>
+  <!-- 護目鏡鼻橋（厚實） -->
+  <rect x="27" y="15" width="10" height="4" fill="#200020"/>
 
-  <!-- 斗篷/寬大外套（延伸到兩側，最寬） -->
-  <rect x="10" y="28" width="8"  height="22" fill="#2A004A"/>
-  <rect x="46" y="28" width="8"  height="22" fill="#2A004A"/>
-  <!-- 斗篷邊緣金線 -->
-  <rect x="10" y="28" width="2"  height="22" fill="#AA6600"/>
-  <rect x="52" y="28" width="2"  height="22" fill="#AA6600"/>
+  <!-- 面罩（全臉覆蓋，最威壓） -->
+  <rect x="15" y="20" width="34" height="7" fill="#200020"/>
+  <!-- 面罩呼吸格（兩排對稱） -->
+  <rect x="17" y="21" width="4" height="2" fill="#3A003A"/>
+  <rect x="23" y="21" width="4" height="2" fill="#3A003A"/>
+  <rect x="37" y="21" width="4" height="2" fill="#3A003A"/>
+  <rect x="43" y="21" width="4" height="2" fill="#3A003A"/>
+  <!-- 面罩下排 -->
+  <rect x="17" y="24" width="4" height="2" fill="#3A003A"/>
+  <rect x="23" y="24" width="4" height="2" fill="#3A003A"/>
+  <rect x="37" y="24" width="4" height="2" fill="#3A003A"/>
+  <rect x="43" y="24" width="4" height="2" fill="#3A003A"/>
+  <!-- 頭盔下沿（厚） -->
+  <rect x="15" y="26" width="34" height="2" fill="#1A0018"/>
 
-  <!-- 身體（寬大，指揮官制服） -->
-  <rect x="18" y="22" width="28" height="30" fill="#3A0068"/>
-  <!-- 制服中線 -->
-  <rect x="30" y="22" width="4"  height="30" fill="#2A0050"/>
-  <!-- 勳章列（左胸，多個金點） -->
-  <rect x="20" y="26" width="4"  height="2"  fill="#FFCC00"/>
-  <rect x="20" y="30" width="4"  height="2"  fill="#FFCC00"/>
-  <rect x="20" y="34" width="4"  height="2"  fill="#FFCC00"/>
-  <!-- 右胸徽章 -->
-  <rect x="40" y="26" width="4"  height="6"  fill="#8800CC"/>
-  <rect x="41" y="27" width="2"  height="4"  fill="#BB44FF"/>
+  <!-- 頸部（粗壯） -->
+  <rect x="27" y="28" width="10" height="5" fill="#1A0018"/>
 
-  <!-- 左臂（粗壯） -->
-  <rect x="12" y="24" width="6"  height="16" fill="#3A0068"/>
-  <!-- 右臂（持大型手槍） -->
-  <rect x="46" y="24" width="6"  height="16" fill="#3A0068"/>
+  <!-- 肩章左（指揮官識別，金色大型肩章） -->
+  <rect x="3" y="28" width="18" height="14" fill="#0A0A0A"/>
+  <rect x="4" y="29" width="16" height="12" fill="#3A003A"/>
+  <!-- 肩章主面（金色鑲邊） -->
+  <rect x="4" y="29" width="16" height="5" fill="#8B0080"/>
+  <rect x="4" y="29" width="16" height="2" fill="#CCAA00"/>
+  <rect x="4" y="35" width="16" height="2" fill="#CCAA00"/>
+  <!-- 肩章星徽 -->
+  <rect x="7" y="31" width="4" height="2" fill="#FFDD00"/>
+  <rect x="13" y="31" width="4" height="2" fill="#FFDD00"/>
+  <rect x="8" y="30" width="2" height="4" fill="#FFDD00"/>
+  <rect x="14" y="30" width="2" height="4" fill="#FFDD00"/>
 
-  <!-- 大型指揮手槍（右側） -->
-  <rect x="50" y="16" width="6"  height="22" fill="#111"/>
-  <rect x="50" y="38" width="6"  height="6"  fill="#1A1A1A"/>
-  <!-- 槍口消焰器 -->
-  <rect x="51" y="10" width="4"  height="8"  fill="#222"/>
-  <rect x="52" y="8"  width="2"  height="4"  fill="#333"/>
+  <!-- 肩章右 -->
+  <rect x="43" y="28" width="18" height="14" fill="#0A0A0A"/>
+  <rect x="44" y="29" width="16" height="12" fill="#3A003A"/>
+  <rect x="44" y="29" width="16" height="5" fill="#8B0080"/>
+  <rect x="44" y="29" width="16" height="2" fill="#CCAA00"/>
+  <rect x="44" y="35" width="16" height="2" fill="#CCAA00"/>
+  <!-- 右肩章星徽 -->
+  <rect x="47" y="31" width="4" height="2" fill="#FFDD00"/>
+  <rect x="53" y="31" width="4" height="2" fill="#FFDD00"/>
+  <rect x="48" y="30" width="2" height="4" fill="#FFDD00"/>
+  <rect x="54" y="30" width="2" height="4" fill="#FFDD00"/>
 
-  <!-- 頭盔/指揮帽（俯視，最大，有帽沿） -->
-  <rect x="18" y="6"  width="28" height="18" fill="#2A0050"/>
-  <!-- 帽沿 -->
-  <rect x="16" y="18" width="32" height="4"  fill="#1A0038"/>
-  <!-- 帽頂金徽 -->
-  <rect x="28" y="8"  width="8"  height="8"  fill="#7700BB"/>
-  <rect x="29" y="9"  width="6"  height="6"  fill="#9900EE"/>
-  <rect x="30" y="10" width="4"  height="4"  fill="#CC44FF"/>
-  <!-- 護目鏡（紫色，雙目鏡型） -->
-  <rect x="22" y="12" width="6"  height="6"  fill="#6600AA"/>
-  <rect x="36" y="12" width="6"  height="6"  fill="#6600AA"/>
-  <rect x="23" y="13" width="4"  height="4"  fill="#9933EE"/>
-  <rect x="37" y="13" width="4"  height="4"  fill="#9933EE"/>
-  <!-- 帽沿前緣金線 -->
-  <rect x="18" y="6"  width="28" height="2"  fill="#FFCC00"/>
+  <!-- 身體重甲外框（最寬） -->
+  <rect x="13" y="28" width="38" height="32" fill="#0A0A0A"/>
+  <!-- 身體主體（深紫厚重指揮甲） -->
+  <rect x="14" y="29" width="36" height="30" fill="#3A003A"/>
+  <!-- 胸甲正面（大型板甲） -->
+  <rect x="16" y="30" width="32" height="20" fill="#500050"/>
+  <!-- 胸甲中線（粗） -->
+  <rect x="30" y="30" width="4" height="20" fill="#200020"/>
+  <!-- 胸甲高光（大塊紫） -->
+  <rect x="16" y="30" width="10" height="5" fill="#8B0080"/>
+  <!-- 胸甲右側暗影 -->
+  <rect x="38" y="30" width="10" height="5" fill="#3A003A"/>
+
+  <!-- 勳章欄（左胸，多排金色） -->
+  <rect x="16" y="36" width="10" height="3" fill="#CCAA00"/>
+  <rect x="16" y="40" width="10" height="3" fill="#CCAA00"/>
+  <!-- 勳章細節 -->
+  <rect x="16" y="36" width="2" height="3" fill="#FFDD00"/>
+  <rect x="19" y="36" width="2" height="3" fill="#AA8800"/>
+  <rect x="22" y="36" width="2" height="3" fill="#FFDD00"/>
+  <rect x="16" y="40" width="2" height="3" fill="#FFDD00"/>
+  <rect x="19" y="40" width="2" height="3" fill="#AA8800"/>
+  <rect x="22" y="40" width="2" height="3" fill="#FFDD00"/>
+
+  <!-- 右胸指揮官徽章（大型紫金） -->
+  <rect x="36" y="35" width="10" height="10" fill="#200020"/>
+  <rect x="37" y="36" width="8" height="8" fill="#8B0080"/>
+  <rect x="38" y="37" width="6" height="6" fill="#CC44CC"/>
+  <rect x="39" y="38" width="4" height="4" fill="#8B0080"/>
+  <!-- 徽章外框金線 -->
+  <rect x="36" y="35" width="10" height="1" fill="#FFDD00"/>
+  <rect x="36" y="44" width="10" height="1" fill="#FFDD00"/>
+  <rect x="36" y="35" width="1" height="10" fill="#FFDD00"/>
+  <rect x="45" y="35" width="1" height="10" fill="#FFDD00"/>
+
+  <!-- MOLLE 彈匣袋（下胸，大型三排） -->
+  <rect x="16" y="44" width="10" height="5" fill="#1A0018"/>
+  <rect x="17" y="45" width="8" height="3" fill="#2A0028"/>
+  <rect x="28" y="44" width="4" height="5" fill="#1A0018"/>
+  <rect x="29" y="45" width="2" height="3" fill="#2A0028"/>
+
+  <!-- 榴彈發射器（左臂，粗管特殊武器，最大最威脅） -->
+  <rect x="1" y="30" width="16" height="14" fill="#0A0A0A"/>
+  <rect x="2" y="31" width="14" height="12" fill="#282828"/>
+  <!-- 發射管（超粗） -->
+  <rect x="1" y="33" width="8" height="8" fill="#1E1E1E"/>
+  <!-- 管口（大開口） -->
+  <rect x="1" y="34" width="5" height="6" fill="#111"/>
+  <rect x="2" y="35" width="3" height="4" fill="#000"/>
+  <!-- 榴彈裝填鼓（彈鼓） -->
+  <rect x="7" y="42" width="8" height="8" fill="#1A1A1A"/>
+  <rect x="8" y="43" width="6" height="6" fill="#111"/>
+  <!-- 彈鼓中心 -->
+  <rect x="10" y="45" width="2" height="2" fill="#222"/>
+  <!-- 皮卡汀尼導軌（頂部） -->
+  <rect x="2" y="30" width="12" height="2" fill="#333"/>
+  <!-- 戰術手電筒（側掛） -->
+  <rect x="14" y="33" width="2" height="8" fill="#2A2A2A"/>
+  <!-- 手電光圈 -->
+  <rect x="14" y="33" width="2" height="2" fill="#CCCC00"/>
+
+  <!-- 右臂（持武器後段，厚重護臂） -->
+  <rect x="48" y="30" width="14" height="18" fill="#0A0A0A"/>
+  <rect x="49" y="31" width="12" height="16" fill="#3A003A"/>
+  <!-- 護臂甲板 -->
+  <rect x="49" y="31" width="12" height="7" fill="#500050"/>
+  <!-- 護臂金邊 -->
+  <rect x="49" y="31" width="12" height="1" fill="#CCAA00"/>
+  <!-- 握把（大型） -->
+  <rect x="54" y="42" width="6" height="8" fill="#1A0018"/>
+  <rect x="55" y="43" width="4" height="6" fill="#100010"/>
 </svg>

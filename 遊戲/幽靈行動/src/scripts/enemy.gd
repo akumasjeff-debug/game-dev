@@ -15,7 +15,7 @@ var current_hp: float = 100.0
 var attack_power: float = 15.0
 var attack_interval: float = 2.0  # 每隔幾秒攻擊一次
 
-var _attack_timer: float = 0.0
+var _attack_timer: float = 1.0  # 初始延遲 1 秒，避免開戰瞬間立即攻擊
 var is_dead: bool = false
 
 # 視覺節點
@@ -49,17 +49,17 @@ func _apply_type_stats() -> void:
 	match enemy_type:
 		EnemyType.NORMAL:
 			enemy_name   = "普通兵"
-			max_hp       = 350.0
+			max_hp       = 1200.0
 			attack_power = 35.0
 			attack_interval = 2.5
 		EnemyType.ELITE:
 			enemy_name   = "精英"
-			max_hp       = 900.0
+			max_hp       = 1650.0
 			attack_power = 55.0
 			attack_interval = 2.0
 		EnemyType.BOSS:
 			enemy_name   = "Boss"
-			max_hp       = 2200.0
+			max_hp       = 2800.0
 			attack_power = 75.0
 			attack_interval = 1.5
 
@@ -88,20 +88,45 @@ func _build_visual() -> void:
 		_body = cr
 	add_child(_body)
 
+	# 敵人名稱標籤 — 字型放大（原 12px 在手機上太小）
 	_name_label = Label.new()
 	_name_label.text = enemy_name
-	_name_label.position = Vector2(-size.x / 2.0, -size.y / 2.0 - 20)
-	_name_label.add_theme_font_size_override("font_size", 12)
-	_name_label.modulate = Color.WHITE
+	_name_label.position = Vector2(-size.x / 2.0 - 4, -size.y / 2.0 - 26)
+	_name_label.add_theme_font_size_override("font_size", 16)
+	_name_label.modulate = Color(1.0, 0.85, 0.7)
 	add_child(_name_label)
 
+	# 敵人血條 — 寬度依類型放大確保手機可見，加背景底色提升對比
+	var hp_bar_w: float = 80.0
+	if enemy_type == EnemyType.ELITE:
+		hp_bar_w = 100.0
+	elif enemy_type == EnemyType.BOSS:
+		hp_bar_w = 130.0
+
+	var hp_bg_rect = ColorRect.new()
+	hp_bg_rect.size     = Vector2(hp_bar_w, 12)
+	hp_bg_rect.position = Vector2(-hp_bar_w / 2.0, size.y / 2.0 + 4)
+	hp_bg_rect.color    = Color(0.08, 0.05, 0.05, 0.90)
+	add_child(hp_bg_rect)
+
 	_hp_bar = ProgressBar.new()
-	_hp_bar.size = Vector2(size.x + 10, 8)
-	_hp_bar.position = Vector2(-size.x / 2.0 - 5, size.y / 2.0 + 4)
+	_hp_bar.size = Vector2(hp_bar_w, 12)
+	_hp_bar.position = Vector2(-hp_bar_w / 2.0, size.y / 2.0 + 4)
 	_hp_bar.min_value = 0.0
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = current_hp
 	_hp_bar.show_percentage = false
+	var hp_fill_style = StyleBoxFlat.new()
+	if enemy_type == EnemyType.BOSS:
+		hp_fill_style.bg_color = Color(0.65, 0.10, 0.80)
+	elif enemy_type == EnemyType.ELITE:
+		hp_fill_style.bg_color = Color(0.90, 0.50, 0.10)
+	else:
+		hp_fill_style.bg_color = Color(0.85, 0.20, 0.15)
+	var hp_bg_style = StyleBoxFlat.new()
+	hp_bg_style.bg_color = Color(0, 0, 0, 0)
+	_hp_bar.add_theme_stylebox_override("fill", hp_fill_style)
+	_hp_bar.add_theme_stylebox_override("background", hp_bg_style)
 	add_child(_hp_bar)
 
 func _process(delta: float) -> void:
@@ -116,6 +141,9 @@ func _do_attack() -> void:
 	# 取得最前方存活隊員（squad group 中第一個非死亡的）
 	var gm = get_node_or_null("/root/GameManager")
 	if gm == null:
+		return
+	# 進場動畫或暫停狀態：敵人不攻擊
+	if gm.is_paused:
 		return
 	# 偵察手大招 blind 狀態：敵人攻擊無效
 	if gm.enemies_blinded:
@@ -225,15 +253,21 @@ func _spawn_kill_effect() -> void:
 		kill_text = "BOSS DEFEATED"
 		kill_color = Color(0.8, 0.2, 1.0)
 
+	# 擊殺飄字 — 字型放大確保手機螢幕清晰可見，飄升距離加大
+	var kill_font_size: int = 26
+	if enemy_type == EnemyType.ELITE:
+		kill_font_size = 32
+	elif enemy_type == EnemyType.BOSS:
+		kill_font_size = 42
 	lbl.text = kill_text
-	lbl.add_theme_font_size_override("font_size", 20 if enemy_type == EnemyType.NORMAL else 26)
+	lbl.add_theme_font_size_override("font_size", kill_font_size)
 	lbl.modulate = kill_color
-	lbl.position = global_position + Vector2(-60, -30)
+	lbl.position = global_position + Vector2(-80, -40)
 	scene_root.add_child(lbl)
 
 	var tw = create_tween()
-	tw.tween_property(lbl, "position:y", lbl.position.y - 50, 0.6)
-	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 80, 0.9)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.9)
 	tw.tween_callback(lbl.queue_free)
 
 func get_hp_ratio() -> float:
