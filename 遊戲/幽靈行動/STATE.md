@@ -1,110 +1,100 @@
 # 幽靈行動 狀態
 
 ## 已完成
-- GDD v0.1 完成（docs/GDD.md）
-- 專案資料夾建立
-- Godot 4 專案結構建立（headless 測試 exit code 0，無錯誤）
-- 核心操控原型：玩家移動（WASD）+ 槍線朝向滑鼠 + 靜止自動瞄準
-- 自動射擊機制：PhysicsRayQuery 掃描 120° 扇形最近敵人，安全模式切換（F 鍵）
-- 視野錐形（120°, 300px）跟隨槍線方向（本地 +X，無雙重旋轉）
-- 敵人 AI 狀態機（巡邏 → 警覺 → 追擊 → 射擊）
-- 辦公室地圖原型（ColorRect 牆壁 + StaticBody2D 碰撞 + NavigationRegion2D）
-- 基礎 HUD（HP 條 + 彈藥條 + 換彈提示 + 安全模式指示燈）
-- 相機跟隨玩家（Camera2D 移至 Player.tscn 子節點）
-- 死亡旗標防重複觸發（player.gd）
-- hud.gd 快取 player + 換彈文字殘留修復
-- SafeIndicator 改為 anchor 右側定位（任意解析度正確）
-- 受傷閃紅效果（modulate，0.15 秒）
-- 死亡面板（「任務失敗」+ 按 Enter 重新開始）
-- 手動換彈（R 鍵，彈匣未滿且未換彈時有效）
-- 自動瞄準 UI 提示（靜止時 HUD 顯示「自動瞄準中」藍色文字）
-- 安全模式按鍵提示（「[F] 切換」靜態標籤）
-- cop_sprite.gd top_level=true 修正（移除每幀 global_rotation 覆蓋 hack）
-- enemy.gd 狀態感知動畫（SHOOT 播 shoot 動畫、移動播 walk、靜止播 idle）
-- Main.tscn 5 個敵人設定有意義的矩形巡邏路線（main.gd 統一設定）
-- 霧戰三層系統重新實作（ImageTexture 方案，96x54 格，牆壁遮擋正確）
-- 任務目標系統（殲滅）：敵人全滅 → 顯示 VictoryPanel
-- Demo 測試協議三組審查通過（無霧戰版本）
-- **[2026-06-21] 音效系統**：槍聲（200Hz/0.06s）、換彈聲（800→400Hz/0.4s）、敵人死亡聲（150Hz/0.2s）— Python wave 生成，FileAccess 直讀繞過 import 系統（headless exit 0）
-- **[2026-06-21] 敵人死亡音效防截斷**：`_die()` 前移 AudioStreamPlayer 至場景根節點再播放，播完自動 queue_free
-- **[2026-06-21] BGM 系統**：bgm_battle.wav（8 秒循環，Python wave 合成，60Hz 底音+150Hz 鼓擊+200Hz 金屬泛音），FileAccess 直讀，-12dB，勝利時停止，全 5 關共用
-- **[2026-06-21] 地板磚塊**：main.gd 含 _create_floor_tiles()（tilesheet 存在時自動鋪設），tilesheet 目前缺失但有防護不 crash
-- **[2026-06-21] Kenney 磚塊地圖整合**：Main.tscn 地板改為 Sprite2D（tilemap_packed.png col=9,row=1 深灰水泥磚，1920x1080 texture_repeat）；所有牆壁 Vis 節點從 ColorRect 改為 Sprite2D（col=8,row=0 深灰磚，texture_repeat 重複鋪設，各牆尺寸對應 CollisionShape2D）；碰撞系統完全不動；headless exit 0
-- **[2026-06-21] 關卡 2（Level2.tscn）**：倉庫廠房，暗殺 BossEnemy，7 雜兵 + 1 Boss，level2_main.gd
-- **[2026-06-21] 關卡 3（Level3.tscn）**：廢棄醫院，救援人質，8 雜兵，Hostage.tscn + ExitZone.tscn，level3_main.gd
-- **[2026-06-21] 關卡 4（Level4.tscn）**：軍事指揮中心，限時防守 90 秒，10 雜兵從四面逼近，HUD 倒數計時，level4_main.gd
-- **[2026-06-21] 關卡 5（Level5.tscn）**：廢棄造船廠最終關，殲滅，12 個精銳，勝利後 1.5s 延遲顯示，level5_main.gd
-- **[2026-06-21] 人質系統**：Hostage.tscn + hostage.gd（狀態機：IDLE/FOLLOWING/STOPPED，NavigationAgent2D），ExitZone.tscn
-- **[2026-06-21] hud.gd 擴充**：set_mission_text、start_countdown、update_countdown（倒數 Label 上方正中）、_go_to_next_level 關卡串接（Main→L2→L3→L4→L5）
-- **[2026-06-21] enemy.gd SPEED/VISION_RANGE 改為 var**：支援 BossEnemy 外部屬性差異化
-- **[2026-06-21] 基地場景（HQ）**：Base.tscn + base_main.gd，深色 #1a1a2e 主題，Header/MainContent（三欄面板）/BottomBar（出發＋設定），TransitionOverlay 漸入 0.5s 切 Main.tscn；project.godot 主場景改為 Base.tscn；hud.gd Level5 勝利後改為回 Base.tscn（headless exit 0）
+- GDD v2.1 完成（第 6 職業「偵察手 Recon」設計定案，隊伍選人機制從「5 人固定」調整為「6 選 4」）
+- 職業設計定案：6 職業（盾兵/醫療兵/突擊手/狙擊手/爆破手/偵察手），各對應不同大招類型；偵察手為 CC 控制型，大招煙霧封鎖使敵人攻擊失效 5 秒，CD 35 秒
+- GDD v2.0 完成（全新設計，重新定案為戰術指揮+Idle+抽卡）
+- 職業設計定案（初版）：5 職業（盾兵/醫療兵/突擊手/狙擊手/爆破手），各對應不同大招類型
+- 大招系統設計完成：點卡片施放、各自 CD、升級縮 CD+提升效果
+- 破門改為盾兵專屬技能（Lv.9），解鎖特定任務隱藏事件，非主軸機制
+- GDD 參考對象更新：FTL 取代「破門清房」
+- **P0 核心原型建立完成**：Godot 4 專案 src/ 目錄，headless 測試通過（exit 0, 無 ERROR）✓ 2026-06-21
+  - 小隊自動推進（5 人隊形 + waypoint 路徑跟隨）
+  - 決策點觸發機制（Area2D → 暫停 → 面板 → 繼續）
+  - 2 種決策點：房間（直衝/靜悄/炸彈）、補給箱（補血/炸彈/抽卡券）
+  - 大招 HUD：5 張角色卡 + CD 倒數 + 點擊施放
+  - 勝負判定 + 結算畫面 + 重試按鈕
+  - DecisionPanel 修正為 CanvasLayer（layer=10），UI 不受場景縮放影響
 
 ## 進行中
-- 無
+- 專案監控師：Demo 發布前全局健康檢查完成（見 docs/HEALTH_REPORT.md）
 
-## 待辦（確認執行）
-- 陣形系統：最多 4 陣形、一鍵切換（Q/E/Z/X）、主要位置概念、鏡頭跟隨主要位置
-- 其餘 7 種職業：狙擊手 / 盾兵 / 重裝 / 醫療兵 / 散彈兵 / 偵察手 / 爆破手（各有專屬武器、HP、移速）
-- 基地系統：任務板（主線/支線選擇）、武器購買 / 升級（機率制 1–10 級）、隊員管理
-- Roguelite 跨局成長：金錢保留、職業解鎖、武器等級永久、隊員格數擴展（最多 4 格）
-- 素材替換：ColorRect 臨時素材 → 正式像素圖（角色、地圖磚塊、武器、UI）
+## 待辦
 
-## 後續選擇項目（未確認，保留設計文件為參考）
-- 匿蹤系統：噪音等級、警戒消退時間、屍體觸發全區搜索
-- 六大素質成長：體力 / 敏捷 / 感知 / 力量 / 技術 / 意志
-- 倒地與救援機制：10 秒倒數、隊友施救、醫療兵加速
-- 故事情報系統：任務前情報文字、任務後解鎖劇情段落
-- 後期怪物關卡：生化實驗體（聽覺偵測）、軍事機械（視覺+雷達）
+### P0 ✅ 完成
+### P1 ✅ 完成（2026-06-21）
+- 大招實際效果：盾兵護盾/突擊手攻擊buff/狙擊手秒殺標記/醫療兵回血/爆破手AOE
+- 岔路決策點：左路/右路/未知，選擇後即時切換 waypoint 路徑
+- Lv.3 條件解鎖：盾兵 Lv.3 自動在房間決策加入「舉盾突入」選項
+- headless 測試通過 exit 0 ✓
+
+### P2 ✅ 完成（2026-06-21）
+- 基地場景：任務板 UI + 6 職業按鈕 + 4 格陣容選擇 + 出發按鈕
+- 離線金幣計算系統（24 小時上限，100 金幣/小時，60 秒門檻）
+- 本機存檔（Godot ConfigFile：coins / squad / levels / timestamp）
+- AudioManager（15 個 WAV，crossfade BGM 架構）
+- TutorialManager（8 步驟新手教學，CanvasLayer layer=20）
+- enemy.gd（普通兵/精英/Boss 三種類型，自動攻擊/前線優先/致盲檢查）
+- room.gd、base.gd、save_manager.gd、audio_manager.gd、tutorial_manager.gd
+
+### Demo 閉環修正（阻擋 Demo 發布 — 必須完成）
+1. 補偵察手 characters.json 資料（防止選偵察手後 crash）
+2. HUD 改為 4 人動態初始化（跟隨 selected_squad，解除視覺矛盾）
+3. 修 BUG-01：突擊手大招攻擊倍率接入 decision_panel "charge" 傷害計算（5 行）
+4. 實作 Boss 決策點（1 個 Boss 房事件 + 任務勝利觸發）
+5. 任務結算後金幣自動入帳（結算信號 → SaveManager.add_coins）
+
+### 數值平衡修正（影響可玩性評分）
+6. 狙擊手 Lv.1 大招 CD：50 秒 → 35 秒
+7. 狙擊手大招觸發條件：改為「目標 HP < 25%」
+8. 偵察手 Lv.1 被動：改為「未知房間揭露敵人數量」
+9. 明確限制「每職業只能帶一名」規則加入 base.gd 驗證
+
+### Demo 後（不阻擋發布）
+- 職業顏色規範統一（解決 base.gd 橙色盾兵 vs ROADMAP 藍色盾兵衝突）
+- BGM 音效製作（AUDIO_SPEC 定義的 BGM 清單）
+- HTML5 匯出 + Playwright 截圖驗證
+- itch.io 頁面上傳（ITCH_PAGE.md + DEMO_DESCRIPTION_EN.md 已就緒）
+- BUG-04 清理：`_connect_restart()` 空殼函數整理（不影響執行）
 
 ## 待確認
-- 無
+- 偵察手大招語意定案：A「煙霧封鎖（攻擊失效，可移動）」vs B「電磁脈衝（完整眩暈）」？（影響代碼實作方向和 CD 數值）
+- Demo 美術路線：「方塊先發，正式版換圖」還是「現在製作精靈圖（+3-5 天）」？
 
 ## 已知問題
-- 巡邏/追擊敵人顏色（深紅/正紅）對比不夠明顯（低優先）
-- cop_sprite 縮放 SCALE_FACTOR=0.25 可能偏小，待視覺驗證後調整
-- headless 模式下音效警告（非 bug，headless 不支援音頻驅動，實際遊戲正常）
-- main.gd 的 _create_floor_tiles() 需要 tilesheet_complete.png，目前缺失，push_warning 但不 crash（低優先，Main.tscn 已改用 Sprite2D 磚塊，此函式可移除）
-- BossEnemy（關卡 2）視野/速度差異化：SPEED 已為 var，level2_main.gd 有賦值程式碼，但需實際執行確認
+- character.gd 在 --script 模式下無法獨立載入（autoload GameManager 不存在），在完整場景模式下正常（非問題）
+- characters.json 缺偵察手資料（6 職業中只有 5 個）→ Demo 閉環修正 #1
+- BUG-01：突擊手大招攻擊倍率（x1.6）未接入 decision_panel "charge" 傷害計算，大招等同無效 → Demo 閉環修正 #3
+- BUG-02：狙擊手大招實作為「全隊無傷」語意，與 GDD「目標低血秒殺」不符 → 數值平衡修正 #7
+- BUG-03：已修正（base.gd 出發時寫入 `GameManager.current_mission_id`）
+- BUG-04：`main.gd _connect_restart()` 為空殼，邏輯在 `_connect_hud()` 完成，不影響執行但影響維護 → Demo 後清理
+- 偵察手大招定義衝突：GDD 說「煙霧封鎖（攻擊失效）」，BALANCE_SHEET 說「電磁脈衝（眩暈）」→ 待使用者確認
+- HUD 固定 5 人卡，與 6 選 4 陣容系統視覺矛盾 → Demo 閉環修正 #2
+- 任務結算後金幣未自動入帳，Meta 閉環斷裂 → Demo 閉環修正 #5
+- Boss 決策點未實作，任務無終點高潮 → Demo 閉環修正 #4
+- character.gd `fire_shot()` 無計時器驅動，`attack_power` 為裝飾性數值（完整戰鬥系統 Demo 後）
+
+## 已完成（補充，2026-06-21 同日）
+- P2 完整實作：enemy.gd（三類敵人）、room.gd、base.gd（完整基地場景）
+- AudioManager：15 個 WAV 全部生成，crossfade BGM 架構完成
+- TutorialManager：8 步驟新手教學，CanvasLayer layer=20
+- BUG-03 修正：selected_mission_id 已通過 GameManager.current_mission_id 傳入戰場
+- docs/HEALTH_REPORT.md 完成（專案監控師，Demo 發布前全局健康報告）
 
 ## 操作紀錄
-- 2026-06-20：建立專案，完成 GDD v0.1 設計討論
-- 2026-06-20：第一輪，建立 Godot 4 完整原型（所有場景、腳本），headless exit 0
-- 2026-06-20：第二輪，修復相機跟隨、霧戰 _draw() 重寫、NavigationRegion2D
-- 2026-06-20：Demo 測試協議：測試員、數值驗證師、UI/UX 設計師三組平行審查
-- 2026-06-20：第三輪，修復所有審查問題（7 項修復 + 敵人數值調整）
-- 2026-06-20：第四輪，UI 提示、換彈系統；fog_of_war 改為 stub（暫停功能）
-- 2026-06-21：第五輪，cop_sprite top_level 修正、enemy SHOOT 動畫修正、敵人巡邏路線設定、新建 main.gd
-- 2026-06-21：第六輪，霧戰三層系統重新實作（ImageTexture + 牆壁遮擋）、任務目標系統（殲滅）完成
-- 2026-06-21：第七輪，音效系統（槍聲/換彈/死亡三個 WAV）、敵人死亡音效防截斷機制、headless exit 0
-- 2026-06-21：第十輪，關卡 2-5 全部完成（暗殺/救援/限時防守/最終殲滅），BGM，人質系統，HUD 串接，全 5 關關卡序列，headless exit 0
-- 2026-06-21：第十一輪，HQ 基地場景（Base.tscn + base_main.gd），主場景改為 Base，Level5 勝利後回 Base，headless exit 0
-- 2026-06-21：第十二輪，Main.tscn 磚塊整合（Kenney Roguelike Modern City），地板+牆壁全部換 Sprite2D，碰撞保留，headless exit 0
-
-## 關卡一覽（全 5 關）
-| 關卡 | 場景 | 主題 | 任務類型 | 敵人數 |
-|------|------|------|---------|-------|
-| 1 | Main.tscn | 辦公室 | 殲滅 | 5 |
-| 2 | Level2.tscn | 倉庫廠房 | 暗殺（BossEnemy） | 7+1 |
-| 3 | Level3.tscn | 廢棄醫院 | 救援人質 | 8 |
-| 4 | Level4.tscn | 軍事指揮中心 | 限時防守 90s | 10 |
-| 5 | Level5.tscn | 廢棄造船廠 | 殲滅（最終關） | 12 |
-
-## 突擊手最終數值（Demo 版）
-| 項目 | 數值 |
-|------|------|
-| HP | 100 |
-| 移速 | 150 px/s |
-| 傷害 | 25 |
-| 射速 | 0.1 s/發（600 RPM）|
-| 彈匣 | 30 發，換彈 2 秒 |
-| 射程 | 500 px |
-
-## 雜兵最終數值（Demo 版）
-| 項目 | 數值 |
-|------|------|
-| HP | 75 |
-| 傷害 | 20 |
-| 射速 | 0.5 s/發 |
-| 移速 | 120 px/s |
-| 視野距離 | 350 px |
-| 追擊放棄距離 | 525 px |
+- 2026-06-21：設計討論完成，重新定案為戰術指揮+Idle+抽卡遊戲
+- 2026-06-21：舊版開發檔案移至 黑歷史/ 資料夾
+- 2026-06-21：GDD v2.0 撰寫完成，STATE.md 建立
+- 2026-06-21：P0 核心原型建立
+  - 新增 src/ 目錄結構（scenes/, scripts/, resources/）
+  - 建立 project.godot（1080x1920，GameManager autoload）
+  - 建立 6 個 GDScript：game_manager.gd, character.gd, squad_controller.gd, decision_trigger.gd, decision_panel.gd, hud.gd, main.gd
+  - 建立 3 個場景：Main.tscn, HUD.tscn, DecisionPanel.tscn
+  - 建立 resources/characters.json（5 職業數值）
+  - Headless 測試通過：exit 0，無 SCRIPT ERROR，無 ERROR
+- 2026-06-21：DecisionPanel.tscn 改為 CanvasLayer 根節點（修正 UI 縮放問題）
+- 2026-06-21：建立 icon.svg（避免啟動警告）
+- 2026-06-21：P2 系統完成：enemy.gd / room.gd / base.gd / audio_manager.gd / save_manager.gd / tutorial_manager.gd
+- 2026-06-21：生成 15 個 WAV 音效（UI 6 個 + 大招 6 個 + 戰鬥 3 個）
+- 2026-06-21：專案監控師健康報告完成 → docs/HEALTH_REPORT.md
+- 2026-06-21：STATE.md 更新，P2 標記完成，待辦改為 Demo 閉環修正清單

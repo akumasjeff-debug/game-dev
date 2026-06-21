@@ -1,0 +1,477 @@
+{
+  "_comment": "幽靈行動 角色數值表 — v2.0 | 2026-06-21",
+  "_format_notes": [
+    "stats[lv] 的 lv 是字串型索引 '1'~'10'，GDScript 用 stats[str(level)] 讀取",
+    "ultimate.per_level[lv] 同上",
+    "upgrade_cost[lv] = 升到該等級所需素材數，lv '2'~'10'",
+    "effect_value 單位：百分比 (0.5 = 50%)；duration 單位：秒；cd 單位：秒",
+    "hp_growth / atk_growth / def_growth 為每級乘數（Lv.N = base * growth^(N-1)）"
+  ],
+
+  "upgrade_cost": {
+    "_comment": "升到該等級需要的角色素材數（所有職業共用同一費用曲線）",
+    "2":  80,
+    "3":  190,
+    "4":  205,
+    "5":  330,
+    "6":  600,
+    "7":  700,
+    "8":  1340,
+    "9":  3220,
+    "10": 3440,
+    "_cumulative": {
+      "2":  80,
+      "3":  270,
+      "4":  475,
+      "5":  805,
+      "6":  1405,
+      "7":  2105,
+      "8":  3445,
+      "9":  6665,
+      "10": 10105
+    },
+    "_milestone_levels": [3, 6, 9],
+    "_note": "里程碑等級費用上揚約 1.5 倍，強化「解鎖到重要東西」的感受"
+  },
+
+  "characters": [
+
+    {
+      "id": "shield",
+      "name": "盾兵",
+      "role": "Tank",
+      "color": "#FF8C00",
+      "formation_offset": {"x": 0, "y": -80},
+      "formation_position": "front",
+
+      "_stat_note": "盾兵：最高HP，防禦最強，攻擊偏低",
+      "base_stats": {
+        "hp":  200,
+        "atk": 30,
+        "def": 25
+      },
+      "growth": {
+        "hp":  1.12,
+        "atk": 1.08,
+        "def": 1.10
+      },
+      "stats": {
+        "1":  {"hp": 200,  "atk": 30,  "def": 25},
+        "2":  {"hp": 224,  "atk": 32,  "def": 28},
+        "3":  {"hp": 251,  "atk": 35,  "def": 31},
+        "4":  {"hp": 281,  "atk": 38,  "def": 34},
+        "5":  {"hp": 315,  "atk": 41,  "def": 37},
+        "6":  {"hp": 353,  "atk": 44,  "def": 41},
+        "7":  {"hp": 395,  "atk": 48,  "def": 45},
+        "8":  {"hp": 442,  "atk": 52,  "def": 50},
+        "9":  {"hp": 495,  "atk": 56,  "def": 55},
+        "10": {"hp": 554,  "atk": 60,  "def": 60}
+      },
+
+      "ultimate": {
+        "name": "防禦護盾",
+        "type": "damage_reduction_buff",
+        "target": "all_allies",
+        "_base": {"damage_reduction": 0.50, "duration": 5.0, "cd": 30.0},
+        "_scale_note": "效果(damage_reduction)隨等升；CD隨等縮短；duration固定5秒",
+        "per_level": {
+          "1":  {"damage_reduction": 0.50, "duration": 5.0, "cd": 30.0},
+          "2":  {"damage_reduction": 0.53, "duration": 5.0, "cd": 29.1},
+          "3":  {"damage_reduction": 0.57, "duration": 5.0, "cd": 25.5},
+          "4":  {"damage_reduction": 0.60, "duration": 5.0, "cd": 24.0},
+          "5":  {"damage_reduction": 0.63, "duration": 5.0, "cd": 22.5},
+          "6":  {"damage_reduction": 0.67, "duration": 5.0, "cd": 21.0},
+          "7":  {"damage_reduction": 0.70, "duration": 5.0, "cd": 19.0},
+          "8":  {"damage_reduction": 0.73, "duration": 5.0, "cd": 17.0},
+          "9":  {"damage_reduction": 0.77, "duration": 5.0, "cd": 15.0},
+          "10": {"damage_reduction": 0.80, "duration": 5.0, "cd": 13.0}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "前置護盾", "type": "passive", "desc": "自動站最前，全隊後方受傷害減 20%"},
+        "3": {"name": "舉盾突入", "type": "active", "desc": "破門時盾兵先衝入，全隊進門期間受傷減半，但盾兵承受雙倍傷害"},
+        "6": {"name": "盾牆壓制", "type": "active", "desc": "盾兵在正面製造壓制區，隊友可從兩側清掉 50% 的房間敵人"},
+        "9": {"name": "盾撞破門", "type": "active", "desc": "加固門不耗炸彈直接盾撞破開，盾兵 HP 損失 10%"}
+      }
+    },
+
+    {
+      "id": "medic",
+      "name": "醫療兵",
+      "role": "Support",
+      "color": "#FFFFFF",
+      "formation_offset": {"x": -40, "y": 80},
+      "formation_position": "rear_center",
+
+      "_stat_note": "醫療兵：中低HP，攻擊最低，靠大招補血維持團隊存活",
+      "base_stats": {
+        "hp":  130,
+        "atk": 20,
+        "def": 15
+      },
+      "growth": {
+        "hp":  1.10,
+        "atk": 1.07,
+        "def": 1.08
+      },
+      "stats": {
+        "1":  {"hp": 130,  "atk": 20,  "def": 15},
+        "2":  {"hp": 143,  "atk": 21,  "def": 16},
+        "3":  {"hp": 157,  "atk": 23,  "def": 18},
+        "4":  {"hp": 173,  "atk": 25,  "def": 19},
+        "5":  {"hp": 190,  "atk": 27,  "def": 21},
+        "6":  {"hp": 209,  "atk": 29,  "def": 23},
+        "7":  {"hp": 230,  "atk": 31,  "def": 25},
+        "8":  {"hp": 253,  "atk": 33,  "def": 27},
+        "9":  {"hp": 278,  "atk": 35,  "def": 29},
+        "10": {"hp": 306,  "atk": 38,  "def": 31}
+      },
+
+      "ultimate": {
+        "name": "緊急治療",
+        "type": "heal",
+        "target": "all_allies",
+        "_base": {"heal_ratio": 0.30, "cd": 40.0},
+        "_scale_note": "heal_ratio = 回復量佔最大HP的比例",
+        "per_level": {
+          "1":  {"heal_ratio": 0.30, "cd": 40.0},
+          "2":  {"heal_ratio": 0.32, "cd": 38.8},
+          "3":  {"heal_ratio": 0.36, "cd": 34.0},
+          "4":  {"heal_ratio": 0.38, "cd": 32.4},
+          "5":  {"heal_ratio": 0.40, "cd": 30.0},
+          "6":  {"heal_ratio": 0.42, "cd": 28.0},
+          "7":  {"heal_ratio": 0.44, "cd": 25.0},
+          "8":  {"heal_ratio": 0.46, "cd": 22.0},
+          "9":  {"heal_ratio": 0.48, "cd": 20.0},
+          "10": {"heal_ratio": 0.50, "cd": 17.0}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "持續治療", "type": "passive", "desc": "每 4 秒對 HP 最低的隊員恢復 10% 最大 HP"},
+        "3": {"name": "急救注射", "type": "active", "desc": "立即對一名指定隊員恢復 40% HP，冷卻 30 秒"},
+        "6": {"name": "戰場復甦", "type": "active", "desc": "一名倒下的隊員立即復活，復活後 HP 50%，本關卡限用一次"},
+        "9": {"name": "強化血清", "type": "active", "desc": "全隊注射強化血清，接下來 20 秒全員 HP 上限 +30%，並持續恢復"}
+      }
+    },
+
+    {
+      "id": "assault",
+      "name": "突擊手",
+      "role": "DPS",
+      "color": "#FF2222",
+      "formation_offset": {"x": -50, "y": 0},
+      "formation_position": "middle",
+
+      "_stat_note": "突擊手：中等HP，攻擊高、速度快，全隊主要持續輸出",
+      "base_stats": {
+        "hp":  155,
+        "atk": 60,
+        "def": 15
+      },
+      "growth": {
+        "hp":  1.10,
+        "atk": 1.10,
+        "def": 1.08
+      },
+      "stats": {
+        "1":  {"hp": 155,  "atk": 60,  "def": 15},
+        "2":  {"hp": 171,  "atk": 66,  "def": 16},
+        "3":  {"hp": 188,  "atk": 73,  "def": 18},
+        "4":  {"hp": 207,  "atk": 80,  "def": 19},
+        "5":  {"hp": 228,  "atk": 88,  "def": 21},
+        "6":  {"hp": 251,  "atk": 97,  "def": 23},
+        "7":  {"hp": 276,  "atk": 107, "def": 25},
+        "8":  {"hp": 304,  "atk": 118, "def": 27},
+        "9":  {"hp": 334,  "atk": 130, "def": 29},
+        "10": {"hp": 367,  "atk": 143, "def": 31}
+      },
+
+      "ultimate": {
+        "name": "火力全開",
+        "type": "attack_buff",
+        "target": "all_allies",
+        "_base": {"atk_bonus": 0.60, "duration": 8.0, "cd": 25.0},
+        "_scale_note": "atk_bonus = 攻擊提升比例（0.60 = +60%）；duration固定8秒",
+        "per_level": {
+          "1":  {"atk_bonus": 0.60, "duration": 8.0, "cd": 25.0},
+          "2":  {"atk_bonus": 0.64, "duration": 8.0, "cd": 24.2},
+          "3":  {"atk_bonus": 0.72, "duration": 8.0, "cd": 21.3},
+          "4":  {"atk_bonus": 0.76, "duration": 8.0, "cd": 20.0},
+          "5":  {"atk_bonus": 0.80, "duration": 8.0, "cd": 18.8},
+          "6":  {"atk_bonus": 0.84, "duration": 8.0, "cd": 17.5},
+          "7":  {"atk_bonus": 0.88, "duration": 8.0, "cd": 16.0},
+          "8":  {"atk_bonus": 0.92, "duration": 8.0, "cd": 14.5},
+          "9":  {"atk_bonus": 0.96, "duration": 8.0, "cd": 12.5},
+          "10": {"atk_bonus": 1.00, "duration": 8.0, "cd": 11.0}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "持續壓制", "type": "passive", "desc": "攻擊速度為其他職業 2 倍，自動鎖定最近威脅"},
+        "3": {"name": "爆發射擊", "type": "active", "desc": "3 秒內攻擊速度再 x2，彈藥消耗翻倍，可快速清空小型房間"},
+        "6": {"name": "側翼突破", "type": "active", "desc": "發現敵人側翼包抄路線，從側面進入，敵人防禦值降低 50%"},
+        "9": {"name": "全面制壓", "type": "active", "desc": "對整個房間所有敵人同時開火，震懾所有敵人 3 秒無法行動"}
+      }
+    },
+
+    {
+      "id": "sniper",
+      "name": "狙擊手",
+      "role": "Assassin",
+      "color": "#44FF44",
+      "formation_offset": {"x": 40, "y": 80},
+      "formation_position": "rear",
+
+      "_stat_note": "狙擊手：最低HP，攻擊最高，靠大招瞬殺單體威脅",
+      "base_stats": {
+        "hp":  110,
+        "atk": 120,
+        "def": 10
+      },
+      "growth": {
+        "hp":  1.09,
+        "atk": 1.12,
+        "def": 1.07
+      },
+      "stats": {
+        "1":  {"hp": 110,  "atk": 120,  "def": 10},
+        "2":  {"hp": 120,  "atk": 134,  "def": 11},
+        "3":  {"hp": 131,  "atk": 150,  "def": 12},
+        "4":  {"hp": 143,  "atk": 168,  "def": 13},
+        "5":  {"hp": 156,  "atk": 188,  "def": 14},
+        "6":  {"hp": 170,  "atk": 211,  "def": 15},
+        "7":  {"hp": 185,  "atk": 236,  "def": 16},
+        "8":  {"hp": 202,  "atk": 264,  "def": 17},
+        "9":  {"hp": 220,  "atk": 296,  "def": 18},
+        "10": {"hp": 240,  "atk": 332,  "def": 19}
+      },
+
+      "ultimate": {
+        "name": "精準鎖定",
+        "type": "conditional_kill",
+        "target": "single_enemy",
+        "_base": {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "cd": 35.0},
+        "_scale_note": "目標 HP 低於 25% 時觸發瞬殺；否則造成 300% 攻擊力傷害（fallback）；CD隨等縮短（維持與舊版相同縮短比例，基礎從50s改為35s）",
+        "_design_note": "修正原因：舊版無條件瞬殺配合爆破手削血形成無腦秒殺公式。新版需先由爆破手將目標削至25%以下才能觸發瞬殺，保留組合價值但增加操作要求。CD從50s降至35s解決早期體驗過差問題。",
+        "per_level": {
+          "1":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 35.0},
+          "2":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 34.0},
+          "3":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 29.8},
+          "4":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 28.0},
+          "5":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 26.3},
+          "6":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 24.5},
+          "7":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 21.0},
+          "8":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.00, "cd": 18.9},
+          "9":  {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.50, "cd": 17.5},
+          "10": {"hp_threshold_kill": 0.25, "atk_multiplier_fallback": 3.00, "chain_bonus": 0.75, "cd": 15.4}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "遠距點殺", "type": "passive", "desc": "優先攻擊距離最遠的目標，射程超過其他職業 3 倍"},
+        "3": {"name": "目標標記", "type": "active", "desc": "標記一個目標，全隊對該目標造成傷害 +40%，持續 10 秒"},
+        "6": {"name": "壓制射擊", "type": "active", "desc": "對一個敵人發動壓制，使其移速降低 80%，但狙擊手本輪不攻擊其他目標"},
+        "9": {"name": "穿透狙擊", "type": "active", "desc": "子彈可穿透掩體，消除敵人的掩體傷害減免，本輪射速降低 50%"}
+      }
+    },
+
+    {
+      "id": "demo",
+      "name": "爆破手",
+      "role": "AOE",
+      "color": "#FFDD00",
+      "formation_offset": {"x": 50, "y": 0},
+      "formation_position": "middle",
+
+      "_stat_note": "爆破手：中低HP，高AOE爆發，對多敵房間最有價值",
+      "base_stats": {
+        "hp":  135,
+        "atk": 80,
+        "def": 18
+      },
+      "growth": {
+        "hp":  1.10,
+        "atk": 1.11,
+        "def": 1.09
+      },
+      "stats": {
+        "1":  {"hp": 135,  "atk": 80,  "def": 18},
+        "2":  {"hp": 149,  "atk": 89,  "def": 20},
+        "3":  {"hp": 164,  "atk": 99,  "def": 22},
+        "4":  {"hp": 180,  "atk": 110, "def": 24},
+        "5":  {"hp": 198,  "atk": 122, "def": 26},
+        "6":  {"hp": 218,  "atk": 135, "def": 28},
+        "7":  {"hp": 240,  "atk": 150, "def": 31},
+        "8":  {"hp": 264,  "atk": 167, "def": 34},
+        "9":  {"hp": 290,  "atk": 185, "def": 37},
+        "10": {"hp": 319,  "atk": 205, "def": 40}
+      },
+
+      "ultimate": {
+        "name": "引爆炸彈",
+        "type": "aoe_damage",
+        "target": "all_enemies",
+        "_base": {"hp_damage_ratio": 0.70, "cd": 45.0},
+        "_scale_note": "hp_damage_ratio = 對所有敵人扣除當前HP的比例（不是最大HP）",
+        "per_level": {
+          "1":  {"hp_damage_ratio": 0.70, "cd": 45.0},
+          "2":  {"hp_damage_ratio": 0.72, "cd": 43.7},
+          "3":  {"hp_damage_ratio": 0.76, "cd": 38.3},
+          "4":  {"hp_damage_ratio": 0.79, "cd": 36.0},
+          "5":  {"hp_damage_ratio": 0.81, "cd": 33.8},
+          "6":  {"hp_damage_ratio": 0.83, "cd": 31.5},
+          "7":  {"hp_damage_ratio": 0.86, "cd": 28.5},
+          "8":  {"hp_damage_ratio": 0.88, "cd": 25.5},
+          "9":  {"hp_damage_ratio": 0.90, "cd": 22.5},
+          "10": {"hp_damage_ratio": 0.92, "cd": 20.0}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "爆破偵察", "type": "passive", "desc": "自動識別炸藥桶，引爆後不傷隊友，對掩體傷害 +100%"},
+        "3": {"name": "定向炸藥", "type": "active", "desc": "在門外安裝炸藥，進門前引爆，房間內所有敵人立即扣 60% HP"},
+        "6": {"name": "煙霧突破", "type": "active", "desc": "投擲煙霧彈覆蓋整個房間，全隊進入時敵人命中率降低 70%"},
+        "9": {"name": "連環爆破", "type": "active", "desc": "在三個連續房間設置連動炸藥同時引爆，全區震暈 3 秒，掩體全毀"}
+      }
+    },
+
+    {
+      "id": "recon",
+      "name": "偵察手",
+      "role": "CC",
+      "color": "#00CCFF",
+      "formation_offset": {"x": 0, "y": 40},
+      "formation_position": "middle_rear",
+
+      "_stat_note": "偵察手：中等HP，攻擊偏低，靠CC大招讓全隊安全輸出",
+      "base_stats": {
+        "hp":  140,
+        "atk": 35,
+        "def": 17
+      },
+      "growth": {
+        "hp":  1.10,
+        "atk": 1.09,
+        "def": 1.09
+      },
+      "stats": {
+        "1":  {"hp": 140,  "atk": 35,  "def": 17},
+        "2":  {"hp": 154,  "atk": 38,  "def": 19},
+        "3":  {"hp": 169,  "atk": 41,  "def": 21},
+        "4":  {"hp": 186,  "atk": 45,  "def": 23},
+        "5":  {"hp": 205,  "atk": 49,  "def": 25},
+        "6":  {"hp": 226,  "atk": 53,  "def": 27},
+        "7":  {"hp": 248,  "atk": 58,  "def": 29},
+        "8":  {"hp": 273,  "atk": 63,  "def": 32},
+        "9":  {"hp": 300,  "atk": 69,  "def": 35},
+        "10": {"hp": 330,  "atk": 75,  "def": 38}
+      },
+
+      "ultimate": {
+        "name": "電磁脈衝",
+        "type": "crowd_control",
+        "target": "all_enemies",
+        "_base": {"stun_duration": 5.0, "cd": 35.0},
+        "_scale_note": "stun_duration = 敵人無法攻擊/移動的秒數；CD隨等縮短，Lv.6+ 增加眩暈半徑（自動覆蓋隱藏敵人）",
+        "per_level": {
+          "1":  {"stun_duration": 5.0, "cover_hidden": false, "cd": 35.0},
+          "2":  {"stun_duration": 5.3, "cover_hidden": false, "cd": 34.0},
+          "3":  {"stun_duration": 6.0, "cover_hidden": false, "cd": 29.8},
+          "4":  {"stun_duration": 6.3, "cover_hidden": false, "cd": 28.0},
+          "5":  {"stun_duration": 6.7, "cover_hidden": false, "cd": 26.3},
+          "6":  {"stun_duration": 7.0, "cover_hidden": true,  "cd": 24.5},
+          "7":  {"stun_duration": 7.3, "cover_hidden": true,  "cd": 22.0},
+          "8":  {"stun_duration": 7.7, "cover_hidden": true,  "cd": 19.5},
+          "9":  {"stun_duration": 8.0, "cover_hidden": true,  "cd": 17.5},
+          "10": {"stun_duration": 8.5, "cover_hidden": true,  "cd": 15.5}
+        }
+      },
+
+      "decisions": {
+        "1": {"name": "敵情偵察", "type": "passive", "desc": "進入任何未知房間時，自動揭露該房間的敵人數量（顯示「X 人」），不揭露位置"},
+        "3": {"name": "煙幕掩護", "type": "active", "desc": "為全隊提供煙幕，移動時不觸發敵人警戒，持續 10 秒"},
+        "6": {"name": "擾亂通訊", "type": "active", "desc": "干擾敵人增援系統，本房間清除後不會觸發下一波增援"},
+        "9": {"name": "隱形滲透", "type": "active", "desc": "全隊進入匿蹤狀態 8 秒，期間敵人無法鎖定任何隊員"}
+      }
+    }
+
+  ],
+
+  "enemies": {
+    "_comment": "敵人數值表 — Demo 關（辦公大樓）驗算版 v1.0 | 2026-06-21",
+    "_format_notes": [
+      "atk_interval 單位：秒（敵人每幾秒攻擊一次）",
+      "phase2_threshold：Boss 專用，血量低於此比例時觸發 Phase 2（攻速加快）",
+      "phase2_atk_interval：Phase 2 的攻速（秒/次）",
+      "ult_dmg_cap：大招傷害上限，0 = 無上限，0.4 = 最多扣 40% 最大 HP",
+      "防禦公式：實傷 = ATK × (1 - DEF/100)，DEF 視為百分比減傷"
+    ],
+
+    "normal_soldier": {
+      "id": "normal_soldier",
+      "name": "普通兵",
+      "stage": "all",
+      "_original": {"hp": 100, "atk": 15, "atk_interval": 3.0, "def": 0},
+      "_note": "原始數值讓全 Lv.1 隊伍幾乎無傷通關（敵兵存活 1.2 秒，打不出一次攻擊）",
+      "hp": 150,
+      "atk": 35,
+      "atk_interval": 2.0,
+      "def": 0,
+      "ult_dmg_cap": 0,
+      "_balance_note": [
+        "HP 150：讓單兵在全隊 DPS 83.4/秒下存活 ~5.4 秒，可打出 2 次攻擊",
+        "ATK 35：配合防禦百分比公式，實傷約 21~30，3 房間 + 岔路讓玩家到 Boss 前剩約 63% HP",
+        "攻速 2 秒/次：增加壓迫感，讓玩家有時間壓力"
+      ],
+      "_needs_test": "ATK=35 對不帶盾兵的陣容傷害偏重，若新手反應差可降至 28"
+    },
+
+    "elite_soldier": {
+      "id": "elite_soldier",
+      "name": "精英兵",
+      "stage": "boss_room",
+      "_original": {"hp": 300, "atk": 30, "atk_interval": 3.0, "def": 0},
+      "hp": 300,
+      "atk": 40,
+      "atk_interval": 2.0,
+      "def": 10,
+      "ult_dmg_cap": 0,
+      "_balance_note": [
+        "HP 維持 300：爆破手大招扣 70% 後剩 90 HP，需 1~2 輪普攻清除",
+        "ATK 升至 40：Boss 房同時有 5 普通兵壓力，精英需要有存在感",
+        "DEF=10：讓輸出職業（突擊手/狙擊手）有明顯貢獻感",
+        "攻速 2 秒/次：與普通兵一致，提高 Boss 房整體壓迫感"
+      ],
+      "_needs_test": "精英 ATK=40 + Boss ATK=50 同時輸出時醫療兵是否追得上"
+    },
+
+    "boss_manager": {
+      "id": "boss_manager",
+      "name": "辦公大樓主管",
+      "stage": "boss_room",
+      "_original": {"hp": 600, "atk": 50, "atk_interval": 3.0, "def": 0},
+      "hp": 600,
+      "atk": 50,
+      "atk_interval": 2.0,
+      "def": 20,
+      "ult_dmg_cap": 0.40,
+      "phase2_threshold": 0.50,
+      "phase2_atk_interval": 1.5,
+      "_balance_note": [
+        "HP 維持 600：要求玩家多輪配合才能擊倒",
+        "ATK 維持 50：最高威脅值，必須使用大招才能撐住",
+        "攻速 2 秒/次（Phase 1）→ 1.5 秒/次（Phase 2，HP < 50%）",
+        "DEF=20：讓爆破手大招實傷略微降低，狙擊手 fallback（300% ATK = 360 傷害）仍有效",
+        "ult_dmg_cap=0.40：爆破手大招對 Boss 最多扣 40% 最大 HP（= 240 HP），避免爆破 + 狙擊秒殺 Boss",
+        "Phase 2 觸發時建議播放 Boss 發怒特效，提示玩家危機加劇"
+      ],
+      "_needs_test": [
+        "ult_dmg_cap 0.40 是否讓玩家感覺爆破手對 Boss 無爽點，可調至 0.50",
+        "Phase 2 觸發點 50% 是否合適，卡關則調低至 30%，太輕鬆則調高至 70%",
+        "Boss DEF=20 讓狙擊手 fallback 傷害 = 300% × 120 × (1-0.20) = 288，略低於 Boss 剩餘 HP 360，需再 1 輪才能清，是否符合預期節奏"
+      ]
+    }
+  }
+}

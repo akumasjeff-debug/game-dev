@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c8oivfkhkjuor"
+path="res://.godot/imported/lever-single.obj-49ed756726bbfb70266dc845d6d71089.mesh"
+
+[deps]
+
+files=["res://.godot/imported/lever-single.obj-49ed756726bbfb70266dc845d6d71089.mesh"]
+
+source_file="res://assets/environment/kenney/kenney_prototype-kit/Models/OBJ format/lever-single.obj"
+dest_files=["res://.godot/imported/lever-single.obj-49ed756726bbfb70266dc845d6d71089.mesh", "res://.godot/imported/lever-single.obj-49ed756726bbfb70266dc845d6d71089.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

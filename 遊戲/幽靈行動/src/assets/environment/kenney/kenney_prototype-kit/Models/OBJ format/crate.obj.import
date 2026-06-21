@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dwcqov7tch7vt"
+path="res://.godot/imported/crate.obj-1af68d0eaf8e783f49c48a2b0935edda.mesh"
+
+[deps]
+
+files=["res://.godot/imported/crate.obj-1af68d0eaf8e783f49c48a2b0935edda.mesh"]
+
+source_file="res://assets/environment/kenney/kenney_prototype-kit/Models/OBJ format/crate.obj"
+dest_files=["res://.godot/imported/crate.obj-1af68d0eaf8e783f49c48a2b0935edda.mesh", "res://.godot/imported/crate.obj-1af68d0eaf8e783f49c48a2b0935edda.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

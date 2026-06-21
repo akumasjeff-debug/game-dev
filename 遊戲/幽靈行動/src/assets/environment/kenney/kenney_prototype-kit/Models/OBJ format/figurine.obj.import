@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://deu18l4actyuf"
+path="res://.godot/imported/figurine.obj-40fd4ce62d1218fa3220996f5abcde49.mesh"
+
+[deps]
+
+files=["res://.godot/imported/figurine.obj-40fd4ce62d1218fa3220996f5abcde49.mesh"]
+
+source_file="res://assets/environment/kenney/kenney_prototype-kit/Models/OBJ format/figurine.obj"
+dest_files=["res://.godot/imported/figurine.obj-40fd4ce62d1218fa3220996f5abcde49.mesh", "res://.godot/imported/figurine.obj-40fd4ce62d1218fa3220996f5abcde49.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

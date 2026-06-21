@@ -1,0 +1,600 @@
+{
+  "events": [
+    {
+      "id": "room_A",
+      "type": "room_entry",
+      "title": "前方教室",
+      "description": "門縫透出燈光，偵測到 2 名移動熱源。教室內有掩體，先驚動敵人將被夾擊。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "快速破門，敵人可能先開槍",
+          "effect": "damage_full_team"
+        },
+        {
+          "id": "sneak",
+          "label": "靜悄進入",
+          "desc": "奇襲接近，可先手擊殺一敵",
+          "effect": "stealth_entry"
+        },
+        {
+          "id": "grenade",
+          "label": "炸彈前置",
+          "desc": "先扔炸彈，敵人殘血再進",
+          "effect": "grenade_entry",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "room_B",
+      "type": "room_entry",
+      "title": "廢棄辦公室",
+      "description": "門縫有不規則光線移動——不只是燈，是手電筒。至少 3 人，分散站位。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "閃光衝入，敵人短暫迷向",
+          "effect": "damage_full_team_flash"
+        },
+        {
+          "id": "sneak",
+          "label": "靜悄進入",
+          "desc": "逐一清點，各敵難以支援",
+          "effect": "stealth_entry_multi"
+        },
+        {
+          "id": "grenade",
+          "label": "炸彈前置",
+          "desc": "密室爆炸，AOE 命中所有敵",
+          "effect": "grenade_aoe_entry",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "room_C",
+      "type": "room_entry",
+      "title": "貨倉隔間",
+      "description": "聽到金屬碰撞聲與低語——有人在整理彈藥。隔間後方有補給箱，但也有敵人。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "奇襲成功，但補給箱可能損毀",
+          "effect": "damage_supply_risk"
+        },
+        {
+          "id": "sneak",
+          "label": "靜悄進入",
+          "desc": "側面繞入，補給箱完整保留",
+          "effect": "stealth_supply_safe"
+        },
+        {
+          "id": "grenade",
+          "label": "炸彈前置",
+          "desc": "快速清房，補給箱獎勵減半",
+          "effect": "grenade_supply_halved",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "fork_A",
+      "type": "fork_road",
+      "title": "通道分岔",
+      "description": "前方分叉。左路情報：密度較高但有補給箱訊號。右路：警衛稀少，無額外物資。",
+      "options": [
+        {
+          "id": "left",
+          "label": "走左路",
+          "desc": "敵多有補給，打完能回滿",
+          "effect": "fork_left_supply"
+        },
+        {
+          "id": "right",
+          "label": "走右路",
+          "desc": "少敵無補給，帶損耗繼續",
+          "effect": "fork_right_fast"
+        }
+      ]
+    },
+    {
+      "id": "fork_B",
+      "type": "fork_road",
+      "title": "走廊十字路",
+      "description": "左路偵察到 Boss 護衛隊，重裝護甲不好惹。右路繞道地下室，多花時間但迴避護衛。",
+      "options": [
+        {
+          "id": "left",
+          "label": "走左路",
+          "desc": "正面迎擊護衛，路線較短",
+          "effect": "fork_left_elite"
+        },
+        {
+          "id": "right",
+          "label": "走右路",
+          "desc": "繞道避護衛，抵達時戰力足",
+          "effect": "fork_right_detour"
+        }
+      ]
+    },
+    {
+      "id": "fork_C",
+      "type": "fork_road",
+      "title": "廢棄管道分叉",
+      "description": "兩條管道，無熱源訊號，偵察手未確認前方。沒有情報，純憑直覺。",
+      "options": [
+        {
+          "id": "left",
+          "label": "走左路",
+          "desc": "未偵察，補給或伏擊各半",
+          "effect": "fork_left_random"
+        },
+        {
+          "id": "right",
+          "label": "走右路",
+          "desc": "未偵察，捷徑或死路各半",
+          "effect": "fork_right_random"
+        }
+      ]
+    },
+    {
+      "id": "ambush_A",
+      "type": "ambush_sign",
+      "title": "走廊有異",
+      "description": "前方燈突然關掉。偵察手低聲：「有人在等我們。」繼續走就走進口袋陣型。",
+      "options": [
+        {
+          "id": "push",
+          "label": "繼續推進",
+          "desc": "衝入伏擊圈，承受額外傷害",
+          "effect": "ambush_take_damage"
+        },
+        {
+          "id": "detour",
+          "label": "繞路",
+          "desc": "繞道迴避，多花時間安全過",
+          "effect": "ambush_detour"
+        },
+        {
+          "id": "smoke",
+          "label": "煙霧壓制",
+          "desc": "投煙打亂陣型，搶回主動",
+          "effect": "ambush_smoke",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "ambush_B",
+      "type": "ambush_sign",
+      "title": "頭頂有動靜",
+      "description": "偵察手抬頭，天花板有影子在移動——制高點伏擊。不處理就是從上方掃射。",
+      "options": [
+        {
+          "id": "push",
+          "label": "繼續推進",
+          "desc": "全隊暴露在上方射線，損慘",
+          "effect": "ambush_overhead_damage"
+        },
+        {
+          "id": "detour",
+          "label": "繞路",
+          "desc": "改走地下通道，繞開制高點",
+          "effect": "ambush_underground"
+        },
+        {
+          "id": "smoke",
+          "label": "煙霧壓制",
+          "desc": "投煙向上，制高點敵人瞎眼",
+          "effect": "ambush_smoke_ceiling",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "ambush_C",
+      "type": "ambush_sign",
+      "title": "警報聲響起",
+      "description": "前方走廊有人故意踢翻東西——故意製造聲音。這是誘餌，誘你衝進去。",
+      "options": [
+        {
+          "id": "push",
+          "label": "繼續推進",
+          "desc": "走進誘餌，兩側夾擊全隊",
+          "effect": "ambush_flanked"
+        },
+        {
+          "id": "detour",
+          "label": "繞路",
+          "desc": "誘餌落空，敵人重新移位",
+          "effect": "ambush_bait_ignored"
+        },
+        {
+          "id": "smoke",
+          "label": "煙霧壓制",
+          "desc": "在誘餌區拋煙，讓埋伏曝光",
+          "effect": "ambush_smoke_reveal",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "hostage_A",
+      "type": "hostage",
+      "title": "發現俘虜",
+      "description": "倉庫角落，一名被綁住的平民。眼神說「救我」。但護送出去要分人力，後路可能薄弱。",
+      "options": [
+        {
+          "id": "rescue",
+          "label": "執行救援",
+          "desc": "留人護送，後段人力減一",
+          "effect": "hostage_rescue_reward"
+        },
+        {
+          "id": "ignore",
+          "label": "忽略繼續",
+          "desc": "全員繼續作戰，無獎勵",
+          "effect": "hostage_ignore"
+        }
+      ]
+    },
+    {
+      "id": "hostage_B",
+      "type": "hostage",
+      "title": "吊橋彼端",
+      "description": "吊橋對面有被困人員呼叫求救。但對面還有兩名守衛——救人前得先清掉他們。",
+      "options": [
+        {
+          "id": "rescue",
+          "label": "跨橋救援",
+          "desc": "清守衛帶人回，耗時獎優渥",
+          "effect": "hostage_bridge_rescue"
+        },
+        {
+          "id": "ignore",
+          "label": "無視繞行",
+          "desc": "吊橋守衛不動，後路反安全",
+          "effect": "hostage_bridge_ignore"
+        }
+      ]
+    },
+    {
+      "id": "hostage_C",
+      "type": "hostage",
+      "title": "異常的人質",
+      "description": "偵察手低聲：「眼神太冷靜了。這個人質不正常。」可能是陷阱，可能是真的被嚇壞了。",
+      "options": [
+        {
+          "id": "rescue",
+          "label": "執行救援",
+          "desc": "五五波：真人質或假陷阱",
+          "effect": "hostage_random_50"
+        },
+        {
+          "id": "ignore",
+          "label": "保持距離",
+          "desc": "繞道觀察，無風險無獎勵",
+          "effect": "hostage_cautious_ignore"
+        }
+      ]
+    },
+    {
+      "id": "supply_A",
+      "type": "supply_box",
+      "title": "找到補給箱",
+      "description": "醫療兵：「有補給箱，血包、炸彈、還有一張票券。」只能取一樣，其他得留在這。",
+      "options": [
+        {
+          "id": "medkit",
+          "label": "取血包",
+          "desc": "全隊立即恢復血量",
+          "effect": "supply_heal_team"
+        },
+        {
+          "id": "grenade",
+          "label": "取炸彈",
+          "desc": "補充炸彈，後段選項更多",
+          "effect": "supply_grenade_refill"
+        },
+        {
+          "id": "ticket",
+          "label": "取抽卡券",
+          "desc": "任務後可抽卡，長期效益",
+          "effect": "supply_blue_ticket"
+        }
+      ]
+    },
+    {
+      "id": "supply_B",
+      "type": "supply_box",
+      "title": "廢棄武器箱",
+      "description": "敵人撤退來不及帶走的武器箱。翻一翻能找到有用的東西——但要有人留下翻找。",
+      "options": [
+        {
+          "id": "medkit",
+          "label": "取血包",
+          "desc": "醫療物資，立即補充戰損",
+          "effect": "supply_heal_team"
+        },
+        {
+          "id": "grenade",
+          "label": "取炸彈",
+          "desc": "臨時炸藥，數量多威力小",
+          "effect": "supply_grenade_small"
+        },
+        {
+          "id": "ticket",
+          "label": "取抽卡券",
+          "desc": "箱底有票，帶回去換獎勵",
+          "effect": "supply_blue_ticket"
+        }
+      ]
+    },
+    {
+      "id": "supply_C",
+      "type": "supply_box",
+      "title": "暗格補給",
+      "description": "偵察手敲了敲牆壁，牆裡有聲音。原來牆壁後面藏著一個快取，裡面東西更多。",
+      "options": [
+        {
+          "id": "medkit",
+          "label": "取血包",
+          "desc": "高品質醫療品，回血量更多",
+          "effect": "supply_heal_team_plus"
+        },
+        {
+          "id": "grenade",
+          "label": "取炸彈",
+          "desc": "軍用炸藥，威力優於標配",
+          "effect": "supply_grenade_standard"
+        },
+        {
+          "id": "ticket",
+          "label": "取抽卡券",
+          "desc": "快取藏金色票，高價值",
+          "effect": "supply_gold_ticket"
+        }
+      ]
+    },
+    {
+      "id": "boss_A",
+      "type": "pre_boss",
+      "title": "最終房間",
+      "description": "大門緊閉，門縫透出強光。目標就在裡面。聽到一個沉重的腳步聲——他在踱步。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "正面對決，Boss 立即狂暴",
+          "effect": "boss_frontal_assault"
+        },
+        {
+          "id": "flank",
+          "label": "側翼迂迴",
+          "desc": "繞側門，Boss 側翼防禦弱",
+          "effect": "boss_flank"
+        },
+        {
+          "id": "lure",
+          "label": "引蛇出洞",
+          "desc": "引 Boss 至門口，集火爆發",
+          "effect": "boss_lure",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "boss_B",
+      "type": "pre_boss",
+      "title": "作戰中樞",
+      "description": "裡面是敵方指揮官，正在下令調兵——多等一秒就多來一批增援。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "打斷增援呼叫，頂近衛一波",
+          "effect": "boss_interrupt_command"
+        },
+        {
+          "id": "flank",
+          "label": "側翼迂迴",
+          "desc": "切斷通訊，指揮官失去支援",
+          "effect": "boss_cut_comms"
+        },
+        {
+          "id": "lure",
+          "label": "引蛇出洞",
+          "desc": "假撤退引出，門口伏擊",
+          "effect": "boss_lure_commander",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "boss_C",
+      "type": "pre_boss",
+      "title": "異常寂靜",
+      "description": "偵察手：「裡面太安靜了。沒有移動，沒有聲音。」這不是空的——是在等我們進去。",
+      "options": [
+        {
+          "id": "charge",
+          "label": "直衝突入",
+          "desc": "走進陷阱，Boss 與機關齊啟",
+          "effect": "boss_trap_ambush"
+        },
+        {
+          "id": "flank",
+          "label": "側翼迂迴",
+          "desc": "繞道發現陷阱，提前拆解",
+          "effect": "boss_trap_disarm"
+        },
+        {
+          "id": "lure",
+          "label": "引蛇出洞",
+          "desc": "引爆陷阱令其失效，Boss 暴露",
+          "effect": "boss_trap_trigger",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "bomb_A",
+      "type": "time_bomb",
+      "title": "發現計時裝置",
+      "description": "走廊中段，一個綁在水管上的計時裝置，倒數中。爆炸會封住退路。",
+      "options": [
+        {
+          "id": "defuse",
+          "label": "爆破手拆除",
+          "desc": "停頓 10 秒，退路保留",
+          "effect": "bomb_defuse",
+          "requires": { "class": "demolitions" }
+        },
+        {
+          "id": "retreat",
+          "label": "全隊撤離",
+          "desc": "炸彈爆炸，封閉某些房間",
+          "effect": "bomb_retreat"
+        }
+      ]
+    },
+    {
+      "id": "bomb_B",
+      "type": "time_bomb",
+      "title": "電梯內警報",
+      "description": "電梯井側壁貼著炸藥，爆炸會摧毀上樓通道。沒有電梯就沒有上層獎勵。",
+      "options": [
+        {
+          "id": "defuse",
+          "label": "爆破手拆除",
+          "desc": "電梯保留，上層通道開啟",
+          "effect": "bomb_defuse_elevator",
+          "requires": { "class": "demolitions" }
+        },
+        {
+          "id": "retreat",
+          "label": "全隊撤離",
+          "desc": "電梯毀掉，只走主通道",
+          "effect": "bomb_elevator_destroyed"
+        }
+      ]
+    },
+    {
+      "id": "bomb_C",
+      "type": "time_bomb",
+      "title": "觸發地板炸彈",
+      "description": "「別動！」——隊員踩上壓力觸發板，一移動就爆。倒數三十秒。",
+      "options": [
+        {
+          "id": "defuse",
+          "label": "爆破手拆除",
+          "desc": "貼地拆除，壓力板解除",
+          "effect": "bomb_pressure_defuse",
+          "requires": { "class": "demolitions" }
+        },
+        {
+          "id": "retreat",
+          "label": "全隊撤離",
+          "desc": "觸發隊員彈開，自身受傷",
+          "effect": "bomb_pressure_retreat"
+        }
+      ]
+    },
+    {
+      "id": "hidden_shield_door",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "tank", "level": 9 },
+      "title": "鋼鐵密門",
+      "description": "一扇加固鋼門，沒有密碼沒有鑰匙。盾兵低頭看了看門框，說：「讓我來。」",
+      "options": [
+        {
+          "id": "bash",
+          "label": "盾撞破門",
+          "desc": "盾兵全衝，HP 損耗開密室",
+          "effect": "hidden_shield_bash",
+          "cost": { "tank_hp_percent": 10 }
+        }
+      ]
+    },
+    {
+      "id": "hidden_assault_armory",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "assault", "level": 6 },
+      "title": "封鎖的武器庫",
+      "description": "一間上鎖的武器庫，正門封死。突擊手看著側面通風口，說：「我知道怎麼進去。」",
+      "options": [
+        {
+          "id": "flank_entry",
+          "label": "側翼破入",
+          "desc": "突擊手破入，全隊攻擊提升",
+          "effect": "hidden_armory_buff"
+        }
+      ]
+    },
+    {
+      "id": "hidden_demo_cache",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "demolitions", "level": 9 },
+      "title": "不明訊號源",
+      "description": "爆破手偵測到爆炸物化學訊號。「這附近有炸藥倉庫。」牆後一敲，空心的。",
+      "options": [
+        {
+          "id": "breach_wall",
+          "label": "炸開隔牆",
+          "desc": "取得炸彈與強化材料",
+          "effect": "hidden_demo_loot",
+          "cost": { "grenade": 1 }
+        }
+      ]
+    },
+    {
+      "id": "hidden_medic_station",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "medic", "level": 9 },
+      "title": "廢棄急救站",
+      "description": "醫療兵停下腳步：「這裡有戰地醫療設備，還能用。」一個舊急救站，藥品沒過期。",
+      "options": [
+        {
+          "id": "treat",
+          "label": "整合設備",
+          "desc": "全隊緊急治療重整，獎勵增",
+          "effect": "hidden_medic_revive"
+        }
+      ]
+    },
+    {
+      "id": "hidden_sniper_tower",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "sniper", "level": 9 },
+      "title": "廢棄制高點",
+      "description": "狙擊手盯著地圖：「那個塔——射程能覆蓋 Boss 房。」如果能在 Boss 準備好之前佔位……",
+      "options": [
+        {
+          "id": "occupy",
+          "label": "搶佔高塔",
+          "desc": "Boss 戰前先擊殺一名護衛",
+          "effect": "hidden_sniper_preempt"
+        }
+      ]
+    },
+    {
+      "id": "hidden_recon_base",
+      "type": "hidden_event",
+      "unlock_condition": { "class": "recon", "level": 9 },
+      "title": "電磁訊號異常",
+      "description": "偵察手耳機雜訊，轉向後方一個廢棄建物：「那裡有老舊設備，還在廣播敵方通訊。」",
+      "options": [
+        {
+          "id": "hack",
+          "label": "破解訊號",
+          "desc": "全圖情報揭露，素材雙倍",
+          "effect": "hidden_recon_full_reveal"
+        }
+      ]
+    }
+  ]
+}

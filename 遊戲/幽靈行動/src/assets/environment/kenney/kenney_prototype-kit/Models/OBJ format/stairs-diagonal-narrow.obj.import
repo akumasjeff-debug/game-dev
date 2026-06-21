@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c08634jrilljr"
+path="res://.godot/imported/stairs-diagonal-narrow.obj-32e08fbf54bb78a1c15b1c9a08f648eb.mesh"
+
+[deps]
+
+files=["res://.godot/imported/stairs-diagonal-narrow.obj-32e08fbf54bb78a1c15b1c9a08f648eb.mesh"]
+
+source_file="res://assets/environment/kenney/kenney_prototype-kit/Models/OBJ format/stairs-diagonal-narrow.obj"
+dest_files=["res://.godot/imported/stairs-diagonal-narrow.obj-32e08fbf54bb78a1c15b1c9a08f648eb.mesh", "res://.godot/imported/stairs-diagonal-narrow.obj-32e08fbf54bb78a1c15b1c9a08f648eb.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

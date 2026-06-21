@@ -1,202 +1,426 @@
 extends CanvasLayer
 
-@onready var hp_bar: ProgressBar = $HUDContainer/HPSection/HPBar
-@onready var hp_label: Label = $HUDContainer/HPSection/HPLabel
-@onready var ammo_bar: ProgressBar = $HUDContainer/AmmoSection/AmmoBar
-@onready var ammo_label: Label = $HUDContainer/AmmoSection/AmmoLabel
-@onready var reload_label: Label = $HUDContainer/ReloadLabel
-@onready var death_panel: Control = $DeathPanel
-@onready var victory_panel: Control = $VictoryPanel
-@onready var failed_panel: Control = $FailedPanel
-@onready var _kill_label: Label = $KillLabel
-@onready var _class_label: Label = $ClassLabel
-@onready var _multi_kill_label: Label = $MultiKillLabel
+# HUD 更新邏輯
+# - 頂部進度條
+# - 底部 4 張角色卡（6 選 4 陣容）依 HUD_SPEC.md v1.0 規格
+# - 偵察手預警 Toast
+# - 勝負畫面
 
-var player: Node2D = null
-var _mission_label: Label
+@onready var progress_bar: ProgressBar = $TopBar/ProgressBar
+@onready var progress_label: Label = $TopBar/ProgressLabel
+@onready var cards_container: HBoxContainer = $BottomBar/CardsContainer
+@onready var game_result_panel: Panel = $GameResultPanel
+@onready var result_label: Label = $GameResultPanel/VBox/ResultLabel
+@onready var result_desc: Label = $GameResultPanel/VBox/DescLabel
+@onready var retry_btn: Button = $GameResultPanel/VBox/RetryBtn
+@onready var restart_btn: Button = $GameResultPanel/VBox/RestartBtn
 
-# ── 擊殺計數 ─────────────────────────────────────────────
-var kill_count: int = 0
-var _recent_kills: int = 0          # 1 秒內的擊殺數（連殺判斷用）
-var _kill_reset_timer: float = 0.0  # 倒數計時（>0 時代表計時中）
-var _multi_kill_show_timer: float = 0.0  # 「連殺！」顯示剩餘秒數
-const MULTI_KILL_WINDOW: float = 1.0     # 連殺判定視窗（秒）
-const MULTI_KILL_DISPLAY: float = 0.8    # 「連殺！」顯示時長（秒）
+# 顏色常數（對應 HUD_SPEC 職業顏色）
+const COLOR_NORMAL_BG     := Color(0.102, 0.169, 0.102, 1.0)   # #1A2B1A
+const COLOR_NORMAL_BORDER := Color(0.227, 0.290, 0.227, 1.0)   # #3A4A3A
+const COLOR_READY_BORDER  := Color(0.910, 0.376, 0.039, 1.0)   # #E8600A
+const COLOR_DEAD_OVERLAY  := Color(0.800, 0.133, 0.133, 0.30)  # #CC2222 30%
+const COLOR_CD_OVERLAY    := Color(0.0,   0.0,   0.0,   0.55)  # #000000 55%
+const COLOR_HP_HIGH       := Color(0.267, 0.800, 0.267, 1.0)   # #44CC44
+const COLOR_HP_MID        := Color(0.910, 0.627, 0.039, 1.0)   # #E8A00A
+const COLOR_HP_LOW        := Color(0.800, 0.133, 0.133, 1.0)   # #CC2222
+const COLOR_HP_BG         := Color(0.227, 0.227, 0.227, 1.0)   # #3A3A3A
+const COLOR_CARD_BOTTOM   := Color(0.133, 0.200, 0.133, 1.0)   # #223322
+const COLOR_CD_LABEL      := Color(0.533, 0.533, 0.533, 1.0)   # #888888
+const COLOR_TEXT_MAIN     := Color(0.941, 0.941, 0.941, 1.0)   # #F0F0F0
+const COLOR_READY_TEXT    := Color(0.267, 0.800, 0.267, 1.0)   # #44CC44
+const COLOR_DEAD_TEXT     := Color(0.800, 0.133, 0.133, 1.0)   # #CC2222
+const COLOR_ORANGE        := Color(0.910, 0.376, 0.039, 1.0)   # #E8600A
 
-# ── HP 條顏色常數 ────────────────────────────────────────
-const HP_COLOR_HIGH  = Color(0.15, 0.85, 0.2,  1.0)  # 100%–51%  綠色
-const HP_COLOR_MID   = Color(0.95, 0.85, 0.1,  1.0)  # 50%–26%   黃色
-const HP_COLOR_LOW   = Color(0.9,  0.15, 0.1,  1.0)  # 25% 以下   紅色
+# 卡片尺寸（HUD_SPEC: 236×178px，觸控區 240×190px）
+const CARD_W: float = 236.0
+const CARD_H: float = 178.0
+const CIRCLE_SIZE: float = 44.0  # 職業圓圈直徑 44px
 
-func _ready():
-	add_to_group("hud")
-	await get_tree().process_frame
-	var players = get_tree().get_nodes_in_group("player")
-	if players.size() > 0:
-		player = players[0]
-		player.hp_changed.connect(_on_hp_changed)
-		player.ammo_changed.connect(_on_ammo_changed)
-		player.reload_started.connect(_on_reload_started)
-		player.reload_finished.connect(_on_reload_finished)
-		player.died.connect(_on_player_died)
+# 角色卡片
+var card_nodes: Array = []
+var squad_ref: Array = []
 
-	# 初始狀態
-	if reload_label:
-		reload_label.visible = false
-	if death_panel:
-		death_panel.visible = false
-	if victory_panel:
-		victory_panel.visible = false
-	if failed_panel:
-		failed_panel.visible = false
-	if _multi_kill_label:
-		_multi_kill_label.visible = false
+# 偵察手預警 Toast
+var _recon_toast: Label = null
+var _recon_toast_timer: float = 0.0
+const TOAST_DURATION: float = 5.0
 
-	# 職業標籤初始值
-	if _class_label:
-		_class_label.text = "[突擊手]"
+# 脈衝動畫計時器
+var _pulse_timer: float = 0.0
 
-	# 擊殺計數初始
-	_update_kill_display()
+func _ready() -> void:
+	game_result_panel.hide()
+	GameManager.game_won.connect(_on_game_won)
+	GameManager.game_lost.connect(_on_game_lost)
+	_build_recon_toast()
+	# 連接重試按鈕
+	if retry_btn:
+		retry_btn.pressed.connect(_on_retry_pressed)
 
-	# 動態建立任務文字標籤（畫面上方正中）
-	_mission_label = Label.new()
-	_mission_label.text = ""
-	_mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_mission_label.anchor_left   = 0.5
-	_mission_label.anchor_right  = 0.5
-	_mission_label.anchor_top    = 0.0
-	_mission_label.anchor_bottom = 0.0
-	_mission_label.offset_left   = -200.0
-	_mission_label.offset_right  = 200.0
-	_mission_label.offset_top    = 10.0
-	_mission_label.offset_bottom = 36.0
-	_mission_label.modulate = Color(1.0, 0.584, 0.0, 1.0)  # #ff9500
-	_mission_label.add_theme_font_size_override("font_size", 16)
-	add_child(_mission_label)
+func _build_recon_toast() -> void:
+	# 偵察手預警 Toast：固定顯示在頂部進度條下方
+	_recon_toast = Label.new()
+	_recon_toast.name = "ReconToast"
+	_recon_toast.add_theme_font_size_override("font_size", 16)
+	_recon_toast.modulate = COLOR_ORANGE
+	_recon_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_recon_toast.anchor_left   = 0.0
+	_recon_toast.anchor_top    = 0.0
+	_recon_toast.anchor_right  = 1.0
+	_recon_toast.anchor_bottom = 0.0
+	_recon_toast.offset_top    = 90.0
+	_recon_toast.offset_bottom = 120.0
+	_recon_toast.visible = false
+	add_child(_recon_toast)
 
-func _process(delta: float):
-	# 連殺計時視窗倒數
-	if _kill_reset_timer > 0.0:
-		_kill_reset_timer -= delta
-		if _kill_reset_timer <= 0.0:
-			_recent_kills = 0
+func show_recon_warning(next_type: String) -> void:
+	# 由 decision_trigger 呼叫，顯示偵察手預警文字 5 秒
+	if _recon_toast == null:
+		return
+	_recon_toast.text = "偵察手預警：前方有" + next_type
+	_recon_toast.visible = true
+	_recon_toast_timer = TOAST_DURATION
 
-	# 「連殺！」顯示計時
-	if _multi_kill_show_timer > 0.0:
-		_multi_kill_show_timer -= delta
-		if _multi_kill_show_timer <= 0.0 and _multi_kill_label:
-			_multi_kill_label.visible = false
+func setup_cards(squad: Array) -> void:
+	squad_ref = squad
+	for child in cards_container.get_children():
+		child.queue_free()
+	card_nodes.clear()
 
-func _input(event):
-	if death_panel and death_panel.visible and event.is_action_pressed("restart"):
-		get_tree().reload_current_scene()
-	if victory_panel and victory_panel.visible and event.is_action_pressed("restart"):
-		_go_to_next_level()
-	if failed_panel and failed_panel.visible and event.is_action_pressed("restart"):
-		get_tree().reload_current_scene()
+	# 最多顯示 4 張卡（6 選 4 陣容）
+	var display_count = mini(squad.size(), 4)
+	for i in range(display_count):
+		var card = _create_character_card(squad[i])
+		cards_container.add_child(card)
+		card_nodes.append(card)
 
-func _go_to_next_level():
-	get_tree().change_scene_to_file("res://scenes/ResultScreen.tscn")
+func _create_character_card(member) -> Control:
+	# 外層容器（觸控區保證 >= 120×120px）
+	var card = Control.new()
+	card.custom_minimum_size = Vector2(CARD_W, CARD_H)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-# ── 擊殺計數 ────────────────────────────────────────────
-func add_kill():
-	kill_count += 1
-	_recent_kills += 1
-	_kill_reset_timer = MULTI_KILL_WINDOW  # 重設視窗
+	# --- 卡片背景 Panel ---
+	var bg = Panel.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var style = StyleBoxFlat.new()
+	style.bg_color = COLOR_NORMAL_BG
+	style.border_color = COLOR_NORMAL_BORDER
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(8)
+	bg.add_theme_stylebox_override("panel", style)
+	bg.name = "BG"
+	card.add_child(bg)
 
-	# 同步到 GameData（讓結算畫面能顯示正確擊殺數）
-	GameData.last_enemies_killed = kill_count
+	# --- 死亡遮罩（紅色半透明）---
+	var dead_overlay = ColorRect.new()
+	dead_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dead_overlay.color = COLOR_DEAD_OVERLAY
+	dead_overlay.visible = false
+	dead_overlay.name = "DeadOverlay"
+	card.add_child(dead_overlay)
 
-	_update_kill_display()
-	_check_multi_kill()
+	# --- CD 遮罩（黑色漸層）---
+	var cd_overlay = ColorRect.new()
+	cd_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cd_overlay.color = COLOR_CD_OVERLAY
+	cd_overlay.visible = false
+	cd_overlay.name = "CDOverlay"
+	card.add_child(cd_overlay)
 
-func _update_kill_display():
-	if _kill_label:
-		_kill_label.text = "☠ " + str(kill_count)
+	# ===== 上區（高 56px）：職業圓圈 + 角色名 =====
+	# 職業顏色圓圈（44px 正方形，代表職業色）
+	var circle = ColorRect.new()
+	circle.size = Vector2(CIRCLE_SIZE, CIRCLE_SIZE)
+	circle.position = Vector2(10, 6)
+	circle.color = member.body_color
+	circle.name = "ClassCircle"
+	card.add_child(circle)
 
-func _check_multi_kill():
-	if _recent_kills >= 2 and _multi_kill_label:
-		_multi_kill_label.visible = true
-		_multi_kill_show_timer = MULTI_KILL_DISPLAY
+	# 角色名（最多 4 字）
+	var name_lbl = Label.new()
+	var display_name = member.char_name
+	if display_name.length() > 4:
+		display_name = display_name.substr(0, 4) + "…"
+	name_lbl.text = display_name
+	name_lbl.position = Vector2(10 + CIRCLE_SIZE + 8, 16)
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	name_lbl.modulate = COLOR_TEXT_MAIN
+	name_lbl.name = "NameLabel"
+	card.add_child(name_lbl)
 
-# ── HP 更新（含顏色動態）────────────────────────────────
-func _on_hp_changed(current_hp: int, max_hp: int):
-	if hp_bar:
-		hp_bar.max_value = max_hp
-		hp_bar.value = current_hp
-		# 動態更改 HP 條填充顏色
-		var ratio: float = float(current_hp) / float(max_hp) if max_hp > 0 else 0.0
-		var fill_style = hp_bar.get_theme_stylebox("fill")
-		if fill_style and fill_style is StyleBoxFlat:
-			if ratio > 0.5:
-				fill_style.bg_color = HP_COLOR_HIGH
-			elif ratio > 0.25:
-				fill_style.bg_color = HP_COLOR_MID
-			else:
-				fill_style.bg_color = HP_COLOR_LOW
-	if hp_label:
-		hp_label.text = "HP  %d / %d" % [current_hp, max_hp]
+	# ===== 中區（y=58~78）：HP 血條 =====
+	# 血條背景
+	var hp_bg = ColorRect.new()
+	hp_bg.size = Vector2(CARD_W - 20, 10)
+	hp_bg.position = Vector2(10, 58)
+	hp_bg.color = COLOR_HP_BG
+	card.add_child(hp_bg)
 
-# ── 彈藥更新（數字格式） ──────────────────────────────────
-func _on_ammo_changed(current_ammo: int, max_ammo: int):
-	if ammo_bar:
-		ammo_bar.max_value = max_ammo
-		ammo_bar.value = current_ammo
-	if ammo_label:
-		ammo_label.text = "◉ %d / %d" % [current_ammo, max_ammo]
+	# 血條前景
+	var hp_bar = ProgressBar.new()
+	hp_bar.size = Vector2(CARD_W - 20, 10)
+	hp_bar.position = Vector2(10, 58)
+	hp_bar.min_value = 0.0
+	hp_bar.max_value = member.max_hp
+	hp_bar.value = member.current_hp
+	hp_bar.show_percentage = false
+	hp_bar.name = "HPBar"
+	var hp_fill = StyleBoxFlat.new()
+	hp_fill.bg_color = COLOR_HP_HIGH
+	hp_fill.set_corner_radius_all(5)
+	var hp_bg_style = StyleBoxFlat.new()
+	hp_bg_style.bg_color = Color(0, 0, 0, 0)  # 透明，讓背景 ColorRect 顯示
+	hp_bar.add_theme_stylebox_override("fill", hp_fill)
+	hp_bar.add_theme_stylebox_override("background", hp_bg_style)
+	card.add_child(hp_bar)
 
-func _on_reload_started():
-	if reload_label:
-		reload_label.visible = true
-	if ammo_label:
-		ammo_label.text = "RELOADING..."
+	# HP 百分比數字（血條右上方）
+	var hp_lbl = Label.new()
+	var hp_pct = int(member.current_hp * 100.0 / member.max_hp) if member.max_hp > 0 else 0
+	hp_lbl.text = str(hp_pct) + "%"
+	hp_lbl.position = Vector2(CARD_W - 46, 44)
+	hp_lbl.add_theme_font_size_override("font_size", 11)
+	hp_lbl.modulate = COLOR_TEXT_MAIN
+	hp_lbl.name = "HPLabel"
+	card.add_child(hp_lbl)
 
-func _on_reload_finished():
-	if reload_label:
-		reload_label.visible = false
-	if ammo_label and player:
-		ammo_label.text = "◉ %d / %d" % [player.ammo, player.MAX_AMMO]
+	# ===== 下區（y=88~178）：大招狀態區 =====
+	var ult_bg = ColorRect.new()
+	ult_bg.size = Vector2(CARD_W, CARD_H - 88)
+	ult_bg.position = Vector2(0, 88)
+	ult_bg.color = COLOR_CARD_BOTTOM
+	ult_bg.name = "UltBG"
+	card.add_child(ult_bg)
 
-func _on_player_died():
-	if death_panel:
-		death_panel.visible = true
+	# CD 標籤（小字，預設隱藏）
+	var cd_tag = Label.new()
+	cd_tag.text = "CD"
+	cd_tag.position = Vector2(CARD_W * 0.5 - 8, 92)
+	cd_tag.add_theme_font_size_override("font_size", 10)
+	cd_tag.modulate = COLOR_CD_LABEL
+	cd_tag.name = "CDTag"
+	cd_tag.visible = false
+	card.add_child(cd_tag)
 
-func show_victory_panel():
-	if victory_panel:
-		victory_panel.visible = true
+	# 大招狀態主標籤（就緒 / CD 倒數 / 倒下）
+	var ult_lbl = Label.new()
+	ult_lbl.text = "大招就緒"
+	ult_lbl.position = Vector2(0, 108)
+	ult_lbl.size = Vector2(CARD_W, 50)
+	ult_lbl.add_theme_font_size_override("font_size", 13)
+	ult_lbl.modulate = COLOR_READY_TEXT
+	ult_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ult_lbl.name = "UltLabel"
+	card.add_child(ult_lbl)
 
-func set_mission_text(text: String):
-	if _mission_label:
-		_mission_label.text = text
+	# 隱形按鈕覆蓋下區，捕捉點擊（觸控區 >= 120px）
+	var ult_btn = Button.new()
+	ult_btn.position = Vector2(0, 88)
+	ult_btn.custom_minimum_size = Vector2(CARD_W, CARD_H - 88)
+	ult_btn.flat = true
+	var btn_empty = StyleBoxEmpty.new()
+	ult_btn.add_theme_stylebox_override("normal", btn_empty)
+	ult_btn.add_theme_stylebox_override("hover", btn_empty)
+	ult_btn.add_theme_stylebox_override("pressed", btn_empty)
+	ult_btn.add_theme_stylebox_override("focus", btn_empty)
+	ult_btn.name = "UltBtn"
+	ult_btn.pressed.connect(_on_ultimate_pressed.bind(member, card))
+	card.add_child(ult_btn)
 
-# ── 職業標籤更新（供未來職業系統呼叫） ──────────────────────
-func set_class_name(class_name_text: String):
-	if _class_label:
-		_class_label.text = "[" + class_name_text + "]"
+	# 連接信號
+	member.hp_changed.connect(_on_hp_changed.bind(hp_bar, hp_lbl, card))
+	member.ultimate_ready.connect(_on_ultimate_ready.bind(card))
+	member.ultimate_used.connect(_on_ultimate_used.bind(card))
+	member.character_died.connect(_on_character_died.bind(card))
 
-func start_countdown(seconds: float):
-	var timer_lbl = Label.new()
-	timer_lbl.name = "CountdownLabel"
-	timer_lbl.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-	timer_lbl.add_theme_font_size_override("font_size", 32)
-	timer_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	timer_lbl.position = Vector2(860, 16)
-	timer_lbl.size = Vector2(200, 40)
-	add_child(timer_lbl)
+	return card
 
-func update_countdown(remaining: float):
-	var lbl = find_child("CountdownLabel", true, false)
-	if lbl:
-		var mins = int(remaining) / 60
-		var secs = int(remaining) % 60
-		lbl.text = "%d:%02d" % [mins, secs]
-		if remaining <= 15.0:
-			lbl.add_theme_color_override("font_color", Color(1, 0.1, 0.1))
+# ---- 卡片狀態切換 ----
 
-func _on_mission_failed(reason: String):
-	if failed_panel:
-		var label = failed_panel.get_node_or_null("FailedLabel")
-		if label:
-			label.text = "任務失敗\n%s\n按 Enter 重新開始" % reason
-		failed_panel.visible = true
+func _set_card_ready_state(card: Control) -> void:
+	var cd_overlay = card.find_child("CDOverlay", false, false)
+	if cd_overlay:
+		cd_overlay.visible = false
+	var ult_lbl = card.find_child("UltLabel", false, false) as Label
+	if ult_lbl:
+		ult_lbl.text = "大招就緒"
+		ult_lbl.add_theme_font_size_override("font_size", 13)
+		ult_lbl.modulate = COLOR_READY_TEXT
+	var cd_tag = card.find_child("CDTag", false, false)
+	if cd_tag:
+		cd_tag.visible = false
+	var btn = card.find_child("UltBtn", false, false) as Button
+	if btn:
+		btn.disabled = false
+
+func _set_card_cd_state(card: Control, remaining: float) -> void:
+	var cd_overlay = card.find_child("CDOverlay", false, false)
+	if cd_overlay:
+		cd_overlay.visible = true
+	var secs = int(remaining) + 1 if remaining > 0.0 else 0
+	var ult_lbl = card.find_child("UltLabel", false, false) as Label
+	if ult_lbl:
+		ult_lbl.text = str(secs)
+		if secs <= 5:
+			ult_lbl.add_theme_font_size_override("font_size", 40)
+			ult_lbl.modulate = COLOR_ORANGE
+		else:
+			ult_lbl.add_theme_font_size_override("font_size", 36)
+			ult_lbl.modulate = COLOR_TEXT_MAIN
+	var cd_tag = card.find_child("CDTag", false, false)
+	if cd_tag:
+		cd_tag.visible = true
+	var btn = card.find_child("UltBtn", false, false) as Button
+	if btn:
+		btn.disabled = true
+
+func _set_card_dead_state(card: Control) -> void:
+	var dead_overlay = card.find_child("DeadOverlay", false, false)
+	if dead_overlay:
+		dead_overlay.visible = true
+	var circle = card.find_child("ClassCircle", false, false) as ColorRect
+	if circle:
+		circle.color = Color(0.8, 0.1, 0.1)
+	var name_lbl = card.find_child("NameLabel", false, false) as Label
+	if name_lbl:
+		name_lbl.modulate = COLOR_DEAD_TEXT
+	var ult_lbl = card.find_child("UltLabel", false, false) as Label
+	if ult_lbl:
+		ult_lbl.text = "X"
+		ult_lbl.add_theme_font_size_override("font_size", 36)
+		ult_lbl.modulate = COLOR_DEAD_TEXT
+	var cd_tag = card.find_child("CDTag", false, false)
+	if cd_tag:
+		cd_tag.visible = false
+	var btn = card.find_child("UltBtn", false, false) as Button
+	if btn:
+		btn.disabled = true
+
+# ---- 信號回調 ----
+
+func _on_ultimate_pressed(member, card: Control) -> void:
+	if GameManager.is_paused or GameManager.is_game_over:
+		return
+	if member.use_ultimate():
+		AudioManager.play_ult(member.char_id)
+		_set_card_cd_state(card, member.get_cd_remaining())
+
+func _on_hp_changed(current: float, max_val: float, hp_bar: ProgressBar, hp_lbl: Label, card: Control) -> void:
+	if hp_bar and is_instance_valid(hp_bar):
+		hp_bar.value = current
+		# 動態血條顏色（依 HUD_SPEC 閾值）
+		var ratio = current / max_val if max_val > 0.0 else 0.0
+		var fill_style = StyleBoxFlat.new()
+		fill_style.set_corner_radius_all(5)
+		if ratio > 0.5:
+			fill_style.bg_color = COLOR_HP_HIGH
+		elif ratio > 0.25:
+			fill_style.bg_color = COLOR_HP_MID
+		else:
+			fill_style.bg_color = COLOR_HP_LOW
+		hp_bar.add_theme_stylebox_override("fill", fill_style)
+	if hp_lbl and is_instance_valid(hp_lbl):
+		var pct = int(current * 100.0 / max_val) if max_val > 0.0 else 0
+		hp_lbl.text = str(pct) + "%"
+
+func _on_ultimate_ready(card: Control) -> void:
+	if card and is_instance_valid(card):
+		_set_card_ready_state(card)
+		AudioManager.play_sfx("ult_ready")
+
+func _on_ultimate_used(card: Control) -> void:
+	if card and is_instance_valid(card):
+		_set_card_cd_state(card, 0.0)
+
+func _on_character_died(card: Control) -> void:
+	if card and is_instance_valid(card):
+		_set_card_dead_state(card)
+
+func update_progress(ratio: float) -> void:
+	if progress_bar:
+		progress_bar.value = ratio * 100.0
+	if progress_label:
+		progress_label.text = "進度 " + str(int(ratio * 100)) + "%"
+
+func _process(delta: float) -> void:
+	_pulse_timer += delta
+
+	# 每幀更新 CD 倒數 + 大招就緒脈衝
+	for i in range(squad_ref.size()):
+		if i >= card_nodes.size():
+			break
+		var member = squad_ref[i]
+		if member == null or not is_instance_valid(member):
+			continue
+		var card = card_nodes[i]
+		if card == null or not is_instance_valid(card):
+			continue
+		if member.is_dead:
+			continue
+
+		if not member.is_ultimate_ready:
+			_set_card_cd_state(card, member.get_cd_remaining())
+		else:
+			# 大招就緒：邊框脈衝（1.2 秒週期）
+			var pulse = (sin(_pulse_timer * TAU / 1.2) + 1.0) * 0.5
+			var bg = card.find_child("BG", false, false) as Panel
+			if bg:
+				var style = StyleBoxFlat.new()
+				style.bg_color = COLOR_NORMAL_BG
+				var alpha = lerp(0.5, 1.0, pulse)
+				style.border_color = Color(
+					COLOR_READY_BORDER.r,
+					COLOR_READY_BORDER.g,
+					COLOR_READY_BORDER.b,
+					alpha
+				)
+				style.set_border_width_all(2)
+				style.set_corner_radius_all(8)
+				bg.add_theme_stylebox_override("panel", style)
+
+	# 預警 Toast 倒計時
+	if _recon_toast and _recon_toast.visible:
+		_recon_toast_timer -= delta
+		if _recon_toast_timer <= 0.0:
+			_recon_toast.visible = false
+
+func _on_game_won() -> void:
+	game_result_panel.show()
+	result_label.text = "任務完成！"
+	result_label.modulate = Color(0.3, 1.0, 0.4)
+	result_desc.text = "小隊成功完成任務，所有目標已達成。\n獲得 200 金幣！"
+	AudioManager.play_sfx("victory")
+	# 任務成功：給予獎勵並存檔
+	SaveManager.add_coins(200)
+	SaveManager.save_game()
+	# 勝利時：只顯示「返回基地」
+	if retry_btn:
+		retry_btn.visible = false
+	if restart_btn:
+		restart_btn.text = "返回基地"
+		restart_btn.visible = true
+
+func _on_game_lost() -> void:
+	game_result_panel.show()
+	result_label.text = "全員倒下"
+	result_label.modulate = Color(1.0, 0.3, 0.3)
+	result_desc.text = "小隊全員陣亡，任務宣告失敗。\n基地繼續產出金幣，可立即重試。"
+	AudioManager.play_sfx("defeat")
+	# 存檔（記錄離開時間供離線計算）
+	SaveManager.save_game()
+	# 失敗時：顯示「重試」和「返回基地」
+	if retry_btn:
+		retry_btn.visible = true
+	if restart_btn:
+		restart_btn.text = "返回基地"
+		restart_btn.visible = true
+
+func _on_retry_pressed() -> void:
+	# 重試：直接重載 Main 場景
+	get_tree().change_scene_to_file("res://scenes/Main.tscn")
+
+func _on_restart_pressed() -> void:
+	# 返回基地
+	get_tree().change_scene_to_file("res://scenes/Base.tscn")

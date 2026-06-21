@@ -1,301 +1,148 @@
-extends CharacterBody2D
+extends Node2D
 
-# 敵人數值
-var MAX_HP: int = 75
-var SPEED: float = 120.0
-const DAMAGE = 20
-const FIRE_RATE = 0.5
-var VISION_RANGE: float = 350.0
-const VISION_ANGLE = deg_to_rad(120.0)
-const ATTACK_RANGE = 150.0
-const WAYPOINT_REACH_DIST = 20.0
+# 敵人節點：彩色方塊表示，自動攻擊最前方存活隊員
 
-# 老兵模式
-var is_veteran: bool = false
-var _cover_timer: float = 0.0
-var _cover_position: Vector2 = Vector2.ZERO
+signal enemy_died(enemy: Node)
 
-# Boss 模式
-var is_boss: bool = false
-var _backup_called: bool = false
+enum EnemyType { NORMAL, ELITE, BOSS }
 
-# 狀態機
-enum State { PATROL, ALERT, CHASE, SHOOT }
-var state: State = State.PATROL
+@export var enemy_type: EnemyType = EnemyType.NORMAL
+@export var enemy_name: String = "普通兵"
 
-# 內部變數
-var hp: int = -1  # -1 代表未初始化，_ready 裡再設定
-var fire_timer: float = FIRE_RATE  # 避免第一幀立即開槍
-var current_waypoint: int = 0
-var player: Node2D = null
-var patrol_points: Array[Vector2] = []
-var alert_timer: float = 0.0
-var last_known_player_pos: Vector2 = Vector2.ZERO
-var can_see_player: bool = false
+# 數值由類型決定（_ready 中初始化）
+var max_hp: float = 100.0
+var current_hp: float = 100.0
+var attack_power: float = 15.0
+var attack_interval: float = 2.0  # 每隔幾秒攻擊一次
 
-# 視覺元件（動態建立）
-var _vision_cone: Polygon2D
-var _sfx_death: AudioStreamPlayer
+var _attack_timer: float = 0.0
+var is_dead: bool = false
 
-@onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
-@onready var vision_ray: RayCast2D = $VisionRay
-@onready var sprite = $CopSprite
-@onready var hp_bar: ColorRect = $HPBar
-@onready var hp_fill: ColorRect = $HPBar/HPFill
+# 視覺節點
+var _body: ColorRect
+var _name_label: Label
+var _hp_bar: ProgressBar
 
-signal died(enemy)
+# 由 room.gd 設定（攻擊目標來源）
+var room_ref: Node = null
 
-func _ready():
-	add_to_group("enemies")
-	# hp 由外部設定 MAX_HP 後會覆蓋，未設定則使用預設值
-	if hp < 0:
-		hp = MAX_HP
-	if patrol_points.is_empty():
-		patrol_points = [global_position, global_position + Vector2(100, 0), global_position + Vector2(100, 100)]
+# 敵人類型對應顏色
+const TYPE_COLORS: Array[Color] = [
+	Color(0.85, 0.25, 0.25, 1.0),   # 普通兵：紅色
+	Color(0.90, 0.55, 0.10, 1.0),   # 精英：橙色
+	Color(0.70, 0.10, 0.80, 1.0),   # Boss：紫色
+]
 
-	# 建立敵人視野錐形（紅色半透明，指向本地 +X 方向，父節點 rotation 自動帶動）
-	_vision_cone = Polygon2D.new()
-	_vision_cone.color = Color(1.0, 0.2, 0.2, 0.07)
-	_vision_cone.z_index = 2
-	var pts = PackedVector2Array()
-	pts.append(Vector2.ZERO)
-	var half = VISION_ANGLE / 2.0
-	for i in range(17):
-		var t = float(i) / 16.0
-		var a = -half + t * VISION_ANGLE
-		pts.append(Vector2(cos(a), sin(a)) * VISION_RANGE)
-	_vision_cone.polygon = pts
-	add_child(_vision_cone)
+const TYPE_SIZES: Array[Vector2] = [
+	Vector2(36, 36),  # 普通兵
+	Vector2(48, 48),  # 精英
+	Vector2(64, 64),  # Boss
+]
 
-	await get_tree().process_frame
-	var players = get_tree().get_nodes_in_group("player")
-	if players.size() > 0:
-		player = players[0]
+func _ready() -> void:
+	_apply_type_stats()
+	current_hp = max_hp
+	_build_visual()
 
-	_update_hp_bar()
+func _apply_type_stats() -> void:
+	match enemy_type:
+		EnemyType.NORMAL:
+			enemy_name   = "普通兵"
+			max_hp       = 150.0
+			attack_power = 35.0
+			attack_interval = 2.0
+		EnemyType.ELITE:
+			enemy_name   = "精英"
+			max_hp       = 300.0
+			attack_power = 50.0
+			attack_interval = 2.0
+		EnemyType.BOSS:
+			enemy_name   = "Boss"
+			max_hp       = 600.0
+			attack_power = 70.0
+			attack_interval = 1.5
 
-	# 死亡音效播放器（FileAccess 直讀 WAV，繞過 import）
-	_sfx_death = AudioStreamPlayer.new()
-	add_child(_sfx_death)
-	var death_stream = _load_wav("res://assets/audio/sfx/enemy_death.wav")
-	if death_stream:
-		_sfx_death.stream = death_stream
+func _build_visual() -> void:
+	var size = TYPE_SIZES[enemy_type]
+	var color = TYPE_COLORS[enemy_type]
 
-func _physics_process(delta):
-	fire_timer -= delta
-	can_see_player = _check_vision()
-	# 狀態感知的 sprite 更新
-	if sprite and sprite.has_method("update_direction"):
-		match state:
-			State.SHOOT:
-				sprite.play_shoot(rotation)
-			State.CHASE, State.PATROL, State.ALERT:
-				if velocity.length() > 10.0:
-					sprite.play_walk(rotation)
-				else:
-					sprite.update_direction(rotation)
-	match state:
-		State.PATROL:
-			_do_patrol(delta)
-			if can_see_player:
-				_set_state(State.CHASE)
-		State.ALERT:
-			_do_alert(delta)
-			if can_see_player:
-				_set_state(State.CHASE)
-		State.CHASE:
-			_do_chase(delta)
-			if not can_see_player:
-				# 失去視線 → 回警覺，前往最後目擊點
-				alert_timer = 4.0
-				_set_state(State.ALERT)
-			elif global_position.distance_to(player.global_position) <= ATTACK_RANGE:
-				_set_state(State.SHOOT)
-		State.SHOOT:
-			if not can_see_player:
-				_set_state(State.CHASE)
-			else:
-				_do_shoot(delta)
+	_body = ColorRect.new()
+	_body.size = size
+	_body.position = -size / 2.0
+	_body.color = color
+	add_child(_body)
 
-func _check_vision() -> bool:
-	if not player:
-		return false
+	_name_label = Label.new()
+	_name_label.text = enemy_name
+	_name_label.position = Vector2(-size.x / 2.0, -size.y / 2.0 - 20)
+	_name_label.add_theme_font_size_override("font_size", 12)
+	_name_label.modulate = Color.WHITE
+	add_child(_name_label)
 
-	# 距離檢查
-	var to_player = player.global_position - global_position
-	if to_player.length() > VISION_RANGE:
-		return false
+	_hp_bar = ProgressBar.new()
+	_hp_bar.size = Vector2(size.x + 10, 8)
+	_hp_bar.position = Vector2(-size.x / 2.0 - 5, size.y / 2.0 + 4)
+	_hp_bar.min_value = 0.0
+	_hp_bar.max_value = max_hp
+	_hp_bar.value = current_hp
+	_hp_bar.show_percentage = false
+	add_child(_hp_bar)
 
-	# 視野錐形角度（只能看到正前方 120° 內）
-	var angle = abs(wrapf(to_player.angle() - rotation, -PI, PI))
-	if angle > VISION_ANGLE / 2.0:
-		return false
-
-	# 射線確認（牆壁遮擋）
-	if vision_ray:
-		vision_ray.target_position = to_local(player.global_position)
-		vision_ray.force_raycast_update()
-		if vision_ray.is_colliding():
-			var hit = vision_ray.get_collider()
-			if not hit or not hit.is_in_group("player"):
-				return false
-
-	last_known_player_pos = player.global_position
-	return true
-
-func _do_patrol(_delta):
-	if patrol_points.is_empty():
+func _process(delta: float) -> void:
+	if is_dead:
 		return
-	var target = patrol_points[current_waypoint]
-	var dir = (target - global_position)
-	if dir.length() < WAYPOINT_REACH_DIST:
-		current_waypoint = (current_waypoint + 1) % patrol_points.size()
-	else:
-		velocity = dir.normalized() * SPEED * 0.6
-		rotation = dir.angle()
-	move_and_slide()
+	_attack_timer -= delta
+	if _attack_timer <= 0.0:
+		_attack_timer = attack_interval
+		_do_attack()
 
-func _do_alert(delta):
-	alert_timer -= delta
-	# 往最後目擊點移動（若有），到了就停下來等
-	if last_known_player_pos != Vector2.ZERO:
-		var dir = last_known_player_pos - global_position
-		if dir.length() > WAYPOINT_REACH_DIST:
-			velocity = dir.normalized() * SPEED * 0.7
-			rotation = dir.angle()
-		else:
-			velocity = Vector2.ZERO
-	else:
-		velocity = Vector2.ZERO
-	move_and_slide()
-	if alert_timer <= 0.0:
-		last_known_player_pos = Vector2.ZERO
-		_set_state(State.PATROL)
-
-func _do_chase(_delta):
-	if not player:
-		_set_state(State.PATROL)
+func _do_attack() -> void:
+	# 取得最前方存活隊員（squad group 中第一個非死亡的）
+	var gm = get_node_or_null("/root/GameManager")
+	if gm == null:
 		return
-	var target = player.global_position
-	var dir = (target - global_position)
-	velocity = dir.normalized() * SPEED
-	rotation = dir.angle()
-	if nav_agent:
-		nav_agent.target_position = target
-		var next = nav_agent.get_next_path_position()
-		var nav_dir = (next - global_position).normalized()
-		velocity = nav_dir * SPEED
-	move_and_slide()
-
-func _do_shoot(delta):
-	if not player:
+	# 偵察手大招 blind 狀態：敵人攻擊無效
+	if gm.enemies_blinded:
 		return
-	var dir = (player.global_position - global_position)
-	rotation = dir.angle()
-	# 離開攻擊範圍則追擊（can_see_player 已確認為 true 才會到這裡）
-	if dir.length() > ATTACK_RANGE * 1.2:
-		_set_state(State.CHASE)
+	var target = _get_frontline_member(gm)
+	if target == null:
 		return
+	gm.apply_damage_to_member(target, attack_power)
 
-	# 老兵：每 3 秒橫移找掩體，移動中不射擊
-	if is_veteran:
-		_cover_timer -= delta
-		if _cover_timer <= 0.0:
-			_cover_timer = 3.0
-			var perp = Vector2(-sin(rotation), cos(rotation)) * randf_range(-80.0, 80.0)
-			_cover_position = global_position + perp
-		if _cover_position.distance_to(global_position) > 20.0:
-			var move_dir = (_cover_position - global_position).normalized()
-			velocity = move_dir * SPEED * 0.5
-			move_and_slide()
-			return  # 移動中不射擊
-		else:
-			velocity = Vector2.ZERO
-	else:
-		velocity = Vector2.ZERO
+func _get_frontline_member(gm: Node) -> Node:
+	# 盾兵優先作為前線（有盾兵且未死亡）；否則取第一個存活隊員
+	for member in gm.squad_members:
+		if member != null and is_instance_valid(member) and not member.is_dead and member.char_id == "shield":
+			return member
+	for member in gm.squad_members:
+		if member != null and is_instance_valid(member) and not member.is_dead:
+			return member
+	return null
 
-	if fire_timer <= 0.0:
-		fire_timer = FIRE_RATE
-		_shoot()
-
-func _shoot():
-	if not player:
+func take_damage(amount: float) -> void:
+	if is_dead:
 		return
-	var scene = load("res://scenes/Bullet.tscn")
-	if not scene:
-		return
-	var bullet = scene.instantiate()
-	bullet.global_position = global_position
-	bullet.direction = (player.global_position - global_position).normalized()
-	bullet.damage = DAMAGE
-	bullet.from_player = false
-	get_parent().add_child(bullet)
+	# Boss 大招傷害上限：單次傷害最多扣 40% 最大 HP，防止一招秒殺
+	if enemy_type == EnemyType.BOSS and amount > max_hp * 0.4:
+		amount = max_hp * 0.4
+	current_hp = max(0.0, current_hp - amount)
+	if _hp_bar:
+		_hp_bar.value = current_hp
+	if current_hp <= 0.0:
+		die()
 
-func _set_state(new_state: State):
-	state = new_state
-	if not sprite:
-		return
-	# 保留紅色基底 (1, 0.35, 0.35)，用亮度變化表示狀態
-	match new_state:
-		State.PATROL:
-			sprite.modulate = Color(1.0, 0.35, 0.35)   # 正常紅
-		State.ALERT:
-			sprite.modulate = Color(1.0, 0.75, 0.1)    # 橘色=警覺
-		State.CHASE:
-			sprite.modulate = Color(1.0, 0.2, 0.2)     # 深紅=追擊
-		State.SHOOT:
-			sprite.modulate = Color(1.0, 0.1, 0.1)     # 最深紅=射擊
+func die() -> void:
+	is_dead = true
+	if _body:
+		_body.color = Color(0.3, 0.3, 0.3, 0.6)
+	if _name_label:
+		_name_label.modulate = Color(0.4, 0.4, 0.4)
+	emit_signal("enemy_died", self)
+	# 延遲 0.3 秒後從場景移除（讓死亡顏色閃一下）
+	var t = get_tree().create_timer(0.3)
+	t.timeout.connect(queue_free)
 
-func take_damage(amount: int):
-	hp -= amount
-	hp = max(0, hp)
-	_update_hp_bar()
-	# 受傷立即進入追擊狀態
-	if state == State.PATROL or state == State.ALERT:
-		_set_state(State.CHASE)
-	# Boss：HP 低於 40% 時呼叫增援（只呼叫一次）
-	if is_boss and not _backup_called and float(hp) / float(MAX_HP) < 0.4:
-		_backup_called = true
-		_call_backup()
-	if hp <= 0:
-		_die()
-
-func _call_backup():
-	get_tree().call_group("level_controller", "spawn_boss_backup", global_position)
-
-func _update_hp_bar():
-	if hp_fill:
-		hp_fill.size.x = (float(hp) / float(MAX_HP)) * 24.0
-
-func _die():
-	emit_signal("died", self)
-	# 播放死亡音效（先播再 queue_free，因為 AudioStreamPlayer 屬子節點，會一起消失）
-	# 改為在父節點播放：用 SceneTree 找到全域音效播放器（若有），否則靜默
-	if _sfx_death and _sfx_death.stream:
-		# 重掛到場景根節點避免 queue_free 截斷聲音
-		var sfx = _sfx_death
-		remove_child(sfx)
-		get_tree().root.add_child(sfx)
-		sfx.play()
-		sfx.finished.connect(sfx.queue_free)
-	get_tree().call_group("main_controller", "check_win_condition")
-	queue_free()
-
-func _load_wav(path: String) -> AudioStreamWAV:
-	var f = FileAccess.open(path, FileAccess.READ)
-	if not f:
-		return null
-	f.seek(44)
-	var data = f.get_buffer(f.get_length() - 44)
-	f.close()
-	var stream = AudioStreamWAV.new()
-	stream.data = data
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.stereo = false
-	stream.mix_rate = 22050
-	return stream
-
-# 由地圖場景設定巡邏點
-func set_patrol_points(points: Array[Vector2]):
-	patrol_points = points
-	current_waypoint = 0
+func get_hp_ratio() -> float:
+	if max_hp <= 0.0:
+		return 0.0
+	return current_hp / max_hp

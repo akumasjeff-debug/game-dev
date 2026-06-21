@@ -1,0 +1,210 @@
+[gd_scene format=3 uid="uid://main001ghost"]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="3_hud"]
+[ext_resource type="Script" path="res://scripts/fog_of_war.gd" id="4_fog"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="5_main"]
+[ext_resource type="Texture2D" path="res://assets/tiles/tilesheet_complete.png" id="6_tilemap"]
+
+[sub_resource type="RectangleShape2D" id="wall_top"]
+size = Vector2(1920, 30)
+
+[sub_resource type="RectangleShape2D" id="wall_bottom"]
+size = Vector2(1920, 30)
+
+[sub_resource type="RectangleShape2D" id="wall_left"]
+size = Vector2(30, 1080)
+
+[sub_resource type="RectangleShape2D" id="wall_right"]
+size = Vector2(30, 1080)
+
+[sub_resource type="RectangleShape2D" id="wall_div1"]
+size = Vector2(30, 400)
+
+[sub_resource type="RectangleShape2D" id="wall_div2"]
+size = Vector2(300, 30)
+
+[sub_resource type="RectangleShape2D" id="wall_div3"]
+size = Vector2(30, 600)
+
+[sub_resource type="RectangleShape2D" id="wall_div4"]
+size = Vector2(400, 30)
+
+[sub_resource type="RectangleShape2D" id="wall_div5"]
+size = Vector2(30, 450)
+
+[sub_resource type="NavigationPolygon" id="nav_poly"]
+vertices = PackedVector2Array(30, 30, 1890, 30, 1890, 1050, 30, 1050)
+polygons = [PackedInt32Array(0, 1, 2, 3)]
+outlines = [PackedVector2Array(30, 30, 1890, 30, 1890, 1050, 30, 1050)]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("5_main")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Floor" type="Sprite2D" parent="World"]
+texture_repeat = 2
+position = Vector2(960, 540)
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(144, 16, 1920, 1080)
+z_index = -1
+
+[node name="Walls" type="Node2D" parent="World"]
+
+[node name="WallTop" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(960, 15)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallTop"]
+shape = SubResource("wall_top")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallTop"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 1920, 30)
+
+[node name="WallBottom" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(960, 1065)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallBottom"]
+shape = SubResource("wall_bottom")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallBottom"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 1920, 30)
+
+[node name="WallLeft" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(15, 540)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallLeft"]
+shape = SubResource("wall_left")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallLeft"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 30, 1080)
+
+[node name="WallRight" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(1905, 540)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallRight"]
+shape = SubResource("wall_right")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallRight"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 30, 1080)
+
+[node name="WallDiv1" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(400, 200)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallDiv1"]
+shape = SubResource("wall_div1")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallDiv1"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 30, 400)
+
+[node name="WallDiv2" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(550, 400)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallDiv2"]
+shape = SubResource("wall_div2")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallDiv2"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 300, 30)
+
+[node name="WallDiv3" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(800, 500)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallDiv3"]
+shape = SubResource("wall_div3")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallDiv3"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 30, 600)
+
+[node name="WallDiv4" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(1000, 300)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallDiv4"]
+shape = SubResource("wall_div4")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallDiv4"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 400, 30)
+
+[node name="WallDiv5" type="StaticBody2D" parent="World/Walls"]
+position = Vector2(1200, 525)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Col" type="CollisionShape2D" parent="World/Walls/WallDiv5"]
+shape = SubResource("wall_div5")
+
+[node name="Vis" type="Sprite2D" parent="World/Walls/WallDiv5"]
+texture_repeat = 2
+texture = ExtResource("6_tilemap")
+region_enabled = true
+region_rect = Rect2(128, 0, 30, 450)
+
+[node name="Enemies" type="Node2D" parent="World"]
+
+[node name="Enemy1" parent="World/Enemies" instance=ExtResource("2_enemy")]
+position = Vector2(200, 200)
+
+[node name="Enemy2" parent="World/Enemies" instance=ExtResource("2_enemy")]
+position = Vector2(600, 300)
+
+[node name="Enemy3" parent="World/Enemies" instance=ExtResource("2_enemy")]
+position = Vector2(1000, 600)
+
+[node name="Enemy4" parent="World/Enemies" instance=ExtResource("2_enemy")]
+position = Vector2(1400, 500)
+
+[node name="Enemy5" parent="World/Enemies" instance=ExtResource("2_enemy")]
+position = Vector2(1600, 200)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+navigation_polygon = SubResource("nav_poly")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(100, 100)
+
+[node name="FogOfWar" type="Node2D" parent="."]
+z_index = 8
+script = ExtResource("4_fog")
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
