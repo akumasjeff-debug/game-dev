@@ -6,6 +6,19 @@ extends Node2D
 const CHARACTER_SCRIPT = preload("res://scripts/character.gd")
 const ROOM_SCRIPT = preload("res://scripts/room.gd")
 
+# 鏡頭系統
+# 房間中心 y 座標（從下往上排列）：房間A、房間B、房間C、Boss房
+# 計算方式：_add_room_visual 的 pos.y + size.y / 2
+#   房間A：1150 + 100 = 1250
+#   房間B：750  + 100 = 850
+#   房間C：260  +  90 = 350
+#   Boss ：120  +  60 = 180
+const ROOM_CENTER_Y: Array = [1250.0, 850.0, 350.0, 180.0]
+
+var _camera: Camera2D
+var _camera_locked: bool = false
+var _current_room_idx: int = 0  # 目前鏡頭所在房間索引（0=房間A）
+
 # 主路徑點（直屏 1080x1920，從下往上）
 # 節點順序：起點 → 房間A → 房間B → 岔路 → 房間C → Boss房 → 終點
 const WAYPOINTS_MAIN: Array[Vector2] = [
@@ -51,11 +64,11 @@ var _active_room: Node = null
 # 職業顏色對應 HUD_SPEC：盾兵#4488FF 醫療兵#44CC44 突擊手#E8600A 狙擊手#AA44FF 爆破手#CC2222 偵察手#44CCCC
 const CHAR_DATA = [
 	{"id": "shield",  "name": "盾兵",  "color": Color(0.267, 0.533, 1.0,  1.0), "max_hp": 200.0, "attack": 30.0,  "defense": 25.0, "offset": Vector2(0,   -80), "ult_name": "防禦護盾", "ult_cd": 30.0, "level": 1},
-	{"id": "medic",   "name": "醫療兵","color": Color(0.267, 0.800, 0.267,1.0), "max_hp": 130.0, "attack": 20.0,  "defense": 0.0,  "offset": Vector2(-40,  80), "ult_name": "緊急治療", "ult_cd": 40.0, "level": 1},
-	{"id": "assault", "name": "突擊手","color": Color(0.910, 0.376, 0.039,1.0), "max_hp": 155.0, "attack": 60.0,  "defense": 0.0,  "offset": Vector2(-50,   0), "ult_name": "火力全開", "ult_cd": 25.0, "level": 1},
-	{"id": "sniper",  "name": "狙擊手","color": Color(0.667, 0.267, 1.0,  1.0), "max_hp": 110.0, "attack": 120.0, "defense": 0.0,  "offset": Vector2(40,    80), "ult_name": "精準鎖定", "ult_cd": 50.0, "level": 1},
-	{"id": "demo",    "name": "爆破手","color": Color(0.800, 0.133, 0.133,1.0), "max_hp": 135.0, "attack": 80.0,  "defense": 0.0,  "offset": Vector2(50,    0), "ult_name": "引爆炸彈", "ult_cd": 45.0, "level": 1},
-	{"id": "recon",   "name": "偵察手","color": Color(0.267, 0.800, 0.800,1.0), "max_hp": 140.0, "attack": 35.0,  "defense": 0.0,  "offset": Vector2(0,    40), "ult_name": "電磁脈衝", "ult_cd": 35.0, "level": 1},
+	{"id": "medic",   "name": "醫療兵","color": Color(0.267, 0.800, 0.267,1.0), "max_hp": 130.0, "attack": 20.0,  "defense": 15.0, "offset": Vector2(-40,  80), "ult_name": "緊急治療", "ult_cd": 40.0, "level": 1},
+	{"id": "assault", "name": "突擊手","color": Color(0.910, 0.376, 0.039,1.0), "max_hp": 155.0, "attack": 60.0,  "defense": 15.0, "offset": Vector2(-50,   0), "ult_name": "火力全開", "ult_cd": 25.0, "level": 1},
+	{"id": "sniper",  "name": "狙擊手","color": Color(0.667, 0.267, 1.0,  1.0), "max_hp": 110.0, "attack": 120.0, "defense": 10.0, "offset": Vector2(40,    80), "ult_name": "精準鎖定", "ult_cd": 35.0, "level": 1},
+	{"id": "demo",    "name": "爆破手","color": Color(0.800, 0.133, 0.133,1.0), "max_hp": 135.0, "attack": 80.0,  "defense": 18.0, "offset": Vector2(50,    0), "ult_name": "引爆炸彈", "ult_cd": 45.0, "level": 1},
+	{"id": "recon",   "name": "偵察手","color": Color(0.267, 0.800, 0.800,1.0), "max_hp": 140.0, "attack": 35.0,  "defense": 17.0, "offset": Vector2(0,    40), "ult_name": "煙霧封鎖", "ult_cd": 35.0, "level": 1},
 ]
 
 var squad_controller: Node2D
@@ -70,9 +83,63 @@ func _ready() -> void:
 	_build_map()
 	_spawn_squad()
 	_setup_triggers()
+	_setup_camera()
 	_connect_hud()
 	_connect_signals()
 	_connect_restart()
+
+func _setup_camera() -> void:
+	_camera = Camera2D.new()
+	_camera.name = "GameCamera"
+	_camera.enabled = true
+	# zoom：房間高度約 200px（最大），螢幕播放區高度 1740（1920 - 180 HUD）
+	# 讓一個房間約佔畫面 80%：zoom = 1740 * 0.8 / 200 ≈ 6.96，約 6.0 偏安全
+	# 但全圖寬 1080、房間寬 300px，zoom=6 會太窄；改用讓寬度對齊：1080/300 ≈ 3.6
+	# 取 3.5 讓房間稍有留白
+	_camera.zoom = Vector2(3.5, 3.5)
+	_camera.position_smoothing_enabled = true
+	_camera.position_smoothing_speed = 4.0
+	# 初始位置：畫面水平中央，y 對準房間A 中心
+	_camera.global_position = Vector2(540.0, ROOM_CENTER_Y[0])
+	add_child(_camera)
+	_camera.make_current()
+	print("[Camera] 初始化完成，位置 y=", ROOM_CENTER_Y[0])
+
+func _process(_delta: float) -> void:
+	if _camera == null or _camera_locked:
+		return
+	if GameManager == null:
+		return
+	# 找存活隊員的平均 y
+	var valid_members: Array = []
+	for m in GameManager.squad_members:
+		if m != null and is_instance_valid(m) and not m.is_dead:
+			valid_members.append(m)
+	if valid_members.size() == 0:
+		return
+	var avg_y: float = 0.0
+	for m in valid_members:
+		avg_y += m.global_position.y
+	avg_y /= float(valid_members.size())
+	# x 固定在畫面水平中央，只讓 y 跟著小隊走
+	_camera.global_position = Vector2(540.0, avg_y)
+
+func _advance_camera_to_next_room() -> void:
+	if _current_room_idx + 1 >= ROOM_CENTER_Y.size():
+		return
+	_current_room_idx += 1
+	_camera_locked = true
+	var target_y: float = ROOM_CENTER_Y[_current_room_idx]
+	print("[Camera] 推進到房間 idx=", _current_room_idx, " y=", target_y)
+	var tween = create_tween()
+	tween.tween_property(
+		_camera, "global_position",
+		Vector2(540.0, target_y), 1.5
+	).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	tween.tween_callback(func() -> void:
+		_camera_locked = false
+		print("[Camera] 到位，恢復跟隨")
+	)
 
 func _build_map() -> void:
 	# 繪製路徑背景（深色通道）
@@ -136,9 +203,12 @@ func _spawn_squad() -> void:
 		char_node.char_id = data["id"]
 		char_node.char_name = data["name"]
 		char_node.body_color = data["color"]
-		char_node.max_hp = data["max_hp"]
-		char_node.attack_power = data["attack"]
-		char_node.defense = data.get("defense", 0.0)
+		# 套用稀有度 × 等級乘率（基礎數值為 Lv.1 數值）
+		var rarity_mult = SaveManager.get_rarity_multiplier(char_id)
+		var level_mult = SaveManager.get_level_multiplier(char_id)
+		char_node.max_hp = data["max_hp"] * rarity_mult * level_mult
+		char_node.attack_power = data["attack"] * rarity_mult * level_mult
+		char_node.defense = data.get("defense", 0.0) * rarity_mult * level_mult
 		char_node.formation_offset = data["offset"]
 		char_node.ultimate_name = data["ult_name"]
 		char_node.ultimate_cd = data["ult_cd"]
@@ -191,15 +261,11 @@ func _setup_triggers() -> void:
 		{"type": 0, "offset": Vector2(80, -80)},
 	])
 
-	# Boss 房（5 個普通 + 1 個精英 HP 300）
-	_create_room_trigger(Vector2(540, 210), "Boss房", [
-		{"type": 0, "offset": Vector2(-120, -80)},
-		{"type": 0, "offset": Vector2(-60, -80)},
-		{"type": 0, "offset": Vector2(0, -80)},
-		{"type": 0, "offset": Vector2(60, -80)},
-		{"type": 0, "offset": Vector2(120, -80)},
-		{"type": 1, "offset": Vector2(0, -140)},  # 精英
-	])
+	# Boss 決策點（進 Boss 房前的戰術選擇，y=280 以拉開與 Boss 房 y=210 的距離）
+	_create_boss_decision_trigger(Vector2(540, 280))
+
+	# Boss 房（5 個普通 + 1 個精英 + Boss，在 Boss 決策後生成）
+	_create_boss_room_trigger(Vector2(540, 210))
 
 	# 終點觸發
 	_create_end_trigger(Vector2(540, 90))
@@ -293,6 +359,9 @@ func _on_room_cleared() -> void:
 	_active_room = null
 	# GameManager.resume_squad() 已在 room.gd 的 _check_cleared() 中呼叫
 	print("[Main] 房間清空，小隊繼續推進")
+	# 延遲 0.3 秒後推進鏡頭（讓玩家看到最後一個敵人倒下）
+	await get_tree().create_timer(0.3).timeout
+	_advance_camera_to_next_room()
 
 func _create_trigger(pos: Vector2, type: String, label: String) -> void:
 	var area = Area2D.new()
@@ -326,6 +395,66 @@ func _create_trigger(pos: Vector2, type: String, label: String) -> void:
 
 	add_child(area)
 
+func _create_boss_decision_trigger(pos: Vector2) -> void:
+	# Boss 決策點：進入 Boss 房前的戰術選擇
+	var area = Area2D.new()
+	area.position = pos
+	area.name = "BossDecisionTrigger"
+
+	var shape = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 80.0
+	shape.shape = circle
+	area.add_child(shape)
+
+	# 視覺標記（紅色警示）
+	var marker = ColorRect.new()
+	marker.size = Vector2(80, 80)
+	marker.position = Vector2(-40, -40)
+	marker.color = Color(0.8, 0.1, 0.1, 0.6)
+	area.add_child(marker)
+
+	var mlbl = Label.new()
+	mlbl.text = "BOSS"
+	mlbl.position = Vector2(-28, -56)
+	mlbl.add_theme_font_size_override("font_size", 20)
+	mlbl.modulate = Color(1.0, 0.3, 0.3)
+	area.add_child(mlbl)
+
+	area.set_meta("triggered", false)
+	area.body_entered.connect(_on_boss_decision_entered.bind(area))
+	add_child(area)
+
+func _on_boss_decision_entered(body: Node2D, area: Area2D) -> void:
+	if area.get_meta("triggered", false):
+		return
+	if not body.is_in_group("squad"):
+		return
+	area.set_meta("triggered", true)
+
+	var decision_data = {
+		"type": "boss",
+		"title": "目標：指揮官",
+		"description": "前方就是 Boss 房，指揮官帶著精銳衛隊守在裡面，如何行動？",
+		"options": [
+			{"id": "boss_charge",  "text": "直衝 Boss", "desc": "全隊直接衝入，承受 Boss 第一波攻擊，速戰速決"},
+			{"id": "boss_flank",   "text": "側翼迂迴",  "desc": "繞路消耗更長，但陣型更有利，進場受傷 -30%"},
+			{"id": "boss_bait",    "text": "引蛇出洞",  "desc": "引 Boss 離開房間，先消滅 2 名護衛，減少進場壓力"},
+		]
+	}
+	GameManager.trigger_decision(decision_data)
+
+func _create_boss_room_trigger(pos: Vector2) -> void:
+	# Boss 房觸發（生成 Boss 敵人，在 Boss 決策後觸發）
+	_create_room_trigger(pos, "Boss房", [
+		{"type": 0, "offset": Vector2(-120, -80)},
+		{"type": 0, "offset": Vector2(-60, -80)},
+		{"type": 0, "offset": Vector2(0, -80)},
+		{"type": 0, "offset": Vector2(60, -80)},
+		{"type": 0, "offset": Vector2(120, -80)},
+		{"type": 1, "offset": Vector2(0, -140)},  # 精英
+	])
+
 func _create_end_trigger(pos: Vector2) -> void:
 	var area = Area2D.new()
 	area.position = pos
@@ -342,6 +471,7 @@ func _create_end_trigger(pos: Vector2) -> void:
 
 func _on_end_reached(body: Node2D) -> void:
 	if body.is_in_group("squad"):
+		# 觸發勝利（票券獎勵由 hud.gd _on_game_won 統一處理）
 		GameManager.trigger_game_over(true)
 
 func _connect_hud() -> void:

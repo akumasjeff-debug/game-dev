@@ -1,0 +1,41 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- 普通兵 — 俯視，面朝北（上），紅色系雜兵 -->
+
+  <!-- 落地陰影 -->
+  <ellipse cx="32" cy="56" rx="14" ry="4" fill="#000" opacity="0.30"/>
+
+  <!-- 腿（兩塊短腳，朝下） -->
+  <rect x="24" y="50" width="7"  height="6" fill="#5A1010"/>
+  <rect x="33" y="50" width="7"  height="6" fill="#5A1010"/>
+
+  <!-- 身體（窄，廉價戰鬥服） -->
+  <rect x="22" y="26" width="20" height="26" fill="#7A1515"/>
+  <!-- 正中衣縫 -->
+  <rect x="31" y="26" width="2"  height="26" fill="#5A0E0E"/>
+  <!-- 戰術背心 -->
+  <rect x="24" y="28" width="16" height="14" fill="#8B2020"/>
+  <!-- 背心口袋 -->
+  <rect x="25" y="30" width="5"  height="4"  fill="#6A1818"/>
+  <rect x="34" y="30" width="5"  height="4"  fill="#6A1818"/>
+
+  <!-- 左臂 -->
+  <rect x="16" y="28" width="6"  height="10" fill="#7A1515"/>
+  <!-- 右臂 -->
+  <rect x="42" y="28" width="6"  height="10" fill="#7A1515"/>
+
+  <!-- 步槍（右側，斜向前方） -->
+  <rect x="46" y="22" width="4"  height="14" fill="#222"/>
+  <rect x="47" y="36" width="4"  height="6"  fill="#2A2A2A"/>
+  <!-- 槍口 -->
+  <rect x="47" y="18" width="3"  height="6"  fill="#111"/>
+
+  <!-- 頭盔（俯視看頂部，扁圓形，舊式） -->
+  <rect x="24" y="10" width="16" height="18" fill="#5A0E0E"/>
+  <!-- 頭盔前緣高光 -->
+  <rect x="26" y="10" width="12" height="3"  fill="#9B2A2A"/>
+  <!-- 頭盔後遮陽片 -->
+  <rect x="24" y="26" width="16" height="3"  fill="#4A0A0A"/>
+  <!-- 護目鏡縫（兩側） -->
+  <rect x="26" y="14" width="4"  height="4"  fill="#3A0808"/>
+  <rect x="34" y="14" width="4"  height="4"  fill="#3A0808"/>
+</svg>

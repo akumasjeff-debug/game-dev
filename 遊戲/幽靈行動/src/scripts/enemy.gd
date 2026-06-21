@@ -19,7 +19,7 @@ var _attack_timer: float = 0.0
 var is_dead: bool = false
 
 # 視覺節點
-var _body: ColorRect
+var _body: Node  # Sprite2D（有 SVG 時）或 ColorRect（回退）
 var _name_label: Label
 var _hp_bar: ProgressBar
 
@@ -62,14 +62,29 @@ func _apply_type_stats() -> void:
 			attack_power = 70.0
 			attack_interval = 1.5
 
+const SPRITE_PATHS: Array[String] = [
+	"res://resources/art/sprites/grunt_sprite.svg",   # NORMAL
+	"res://resources/art/sprites/elite_sprite.svg",   # ELITE
+	"res://resources/art/sprites/boss_sprite.svg",    # BOSS
+]
+
 func _build_visual() -> void:
 	var size = TYPE_SIZES[enemy_type]
 	var color = TYPE_COLORS[enemy_type]
+	var sprite_path = SPRITE_PATHS[enemy_type]
 
-	_body = ColorRect.new()
-	_body.size = size
-	_body.position = -size / 2.0
-	_body.color = color
+	if ResourceLoader.exists(sprite_path):
+		var sprite = Sprite2D.new()
+		sprite.texture = load(sprite_path)
+		sprite.centered = true
+		sprite.scale = Vector2(size.x / 64.0, size.y / 64.0)
+		_body = sprite
+	else:
+		var cr = ColorRect.new()
+		cr.size = size
+		cr.position = -size / 2.0
+		cr.color = color
+		_body = cr
 	add_child(_body)
 
 	_name_label = Label.new()
@@ -134,7 +149,7 @@ func take_damage(amount: float) -> void:
 func die() -> void:
 	is_dead = true
 	if _body:
-		_body.color = Color(0.3, 0.3, 0.3, 0.6)
+		_body.modulate = Color(0.3, 0.3, 0.3, 0.6)
 	if _name_label:
 		_name_label.modulate = Color(0.4, 0.4, 0.4)
 	emit_signal("enemy_died", self)

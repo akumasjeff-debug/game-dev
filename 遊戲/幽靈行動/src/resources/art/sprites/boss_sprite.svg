@@ -1,0 +1,60 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- Boss — 俯視，面朝北，紫色系指揮官 Boss -->
+
+  <!-- 落地陰影（最大） -->
+  <ellipse cx="32" cy="58" rx="22" ry="6" fill="#000" opacity="0.40"/>
+
+  <!-- 腿（重甲，最粗） -->
+  <rect x="18" y="50" width="10" height="8" fill="#3A006A"/>
+  <rect x="36" y="50" width="10" height="8" fill="#3A006A"/>
+  <!-- 護甲腿板 -->
+  <rect x="19" y="50" width="8"  height="4" fill="#5A00AA"/>
+  <rect x="37" y="50" width="8"  height="4" fill="#5A00AA"/>
+
+  <!-- 斗篷/寬大外套（延伸到兩側，最寬） -->
+  <rect x="10" y="28" width="8"  height="22" fill="#2A004A"/>
+  <rect x="46" y="28" width="8"  height="22" fill="#2A004A"/>
+  <!-- 斗篷邊緣金線 -->
+  <rect x="10" y="28" width="2"  height="22" fill="#AA6600"/>
+  <rect x="52" y="28" width="2"  height="22" fill="#AA6600"/>
+
+  <!-- 身體（寬大，指揮官制服） -->
+  <rect x="18" y="22" width="28" height="30" fill="#3A0068"/>
+  <!-- 制服中線 -->
+  <rect x="30" y="22" width="4"  height="30" fill="#2A0050"/>
+  <!-- 勳章列（左胸，多個金點） -->
+  <rect x="20" y="26" width="4"  height="2"  fill="#FFCC00"/>
+  <rect x="20" y="30" width="4"  height="2"  fill="#FFCC00"/>
+  <rect x="20" y="34" width="4"  height="2"  fill="#FFCC00"/>
+  <!-- 右胸徽章 -->
+  <rect x="40" y="26" width="4"  height="6"  fill="#8800CC"/>
+  <rect x="41" y="27" width="2"  height="4"  fill="#BB44FF"/>
+
+  <!-- 左臂（粗壯） -->
+  <rect x="12" y="24" width="6"  height="16" fill="#3A0068"/>
+  <!-- 右臂（持大型手槍） -->
+  <rect x="46" y="24" width="6"  height="16" fill="#3A0068"/>
+
+  <!-- 大型指揮手槍（右側） -->
+  <rect x="50" y="16" width="6"  height="22" fill="#111"/>
+  <rect x="50" y="38" width="6"  height="6"  fill="#1A1A1A"/>
+  <!-- 槍口消焰器 -->
+  <rect x="51" y="10" width="4"  height="8"  fill="#222"/>
+  <rect x="52" y="8"  width="2"  height="4"  fill="#333"/>
+
+  <!-- 頭盔/指揮帽（俯視，最大，有帽沿） -->
+  <rect x="18" y="6"  width="28" height="18" fill="#2A0050"/>
+  <!-- 帽沿 -->
+  <rect x="16" y="18" width="32" height="4"  fill="#1A0038"/>
+  <!-- 帽頂金徽 -->
+  <rect x="28" y="8"  width="8"  height="8"  fill="#7700BB"/>
+  <rect x="29" y="9"  width="6"  height="6"  fill="#9900EE"/>
+  <rect x="30" y="10" width="4"  height="4"  fill="#CC44FF"/>
+  <!-- 護目鏡（紫色，雙目鏡型） -->
+  <rect x="22" y="12" width="6"  height="6"  fill="#6600AA"/>
+  <rect x="36" y="12" width="6"  height="6"  fill="#6600AA"/>
+  <rect x="23" y="13" width="4"  height="4"  fill="#9933EE"/>
+  <rect x="37" y="13" width="4"  height="4"  fill="#9933EE"/>
+  <!-- 帽沿前緣金線 -->
+  <rect x="18" y="6"  width="28" height="2"  fill="#FFCC00"/>
+</svg>
