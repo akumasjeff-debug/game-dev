@@ -55,6 +55,16 @@ func _ready() -> void:
 		auto_attack_interval = 3.0
 	# 初始計時器錯開，避免所有角色同時發射
 	_auto_attack_timer = randf_range(0.0, auto_attack_interval)
+	# 部分角色初始大招 CD 偏移：避免開局 4 招齊放破壞節奏
+	# 盾兵：15s 初始 CD（讓玩家在第一波壓力下決定何時開盾）
+	# 爆破手：20s 初始 CD（最強 AoE 不應開局免費）
+	match char_id:
+		"shield":
+			is_ultimate_ready = false
+			cd_timer = 15.0
+		"demo":
+			is_ultimate_ready = false
+			cd_timer = 20.0
 	# 醫療兵首次回血隨機延遲 1~3 秒，避免開局立即觸發
 	if char_id == "medic":
 		_heal_timer = randf_range(1.0, 3.0)

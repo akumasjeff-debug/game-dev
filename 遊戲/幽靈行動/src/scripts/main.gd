@@ -55,7 +55,7 @@ const SQUAD_X_SLOTS: Array = [162.0, 378.0, 594.0, 810.0]
 #  角色基礎資料（Lv.1 × 稀有度 × 等級 乘率 → SaveManager）
 # ─────────────────────────────────────────────────────────────
 const CHAR_DATA = [
-	{"id": "shield",  "name": "盾兵",   "color": Color(0.267, 0.533, 1.0,  1.0), "max_hp": 400.0, "attack": 30.0,  "defense": 25.0, "ult_name": "防禦護盾", "ult_cd": 30.0},
+	{"id": "shield",  "name": "盾兵",   "color": Color(0.267, 0.533, 1.0,  1.0), "max_hp": 500.0, "attack": 30.0,  "defense": 25.0, "ult_name": "防禦護盾", "ult_cd": 30.0},  # HP 400→500：讓前線多撐 2~3s
 	{"id": "medic",   "name": "醫療兵", "color": Color(0.267, 0.800, 0.267,1.0), "max_hp": 260.0, "attack": 20.0,  "defense": 15.0, "ult_name": "緊急治療", "ult_cd": 40.0},
 	{"id": "assault", "name": "突擊手", "color": Color(0.910, 0.376, 0.039,1.0), "max_hp": 310.0, "attack": 60.0,  "defense": 15.0, "ult_name": "火力全開", "ult_cd": 25.0},
 	{"id": "sniper",  "name": "狙擊手", "color": Color(0.667, 0.267, 1.0,  1.0), "max_hp": 220.0, "attack": 120.0, "defense": 10.0, "ult_name": "精準鎖定", "ult_cd": 35.0},

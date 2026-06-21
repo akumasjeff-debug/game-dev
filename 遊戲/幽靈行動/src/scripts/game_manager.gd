@@ -139,8 +139,9 @@ func trigger_game_over(won: bool) -> void:
 		return
 	is_game_over = true
 	is_paused = true
-	# 關卡結束：重置一次性技能旗標
+	# 關卡結束：重置一次性技能旗標與房間計數
 	medic_revive_used = false
+	current_room_index = 0
 	if won:
 		emit_signal("game_won")
 	else:
