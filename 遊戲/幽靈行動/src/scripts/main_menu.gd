@@ -1,204 +1,127 @@
-extends Node2D
-
-# 主選單畫面 — 進遊戲後最先出現，淡入後顯示開始按鈕
+extends Control
 
 const CHINESE_FONT_PATH := "res://resources/fonts/chinese_font.ttf"
-const BG_SVG_PATH := "res://resources/art/ui/main_menu_bg.svg"
-const BASE_SCENE_PATH := "res://scenes/Base.tscn"
+const BASE_SCENE_PATH    := "res://scenes/Base.tscn"
 
 var _font: FontFile
-var _ui_layer: CanvasLayer
-var _fade_overlay: ColorRect
-
+var _fade: ColorRect
 
 func _ready() -> void:
-	_load_font()
-	_build_ui()
-	_play_intro_fade()
-
-
-# ─── 字體載入 ───────────────────────────────────────────────
-
-func _load_font() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if ResourceLoader.exists(CHINESE_FONT_PATH):
 		_font = load(CHINESE_FONT_PATH)
-
-
-# ─── UI 建構 ────────────────────────────────────────────────
-
-func _build_ui() -> void:
-	_ui_layer = CanvasLayer.new()
-	_ui_layer.layer = 0
-	add_child(_ui_layer)
-
-	_build_background()
+	_build_bg()
 	_build_title()
-	_build_subtitle()
-	_build_divider()
-	_build_start_button()
-	_build_version_label()
-	_build_fade_overlay()
+	_build_button()
+	_build_version()
+	_build_fade()
+	var tw := create_tween()
+	tw.tween_property(_fade, "color:a", 0.0, 0.85).set_ease(Tween.EASE_OUT)
 
-	# 入場前先全黑（透過黑色蓋板），等 _play_intro_fade 淡入
-	_fade_overlay.color = Color(0, 0, 0, 1.0)
-
-
-func _build_background() -> void:
-	# 先鋪一層 ColorRect 確保不透出灰色底
-	var base_fill := ColorRect.new()
-	base_fill.size = Vector2(1080, 1920)
-	base_fill.position = Vector2.ZERO
-	base_fill.color = Color("#050A14")
-	_ui_layer.add_child(base_fill)
-
-	if ResourceLoader.exists(BG_SVG_PATH):
-		var tex: Texture2D = load(BG_SVG_PATH)
-		var bg := TextureRect.new()
-		bg.texture = tex
-		# EXPAND_IGNORE_SIZE + STRETCH_SCALE 讓 TextureRect 直接依照 size 縮放圖片，
-		# 不受 CanvasLayer 父容器影響，最穩定地填滿 1080×1920
-		bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		bg.stretch_mode = TextureRect.STRETCH_SCALE
-		bg.size = Vector2(1080, 1920)
-		bg.position = Vector2.ZERO
-		_ui_layer.add_child(bg)
-
+func _build_bg() -> void:
+	var bg := ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.02, 0.04, 0.10)
+	add_child(bg)
 
 func _build_title() -> void:
-	var label := Label.new()
-	label.text = "幽靈行動"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.size = Vector2(1080, 120)
-	label.position = Vector2(0, 320)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_font_size_override("font_size", 96)
+	var title := Label.new()
+	title.text = "幽靈行動"
+	title.set_anchor_and_offset(SIDE_LEFT,   0.0, 0)
+	title.set_anchor_and_offset(SIDE_RIGHT,  1.0, 0)
+	title.set_anchor_and_offset(SIDE_TOP,    0.0, 280)
+	title.set_anchor_and_offset(SIDE_BOTTOM, 0.0, 420)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 88)
+	title.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+	title.add_theme_color_override("font_shadow_color", Color(0, 0.1, 0.4, 0.8))
+	title.add_theme_constant_override("shadow_offset_x", 3)
+	title.add_theme_constant_override("shadow_offset_y", 3)
 	if _font:
-		label.add_theme_font_override("font", _font)
-	# 字體陰影
-	label.add_theme_constant_override("shadow_offset_x", 3)
-	label.add_theme_constant_override("shadow_offset_y", 3)
-	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
-	_ui_layer.add_child(label)
+		title.add_theme_font_override("font", _font)
+	add_child(title)
 
-
-func _build_subtitle() -> void:
-	var label := Label.new()
-	label.text = "GHOST MISSION"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.size = Vector2(1080, 50)
-	label.position = Vector2(0, 460)
-	label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0, 1.0))
-	label.add_theme_font_size_override("font_size", 28)
+	var sub := Label.new()
+	sub.text = "GHOST MISSION"
+	sub.set_anchor_and_offset(SIDE_LEFT,   0.0, 0)
+	sub.set_anchor_and_offset(SIDE_RIGHT,  1.0, 0)
+	sub.set_anchor_and_offset(SIDE_TOP,    0.0, 430)
+	sub.set_anchor_and_offset(SIDE_BOTTOM, 0.0, 490)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 26)
+	sub.add_theme_color_override("font_color", Color(0.5, 0.7, 1.0, 0.85))
 	if _font:
-		label.add_theme_font_override("font", _font)
-	_ui_layer.add_child(label)
+		sub.add_theme_font_override("font", _font)
+	add_child(sub)
 
-	# 中文副標題
 	var sub2 := Label.new()
 	sub2.text = "戰術潛入 · 傭兵養成"
+	sub2.set_anchor_and_offset(SIDE_LEFT,   0.0, 0)
+	sub2.set_anchor_and_offset(SIDE_RIGHT,  1.0, 0)
+	sub2.set_anchor_and_offset(SIDE_TOP,    0.0, 490)
+	sub2.set_anchor_and_offset(SIDE_BOTTOM, 0.0, 545)
 	sub2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub2.size = Vector2(1080, 44)
-	sub2.position = Vector2(0, 508)
-	sub2.add_theme_color_override("font_color", Color(0.5, 0.7, 0.9, 0.85))
 	sub2.add_theme_font_size_override("font_size", 22)
+	sub2.add_theme_color_override("font_color", Color(0.45, 0.65, 0.85, 0.75))
 	if _font:
 		sub2.add_theme_font_override("font", _font)
-	_ui_layer.add_child(sub2)
+	add_child(sub2)
 
-
-func _build_divider() -> void:
 	var line := ColorRect.new()
-	line.size = Vector2(200, 2)
-	line.position = Vector2((1080 - 200) / 2.0, 562)
-	line.color = Color(0.3, 0.5, 0.8, 1.0)
-	_ui_layer.add_child(line)
+	line.set_anchor_and_offset(SIDE_LEFT,   0.5, -100)
+	line.set_anchor_and_offset(SIDE_RIGHT,  0.5,  100)
+	line.set_anchor_and_offset(SIDE_TOP,    0.0,  555)
+	line.set_anchor_and_offset(SIDE_BOTTOM, 0.0,  558)
+	line.color = Color(0.3, 0.5, 0.9, 0.6)
+	add_child(line)
 
-
-func _build_start_button() -> void:
+func _build_button() -> void:
 	var btn := Button.new()
 	btn.text = "開始遊戲"
-	btn.size = Vector2(460, 110)
-	btn.position = Vector2((1080 - 460) / 2.0, 700)
+	btn.set_anchor_and_offset(SIDE_LEFT,   0.5, -230)
+	btn.set_anchor_and_offset(SIDE_RIGHT,  0.5,  230)
+	btn.set_anchor_and_offset(SIDE_TOP,    0.0,  630)
+	btn.set_anchor_and_offset(SIDE_BOTTOM, 0.0,  750)
 	btn.add_theme_font_size_override("font_size", 40)
-	btn.add_theme_color_override("font_color", Color("#FF8C00"))
-	btn.add_theme_color_override("font_hover_color", Color("#FFA040"))
-	btn.add_theme_color_override("font_pressed_color", Color("#CC6600"))
+	btn.add_theme_color_override("font_color", Color(1.0, 0.55, 0.0))
 	if _font:
 		btn.add_theme_font_override("font", _font)
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.08, 0.16, 0.38)
+	st.border_color = Color(0.3, 0.5, 0.9, 0.7)
+	st.set_border_width_all(2)
+	st.set_corner_radius_all(10)
+	btn.add_theme_stylebox_override("normal", st)
+	var sh := st.duplicate() as StyleBoxFlat
+	sh.bg_color = Color(0.12, 0.24, 0.52)
+	sh.border_color = Color(0.45, 0.65, 1.0)
+	btn.add_theme_stylebox_override("hover", sh)
+	btn.pressed.connect(_on_start)
+	add_child(btn)
 
-	# 深藍背景樣式
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = Color("#1A3060")
-	normal_style.border_width_left   = 2
-	normal_style.border_width_right  = 2
-	normal_style.border_width_top    = 2
-	normal_style.border_width_bottom = 2
-	normal_style.border_color = Color(0.3, 0.5, 0.8, 0.6)
-	normal_style.corner_radius_top_left     = 8
-	normal_style.corner_radius_top_right    = 8
-	normal_style.corner_radius_bottom_left  = 8
-	normal_style.corner_radius_bottom_right = 8
-
-	var hover_style := normal_style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color("#22408A")
-	hover_style.border_color = Color(0.4, 0.6, 1.0, 0.8)
-
-	var pressed_style := normal_style.duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color("#101E40")
-
-	btn.add_theme_stylebox_override("normal",  normal_style)
-	btn.add_theme_stylebox_override("hover",   hover_style)
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-
-	btn.pressed.connect(_on_start_pressed)
-	_ui_layer.add_child(btn)
-
-
-func _build_version_label() -> void:
-	var label := Label.new()
-	label.text = "v0.4.0 DEMO"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	label.size = Vector2(200, 30)
-	label.position = Vector2(1080 - 210, 1870)
-	label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4, 1.0))
-	label.add_theme_font_size_override("font_size", 18)
+func _build_version() -> void:
+	var lbl := Label.new()
+	lbl.text = "v0.4.3 DEMO"
+	lbl.set_anchor_and_offset(SIDE_LEFT,   1.0, -210)
+	lbl.set_anchor_and_offset(SIDE_RIGHT,  1.0, -10)
+	lbl.set_anchor_and_offset(SIDE_TOP,    1.0, -50)
+	lbl.set_anchor_and_offset(SIDE_BOTTOM, 1.0, -10)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_color_override("font_color", Color(0.35, 0.35, 0.4))
 	if _font:
-		label.add_theme_font_override("font", _font)
-	_ui_layer.add_child(label)
+		lbl.add_theme_font_override("font", _font)
+	add_child(lbl)
 
+func _build_fade() -> void:
+	_fade = ColorRect.new()
+	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fade.color = Color(0, 0, 0, 1.0)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fade)
 
-func _build_fade_overlay() -> void:
-	# 黑色蓋板，用於離開時淡出
-	_fade_overlay = ColorRect.new()
-	_fade_overlay.size = Vector2(1080, 1920)
-	_fade_overlay.position = Vector2.ZERO
-	_fade_overlay.color = Color(0, 0, 0, 0)
-	_fade_overlay.z_index = 10
-	_fade_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_ui_layer.add_child(_fade_overlay)
-
-
-# ─── 入場淡入 ────────────────────────────────────────────────
-
-func _play_intro_fade() -> void:
-	# 黑色蓋板從不透明漸變成透明，模擬淡入效果
-	var tween := create_tween()
-	tween.tween_property(_fade_overlay, "color:a", 0.0, 0.8)\
-		.set_ease(Tween.EASE_OUT)\
-		.set_trans(Tween.TRANS_SINE)
-
-
-# ─── 按鈕事件 ────────────────────────────────────────────────
-
-func _on_start_pressed() -> void:
-	# 先淡出再切換場景
-	var tween := create_tween()
-	tween.tween_property(_fade_overlay, "color:a", 1.0, 0.5)\
-		.set_ease(Tween.EASE_IN)\
-		.set_trans(Tween.TRANS_SINE)
-	tween.tween_callback(_goto_base)
-
-
-func _goto_base() -> void:
-	get_tree().change_scene_to_file(BASE_SCENE_PATH)
+func _on_start() -> void:
+	var tw := create_tween()
+	tw.tween_property(_fade, "color:a", 1.0, 0.45).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): get_tree().change_scene_to_file(BASE_SCENE_PATH))
