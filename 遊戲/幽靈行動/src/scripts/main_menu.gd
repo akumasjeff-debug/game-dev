@@ -102,7 +102,7 @@ func _build_button() -> void:
 
 func _build_version() -> void:
 	var lbl := Label.new()
-	lbl.text = "v0.4.3 DEMO"
+	lbl.text = "v0.4.5 DEMO"
 	lbl.set_anchor_and_offset(SIDE_LEFT,   1.0, -210)
 	lbl.set_anchor_and_offset(SIDE_RIGHT,  1.0, -10)
 	lbl.set_anchor_and_offset(SIDE_TOP,    1.0, -50)

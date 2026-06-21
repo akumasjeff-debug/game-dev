@@ -415,21 +415,11 @@ func _add_gacha_button() -> void:
 	add_child(btn)
 
 func _add_upgrade_button() -> void:
-	var btn = Button.new()
-	btn.text = "升級管理"
-	btn.position = Vector2(90, 1730)
-	btn.custom_minimum_size = Vector2(900, 110)
-	btn.add_theme_font_size_override("font_size", 34)
-	btn.name = "UpgradeBtn"
-	_style_button(btn, Color(0.10, 0.25, 0.15))
-	btn.pressed.connect(_open_upgrade_panel)
-	add_child(btn)
-
-	# DEMO 重置按鈕（最底部，小型紅色）
+	# DEMO 重置按鈕
 	var reset_btn = Button.new()
 	reset_btn.text = "[ DEMO ] 清空所有紀錄，重新開始"
-	reset_btn.position = Vector2(90, 1855)
-	reset_btn.custom_minimum_size = Vector2(900, 58)
+	reset_btn.position = Vector2(90, 1730)
+	reset_btn.custom_minimum_size = Vector2(900, 80)
 	reset_btn.add_theme_font_size_override("font_size", 20)
 	reset_btn.name = "DemoResetBtn"
 	var rs = StyleBoxFlat.new()
@@ -1090,11 +1080,17 @@ func _start_mission() -> void:
 		return
 	_update_stamina_display()
 
-	# 打開陣容確認面板（setup 必須在 add_child 之前呼叫，確保 _ready() 執行時資料已就緒）
-	var confirm_panel = load("res://scenes/SquadConfirmPanel.tscn").instantiate()
-	if confirm_panel.has_method("setup"):
-		confirm_panel.setup(_pending_mission, SaveManager.selected_squad.duplicate())
-	get_tree().root.add_child(confirm_panel)
+	# 淡出後直接進任務場景
+	var fade_layer = CanvasLayer.new()
+	fade_layer.layer = 99
+	add_child(fade_layer)
+	var fade = ColorRect.new()
+	fade.color = Color(0, 0, 0, 0)
+	fade.size = Vector2(1080, 1920)
+	fade_layer.add_child(fade)
+	var tw = create_tween()
+	tw.tween_property(fade, "color:a", 1.0, 0.45)
+	tw.tween_callback(func(): get_tree().change_scene_to_file("res://scenes/Main.tscn"))
 
 func _show_error(msg: String) -> void:
 	# 短暫顯示錯誤訊息（複用 offline_msg_label 邏輯，用獨立 label）
