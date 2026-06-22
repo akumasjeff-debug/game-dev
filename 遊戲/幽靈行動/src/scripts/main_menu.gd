@@ -337,7 +337,7 @@ func _has_save() -> bool:
 # ── 版本標示 ──────────────────────────────────────────────────────────
 func _build_version() -> void:
 	var lbl := Label.new()
-	lbl.text     = "v0.6.1 DEMO"
+	lbl.text     = "v0.6.2 DEMO"
 	lbl.position = Vector2(700, 1850)
 	lbl.size     = Vector2(360, 30)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

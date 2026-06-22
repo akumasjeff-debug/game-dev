@@ -14,6 +14,7 @@ const SAFE_BOTTOM := 60.0
 var _cards_json: Dictionary = {}
 var _gacha_config: Dictionary = {}
 var _busy: bool = false   # 動畫播放中鎖定抽卡按鈕
+var _results_dismissable: bool = false  # 抽卡結果可關閉狀態（多重保險：dim點擊/_input/自動關閉）
 
 func _ready() -> void:
 	layer = 15
@@ -272,14 +273,18 @@ func _show_pull_results(card_ids: Array) -> void:
 	var best = _best_grade(card_ids)
 	_show_dismiss_hint(best)
 
-	# 點擊任意處關閉結果（延遲 0.4 秒避免誤觸）
+	# 點擊任意處關閉結果（延遲 0.4 秒避免誤觸）—— 多重保險：dim 點擊 + _input + 自動關閉
 	var gate = get_tree().create_timer(0.45)
 	gate.timeout.connect(func():
+		_results_dismissable = true
 		if is_instance_valid(dim):
 			dim.gui_input.connect(func(ev):
-				if ev is InputEventMouseButton and ev.pressed:
+				if (ev is InputEventScreenTouch and ev.pressed) or (ev is InputEventMouseButton and ev.pressed):
 					_dismiss_results()
 			)
+		# 安全自動關閉：6 秒內若觸控都沒被偵測，自動關閉，永不卡死
+		var auto = get_tree().create_timer(6.0, true, false, true)
+		auto.timeout.connect(_dismiss_results)
 	)
 
 func _best_grade(card_ids: Array) -> String:
@@ -316,7 +321,18 @@ func _show_dismiss_hint(best_grade: String) -> void:
 	blink.tween_property(hint, "modulate:a", 0.4, 0.5)
 	blink.tween_property(hint, "modulate:a", 1.0, 0.5)
 
+# 備援：抽卡結果可關閉時，偵測任意觸控/點擊 → 關閉（與 dim.gui_input 互為備援）
+func _input(event: InputEvent) -> void:
+	if not _results_dismissable:
+		return
+	if (event is InputEventScreenTouch and event.pressed) or (event is InputEventMouseButton and event.pressed):
+		_dismiss_results()
+		get_viewport().set_input_as_handled()
+
 func _dismiss_results() -> void:
+	if not _results_dismissable:
+		return
+	_results_dismissable = false
 	_clear_result_nodes()
 	_busy = false
 
