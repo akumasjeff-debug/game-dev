@@ -79,6 +79,14 @@ var _breach_active: bool = false
 var _breach_cl: CanvasLayer = null
 var _breach_tween: Tween = null
 var _breach_on_complete: Callable = Callable()
+var _breach_timeout: float = -1.0  # 逐幀倒數的破門自動推進保險（最可靠：畫面在動就會跑）
+
+# 每幀倒數破門自動推進（_process 一定隨畫面跑，比 SceneTreeTimer 更保險）
+func _process(delta: float) -> void:
+	if _breach_active and _breach_timeout > 0.0:
+		_breach_timeout -= delta
+		if _breach_timeout <= 0.0:
+			_finish_breach()
 
 # ─────────────────────────────────────────────────────────────
 #  初始化
@@ -773,6 +781,7 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	# 破門畫面定格 —— 三重保險推進：①全螢幕 Button ②_input ③安全自動推進，確保真機絕不卡死
 	tw.tween_callback(func():
 		_breach_active = true
+		_breach_timeout = 3.0  # ④ 逐幀倒數自動推進（最可靠保險）
 
 		# ① 全螢幕點擊捕捉 Button（Control GUI 輸入，真機點按鈕證實可用；process_always 防任何 pause）
 		var catcher := Button.new()
@@ -851,6 +860,7 @@ func _finish_breach() -> void:
 	if not _breach_active:
 		return
 	_breach_active = false
+	_breach_timeout = -1.0
 	if _breach_tween and _breach_tween.is_valid():
 		_breach_tween.kill()
 	_breach_tween = null
