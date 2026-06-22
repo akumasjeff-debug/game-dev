@@ -705,7 +705,7 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	_door_frame = null
 
 	var cl := CanvasLayer.new()
-	cl.layer = 20
+	cl.layer = 100  # 拉到最高，確保在 HUD 與任何疊加層之上
 	add_child(cl)
 
 	var bar_top := ColorRect.new()
@@ -770,9 +770,27 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	tw.tween_property(flash, "color:a", 0.85, 0.06)
 	tw.tween_property(flash, "color:a", 0.0, 0.10)
 	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
-	# 破門畫面定格，不自動推進 —— 顯示「點擊繼續」提示，開放 _input 點擊推進
+	# 破門畫面定格 —— 三重保險推進：①全螢幕 Button ②_input ③安全自動推進，確保真機絕不卡死
 	tw.tween_callback(func():
 		_breach_active = true
+
+		# ① 全螢幕點擊捕捉 Button（Control GUI 輸入，真機點按鈕證實可用；process_always 防任何 pause）
+		var catcher := Button.new()
+		catcher.flat         = true
+		catcher.size         = Vector2(1080, 1920)
+		catcher.position     = Vector2.ZERO
+		catcher.focus_mode   = Control.FOCUS_NONE
+		catcher.mouse_filter = Control.MOUSE_FILTER_STOP
+		catcher.process_mode = Node.PROCESS_MODE_ALWAYS
+		var empty := StyleBoxEmpty.new()
+		for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+			catcher.add_theme_stylebox_override(st, empty)
+		cl.add_child(catcher)
+		catcher.pressed.connect(_finish_breach)
+		catcher.gui_input.connect(func(ev):
+			if (ev is InputEventScreenTouch and ev.pressed) or (ev is InputEventMouseButton and ev.pressed):
+				_finish_breach()
+		)
 
 		# 提示底襯（半透明圓角深底，讓文字在任何場景上都清楚）
 		var hint_bg = ColorRect.new()
@@ -809,9 +827,14 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 		ht.parallel().tween_property(hint_bg, "modulate:a", 1.0, 0.5)
 		ht.tween_property(hint, "modulate:a", 0.4, 0.5)
 		ht.parallel().tween_property(hint_bg, "modulate:a", 0.55, 0.5)
+
+		# ③ 安全自動推進：3.5 秒內若觸控都沒被偵測，自動進下一關，永不卡死
+		# （process_always + ignore_time_scale，不受暫停/變速影響）
+		var fb := get_tree().create_timer(3.5, true, false, true)
+		fb.timeout.connect(_finish_breach)
 	)
 
-# 破門定格時，偵測任意觸控/點擊 → 推進下一關
+# ② 破門定格時，偵測任意觸控/點擊 → 推進下一關（與 Button 互為備援）
 func _input(event: InputEvent) -> void:
 	if not _breach_active:
 		return

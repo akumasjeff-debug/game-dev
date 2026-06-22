@@ -2,6 +2,13 @@
 
 ## 已完成
 
+### v0.6.1（2026-06-22）— 🔴 破門點擊真機卡死徹底修復（三重保險）
+- **問題**：v0.5.10 Button 與 v0.5.11 _input 兩種破門點擊機制在真機 iOS 觸控都收不到 → 破門「點擊任意處繼續」卡死。判定為該裝置對動態疊加 CanvasLayer 的觸控不可靠。
+- **修法（三重保險，絕不卡死）**：① 全螢幕 Button(catcher) 用 Control gui_input + pressed（真機按鈕證實可用）、process_mode=ALWAYS ② 保留 main._input() 偵測 InputEventScreenTouch/MouseButton ③ **3.5 秒安全自動推進**（`get_tree().create_timer(3.5, true, false, true)` → _finish_breach，process_always + ignore_time_scale，不受暫停/變速影響）
+- 破門 CanvasLayer 層級 20→100（確保在 HUD/任何疊加層之上）
+- **驗證**：headless export 0 ERROR；自動推進為確定性 SceneTreeTimer 邏輯（Playwright 截圖在場景切換時必 GPU stall，反證推進有觸發）；版本 v0.6.0 → v0.6.1
+- 備註：使用者偏好手動點擊，但該裝置觸控不可靠，故加自動推進為安全網——點擊仍可提早跳過
+
 ### v0.6.0（2026-06-22）— 🎨 五 agent 並行全面美術/UIUX 升級
 五個 subagent 嚴格切分檔案所有權並行作業，整合後單次 headless + Playwright 驗證通過。
 - **HUD/UI（hud.gd + 新增 hud_radial.gd）**：技能卡環形 CD、就緒綠脈動、點擊回饋、HP 三段色、職業色邊框、陣亡灰階紅框；TopBar 進度條分段刻度+平滑填充；中央訊息佇列系統（新增 show_message()）；速度(Engine.time_scale x1/x2/x3)+暫停按鈕(64x64)；底部 home indicator 安全邊距
