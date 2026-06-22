@@ -74,6 +74,12 @@ var _door_left: ColorRect  = null
 var _door_right: ColorRect = null
 var _door_frame: ColorRect = null
 
+# 破門點擊推進狀態（用 _input 偵測觸控/點擊，Button 在真機觸控不可靠）
+var _breach_active: bool = false
+var _breach_cl: CanvasLayer = null
+var _breach_tween: Tween = null
+var _breach_on_complete: Callable = Callable()
+
 # ─────────────────────────────────────────────────────────────
 #  初始化
 # ─────────────────────────────────────────────────────────────
@@ -503,25 +509,12 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	cl.add_child(flash)
 
 	var tw := create_tween()
-	var _skipped := false
 
-	# 透明點擊區：玩家點擊跳過
-	var skip_btn := Button.new()
-	skip_btn.flat         = true
-	skip_btn.size         = Vector2(1080, 1920)
-	skip_btn.position     = Vector2.ZERO
-	skip_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	var empty_style := StyleBoxEmpty.new()
-	for state in ["normal", "hover", "pressed", "focus"]:
-		skip_btn.add_theme_stylebox_override(state, empty_style)
-	cl.add_child(skip_btn)
-	skip_btn.pressed.connect(func():
-		if _skipped: return
-		_skipped = true
-		tw.kill()
-		cl.queue_free()
-		on_complete.call()
-	)
+	# 破門點擊推進：交給 main._input() 偵測（Button.pressed 在真機觸控收不到）
+	_breach_cl          = cl
+	_breach_tween       = tw
+	_breach_on_complete = on_complete
+	_breach_active      = false  # 進場動畫播完才開放點擊
 
 	tw.tween_property(bar_top, "position:y", 0.0, 0.15).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(bar_bot, "position:y", 1660.0, 0.15).set_ease(Tween.EASE_OUT)
@@ -533,8 +526,9 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	tw.tween_property(flash, "color:a", 0.85, 0.06)
 	tw.tween_property(flash, "color:a", 0.0, 0.10)
 	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
-	# 破門畫面定格，不自動推進 —— 顯示「點擊繼續」提示，必須點擊螢幕（skip_btn）才進入下一關
+	# 破門畫面定格，不自動推進 —— 顯示「點擊繼續」提示，開放 _input 點擊推進
 	tw.tween_callback(func():
+		_breach_active = true
 		var hint := Label.new()
 		hint.text = "點擊任意處繼續"
 		hint.add_theme_font_size_override("font_size", 46)
@@ -550,3 +544,31 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 		ht.tween_property(hint, "modulate:a", 1.0, 0.5)
 		ht.tween_property(hint, "modulate:a", 0.35, 0.5)
 	)
+
+# 破門定格時，偵測任意觸控/點擊 → 推進下一關
+func _input(event: InputEvent) -> void:
+	if not _breach_active:
+		return
+	var tapped := false
+	if event is InputEventScreenTouch and event.pressed:
+		tapped = true
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		tapped = true
+	if tapped:
+		_finish_breach()
+		get_viewport().set_input_as_handled()
+
+func _finish_breach() -> void:
+	if not _breach_active:
+		return
+	_breach_active = false
+	if _breach_tween and _breach_tween.is_valid():
+		_breach_tween.kill()
+	_breach_tween = null
+	if _breach_cl and is_instance_valid(_breach_cl):
+		_breach_cl.queue_free()
+	_breach_cl = null
+	var cb := _breach_on_complete
+	_breach_on_complete = Callable()
+	if cb.is_valid():
+		cb.call()

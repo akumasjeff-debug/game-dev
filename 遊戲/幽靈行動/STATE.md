@@ -2,6 +2,11 @@
 
 ## 已完成
 
+### v0.5.11（2026-06-22）— 🔴 破門卡死修復 + 敵方攻擊力調降
+- **🔴 破門點擊失效修復**：v0.5.10 的破門定格用 Button.pressed 偵測點擊，真機 iOS 觸控收不到 → 卡死無法推進。改用 main.gd `_input()` 直接攔截 `InputEventScreenTouch`（真機觸控）+ `InputEventMouseButton`（滑鼠），這是 Godot 最底層、不受 GUI 圖層影響的輸入路徑。新增 `_breach_active/_breach_cl/_breach_tween/_breach_on_complete` 狀態 + `_finish_breach()`
+- **敵方攻擊力調降**：普通兵 45→28、精英 55→38、Boss 65→48；攻擊間隔普通兵 2.5→2.8、精英 2.0→2.2、Boss 2.0→2.2。緩解隨機目標後脆皮後排（醫療兵/狙擊手）被秒問題
+- **驗證**：Playwright 確認破門清場後定格、5 秒不點擊不會自動推進（before==hold）、四名隊員全存活（ATK 降後不再陣亡）；點擊後 GPU 持續卡頓 = 場景切換中（推進成功的徵兆，swiftshader 抓不到切換幀）；版本 v0.5.10 → v0.5.11
+
 ### v0.5.10（2026-06-22）— 隨機目標 + 破門定格 + 技能橫幅
 - **破門動畫改為「點擊才繼續」**：main.gd `_play_door_open_animation()` 移除自動推進的 tween 尾段，破門 flash 後定格並顯示「點擊任意處繼續」脈動提示，唯一推進路徑是全螢幕 skip_btn 點擊
 - **我方隨機射擊**：character.gd `_try_auto_attack()` 從「鎖定最近敵人」改為「隨機選一名存活敵人」

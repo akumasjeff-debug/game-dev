@@ -49,19 +49,19 @@ func _apply_type_stats() -> void:
 	match enemy_type:
 		EnemyType.NORMAL:
 			enemy_name   = "普通兵"
-			max_hp       = 1000.0  # 1200→1000：配合 ATK 提升，縮短 1-1 時長至約 24s
-			attack_power = 45.0    # 35→45：提升壓迫感，盾兵（500HP）存活約 9.3s
-			attack_interval = 2.5
+			max_hp       = 1000.0
+			attack_power = 28.0    # 45→28：隨機目標後脆皮後排也會中彈，降低 ATK 避免後排秒死
+			attack_interval = 2.8  # 2.5→2.8：略放慢攻擊節奏
 		EnemyType.ELITE:
 			enemy_name   = "精英"
 			max_hp       = 1650.0
-			attack_power = 55.0
-			attack_interval = 2.0
+			attack_power = 38.0    # 55→38
+			attack_interval = 2.2
 		EnemyType.BOSS:
 			enemy_name   = "Boss"
 			max_hp       = 2800.0
-			attack_power = 65.0    # 75→65：降低 Boss 房單位時間傷害，給玩家喘息空間
-			attack_interval = 2.0  # 1.5→2.0：配合 ATK 調降，讓玩家有時間反應
+			attack_power = 48.0    # 65→48：降低 Boss 房單位時間傷害
+			attack_interval = 2.2  # 2.0→2.2
 
 const SPRITE_PATHS: Array[String] = [
 	"res://resources/art/sprites/grunt_sprite.svg",   # NORMAL
