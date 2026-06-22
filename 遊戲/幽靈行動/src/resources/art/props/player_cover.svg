@@ -1,32 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="280" height="18" shape-rendering="crispEdges">
-  <!-- 底部陰影邊 -->
-  <rect x="0" y="16" width="280" height="2" fill="#1E2228"/>
-  <!-- 主體混凝土 -->
-  <rect x="0" y="2" width="280" height="14" fill="#3A3F4A"/>
-  <!-- 頂部亮邊高光 -->
-  <rect x="0" y="0" width="280" height="2" fill="#505A68"/>
-
-  <!-- 分格縫 x=40 -->
-  <rect x="40" y="2" width="1" height="14" fill="#1E2228"/>
-  <!-- 分格縫 x=80 -->
-  <rect x="80" y="2" width="1" height="14" fill="#1E2228"/>
-  <!-- 分格縫 x=120 -->
-  <rect x="120" y="2" width="1" height="14" fill="#1E2228"/>
-  <!-- 分格縫 x=160 -->
-  <rect x="160" y="2" width="1" height="14" fill="#1E2228"/>
-  <!-- 分格縫 x=200 -->
-  <rect x="200" y="2" width="1" height="14" fill="#1E2228"/>
-  <!-- 分格縫 x=240 -->
-  <rect x="240" y="2" width="1" height="14" fill="#1E2228"/>
-
-  <!-- 左端護角加固（深色方塊） -->
-  <rect x="0" y="2" width="10" height="14" fill="#2D3240"/>
-  <rect x="0" y="2" width="2" height="14" fill="#505A68"/>
-
-  <!-- 右端護角加固 -->
-  <rect x="270" y="2" width="10" height="14" fill="#2D3240"/>
-  <rect x="278" y="2" width="2" height="14" fill="#505A68"/>
-
-  <!-- 微高光細節（中間偏亮帶） -->
-  <rect x="10" y="3" width="230" height="2" fill="#424855"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="30" shape-rendering="crispEdges">
+  <rect x="0" y="27" width="920" height="3" fill="#23210F"/>
+  <rect x="-10.0" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="-6.0" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="-7.0" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="0.0" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="73.6" y="2" width="103.7" height="26" rx="6" ry="6" fill="#8E8A66"/>
+  <rect x="77.6" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="76.6" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="83.6" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="157.2" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="161.2" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="160.2" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="167.3" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="240.9" y="2" width="103.7" height="26" rx="6" ry="6" fill="#8E8A66"/>
+  <rect x="244.9" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="243.9" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="250.9" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="324.5" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="328.5" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="327.5" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="334.5" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="408.1" y="2" width="103.7" height="26" rx="6" ry="6" fill="#8E8A66"/>
+  <rect x="412.1" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="411.1" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="418.2" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="491.8" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="495.8" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="494.8" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="501.8" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="575.4" y="2" width="103.7" height="26" rx="6" ry="6" fill="#8E8A66"/>
+  <rect x="579.4" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="578.4" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="585.5" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="659.1" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="663.1" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="662.1" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="669.1" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="742.7" y="2" width="103.7" height="26" rx="6" ry="6" fill="#8E8A66"/>
+  <rect x="746.7" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="745.7" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="752.7" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="826.3" y="2" width="103.7" height="26" rx="6" ry="6" fill="#6E6A4D"/>
+  <rect x="830.3" y="3" width="95.7" height="3" rx="2" fill="#8E8A66"/>
+  <rect x="829.3" y="23" width="97.7" height="3" rx="2" fill="#45422E"/>
+  <rect x="836.4" y="2" width="2" height="25" fill="#3A3724"/>
+  <rect x="0" y="1" width="920" height="1" fill="#8E8A66"/>
 </svg>
