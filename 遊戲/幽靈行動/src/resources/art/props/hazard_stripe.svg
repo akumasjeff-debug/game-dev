@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="24" shape-rendering="crispEdges">
+  <!-- 黃黑警戒斜紋條（地面危險標線） -->
+  <rect x="0" y="0" width="120" height="24" fill="#1A1810"/>
+  <rect x="0" y="3" width="120" height="18" fill="#0F0E08"/>
+  <!-- 斜條：以方塊近似 45 度 -->
+  <rect x="4"  y="4" width="14" height="16" fill="#C9A21A"/>
+  <rect x="32" y="4" width="14" height="16" fill="#C9A21A"/>
+  <rect x="60" y="4" width="14" height="16" fill="#C9A21A"/>
+  <rect x="88" y="4" width="14" height="16" fill="#C9A21A"/>
+  <!-- 高光邊 -->
+  <rect x="4"  y="4" width="14" height="3" fill="#E6C440"/>
+  <rect x="32" y="4" width="14" height="3" fill="#E6C440"/>
+  <rect x="60" y="4" width="14" height="3" fill="#E6C440"/>
+  <rect x="88" y="4" width="14" height="3" fill="#E6C440"/>
+</svg>

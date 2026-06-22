@@ -156,9 +156,9 @@ func _build_ui() -> void:
 	hint.size = Vector2(1000, 40)
 	add_child(hint)
 
-	# ── 卡片列表 ScrollContainer y=490~1830 ──
+	# ── 卡片列表 ScrollContainer y=490~1720 ──
 	_scroll = ScrollContainer.new()
-	_scroll.size = Vector2(1080, 1340)
+	_scroll.size = Vector2(1080, 1230)
 	_scroll.position = Vector2(0, 490)
 	add_child(_scroll)
 
@@ -167,12 +167,27 @@ func _build_ui() -> void:
 	_scroll.add_child(_card_list_container)
 	_refresh_card_list()
 
-	# ── 確認陣容按鈕 y=1850 ──
-	var confirm_btn := _make_button("確認陣容", 32)
+	# ── 底部確認列（深底 + 安全邊距）──
+	var bottom_bar := ColorRect.new()
+	bottom_bar.color = Color(0.05, 0.07, 0.11, 0.98)
+	bottom_bar.size = Vector2(1080, 200)
+	bottom_bar.position = Vector2(0, 1720)
+	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bottom_bar)
+	var bar_line := ColorRect.new()
+	bar_line.color = Color(0.30, 0.45, 0.65, 0.6)
+	bar_line.size = Vector2(1080, 2)
+	bar_line.position = Vector2(0, 1720)
+	bar_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bar_line)
+
+	# ── 確認陣容按鈕（綠色強調，尊重安全邊距 60px）──
+	var confirm_btn := _make_button("確認陣容", 34)
 	confirm_btn.name = "ConfirmBtn"
-	confirm_btn.size = Vector2(900, 80)
-	confirm_btn.position = Vector2(90, 1830)
-	confirm_btn.modulate = Color(0.4, 1.0, 0.5)
+	confirm_btn.size = Vector2(1000, 96)
+	confirm_btn.position = Vector2(40, 1760)
+	_style_button(confirm_btn, Color(0.10, 0.40, 0.16))
+	confirm_btn.add_theme_color_override("font_color", Color(0.7, 1.0, 0.78))
 	confirm_btn.pressed.connect(_on_confirm_squad)
 	add_child(confirm_btn)
 
@@ -249,24 +264,149 @@ func _refresh_card_list() -> void:
 
 	_rebuild_owned_list()
 
+	# 合併清單：可換入的擁有卡（前）+ 未擁有卡（後，鎖定灰階）
+	var unowned := _build_unowned_list()
+	var display_list: Array = []
+	for cid in _owned_list:
+		display_list.append({"id": cid, "owned": true})
+	for cid in unowned:
+		display_list.append({"id": cid, "owned": false})
+
 	var cols := 3
 	var card_w := 320
 	var card_h := 480
 	var pad_x := 40
 	var pad_y := 20
-	var total_rows := int(ceil(float(_owned_list.size()) / cols))
+	var total_rows := int(ceil(float(display_list.size()) / cols))
 	var total_height := total_rows * (card_h + pad_y) + pad_y
 
 	_card_list_container.custom_minimum_size = Vector2(1080, max(total_height, 100))
 
-	for idx in _owned_list.size():
-		var card_id: String = _owned_list[idx]
+	for idx in display_list.size():
+		var entry: Dictionary = display_list[idx]
 		var col := idx % cols
 		var row := idx / cols
 		var card_x := pad_x / 2 + col * (card_w + (1080 - cols * card_w) / (cols + 1))
 		var card_y := pad_y + row * (card_h + pad_y)
-		var card_slot := _build_card_slot(card_id, card_x, card_y)
+		var card_slot: Control
+		if entry["owned"]:
+			card_slot = _build_card_slot(entry["id"], card_x, card_y)
+		else:
+			card_slot = _build_locked_slot(entry["id"], card_x, card_y)
 		_card_list_container.add_child(card_slot)
+
+# 未擁有卡（用於圖鑑顯示，按 grade 順序）
+func _build_unowned_list() -> Array:
+	var sm := _save_mgr()
+	var result: Array = []
+	for card_id in _cards:
+		var is_owned := sm != null and sm.has_method("has_card") and sm.has_card(card_id)
+		if not is_owned:
+			result.append(card_id)
+	var grade_order := {"QR": 0, "SSR": 1, "SR": 2, "R": 3}
+	result.sort_custom(func(a, b):
+		var ga = grade_order.get(_cards.get(a, {}).get("grade", "R"), 3)
+		var gb = grade_order.get(_cards.get(b, {}).get("grade", "R"), 3)
+		if ga != gb:
+			return ga < gb
+		return a < b
+	)
+	return result
+
+# 未擁有卡片：剪影 + 鎖頭，不可點擊換入
+func _build_locked_slot(card_id: String, pos_x: float, pos_y: float) -> Control:
+	var card_info: Dictionary = _cards.get(card_id, {})
+	var grade: String = card_info.get("grade", "R")
+	var w := 320
+	var h := 480
+
+	var slot := Control.new()
+	slot.custom_minimum_size = Vector2(w, h)
+	slot.position = Vector2(pos_x, pos_y)
+
+	# 暗底
+	var card_bg := ColorRect.new()
+	card_bg.size = Vector2(w - 10, h - 10)
+	card_bg.position = Vector2(5, 5)
+	var g := GRADE_BG.get(grade, Color(0.10, 0.10, 0.15))
+	card_bg.color = Color(g.r * 0.35, g.g * 0.35, g.b * 0.35, 0.95)
+	card_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.add_child(card_bg)
+
+	# 暗灰邊框
+	var border_style := StyleBoxFlat.new()
+	border_style.bg_color = Color(0, 0, 0, 0)
+	border_style.border_color = Color(0.25, 0.25, 0.30, 0.7)
+	border_style.set_border_width_all(2)
+	border_style.set_corner_radius_all(4)
+	var border_panel := Panel.new()
+	border_panel.size = Vector2(w - 10, h - 10)
+	border_panel.position = Vector2(5, 5)
+	border_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border_panel.add_theme_stylebox_override("panel", border_style)
+	slot.add_child(border_panel)
+
+	# 肖像剪影（深色化）
+	var portrait_path: String = card_info.get("portrait_path", "")
+	if portrait_path != "" and ResourceLoader.exists(portrait_path):
+		var portrait := TextureRect.new()
+		portrait.texture = load(portrait_path)
+		portrait.size = Vector2(w - 20, 290)
+		portrait.position = Vector2(10, 10)
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.modulate = Color(0.05, 0.06, 0.08, 0.95)  # 黑色剪影
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot.add_child(portrait)
+
+	# 鎖定圖示（用色塊繪製簡易鎖頭，避免字體缺字）
+	var lock_body := ColorRect.new()
+	lock_body.size = Vector2(72, 56)
+	lock_body.position = Vector2(w / 2 - 36, 150)
+	lock_body.color = Color(0.40, 0.40, 0.50, 0.9)
+	lock_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.add_child(lock_body)
+	var lock_shackle := Panel.new()
+	lock_shackle.size = Vector2(44, 40)
+	lock_shackle.position = Vector2(w / 2 - 22, 116)
+	var ls := StyleBoxFlat.new()
+	ls.bg_color = Color(0, 0, 0, 0)
+	ls.border_color = Color(0.40, 0.40, 0.50, 0.9)
+	ls.border_width_top = 8
+	ls.border_width_left = 8
+	ls.border_width_right = 8
+	ls.set_corner_radius_all(22)
+	lock_shackle.add_theme_stylebox_override("panel", ls)
+	lock_shackle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.add_child(lock_shackle)
+
+	# 稀有度（仍顯示，引導玩家「想要」）
+	var grade_lbl := _make_label(grade, 24, GRADE_BORDER.get(grade, Color(0.5, 0.5, 0.6)))
+	grade_lbl.position = Vector2(10, 308)
+	grade_lbl.size = Vector2(w - 20, 30)
+	grade_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.add_child(grade_lbl)
+
+	# 未擁有提示
+	var status := _make_label("未取得", 22, Color(0.55, 0.55, 0.6))
+	status.position = Vector2(10, 344)
+	status.size = Vector2(w - 20, 28)
+	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.add_child(status)
+
+	# 「招募取得」按鈕（引導抽卡）
+	var go := _make_button("招募取得", 18)
+	go.size = Vector2(w - 10, 52)
+	go.position = Vector2(5, 418)
+	_style_button(go, Color(0.20, 0.12, 0.40))
+	go.pressed.connect(_on_locked_recruit)
+	slot.add_child(go)
+
+	return slot
+
+func _on_locked_recruit() -> void:
+	# 圖鑑內點「招募取得」→ 關閉圖鑑，回基地（玩家可進招募中心）
+	emit_signal("gallery_closed")
+	queue_free()
 
 # ──────────────────────────────────────────────
 # 完整刷新（陣容 + 卡片列表）
@@ -438,7 +578,29 @@ func _make_button(text_str: String, font_size: int) -> Button:
 	btn.add_theme_font_size_override("font_size", font_size)
 	if _font:
 		btn.add_theme_font_override("font", _font)
+	btn.focus_mode = Control.FOCUS_NONE
+	_style_button(btn, Color(0.12, 0.18, 0.30))
 	return btn
+
+func _style_button(btn: Button, bg: Color) -> void:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = Color(minf(bg.r + 0.22, 1.0), minf(bg.g + 0.22, 1.0), minf(bg.b + 0.22, 1.0), 0.8)
+	s.set_border_width_all(2)
+	s.set_corner_radius_all(10)
+	btn.add_theme_stylebox_override("normal", s)
+	var h := StyleBoxFlat.new()
+	h.bg_color = Color(minf(bg.r + 0.12, 1.0), minf(bg.g + 0.12, 1.0), minf(bg.b + 0.12, 1.0))
+	h.border_color = s.border_color
+	h.set_border_width_all(2)
+	h.set_corner_radius_all(10)
+	btn.add_theme_stylebox_override("hover", h)
+	var p := StyleBoxFlat.new()
+	p.bg_color = Color(maxf(bg.r - 0.05, 0.0), maxf(bg.g - 0.05, 0.0), maxf(bg.b - 0.05, 0.0))
+	p.border_color = s.border_color
+	p.set_border_width_all(2)
+	p.set_corner_radius_all(10)
+	btn.add_theme_stylebox_override("pressed", p)
 
 func _draw_border(parent: Control, pos: Vector2, size: Vector2, color: Color, thickness: int) -> void:
 	var borders := [

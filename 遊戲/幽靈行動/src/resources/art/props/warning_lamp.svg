@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="56" shape-rendering="crispEdges">
+  <!-- 旋轉警示燈（紅色，戰術警報感） -->
+  <!-- 底座 -->
+  <rect x="10" y="46" width="28" height="10" fill="#1A1C22"/>
+  <rect x="14" y="42" width="20" height="6" fill="#26282F"/>
+  <!-- 燈罩 -->
+  <rect x="12" y="14" width="24" height="30" fill="#C81818"/>
+  <rect x="12" y="14" width="24" height="6" fill="#FF4434"/>
+  <rect x="12" y="38" width="24" height="6" fill="#8A0E0E"/>
+  <!-- 燈罩高光直條 -->
+  <rect x="16" y="16" width="3" height="26" fill="#FF7A66"/>
+  <rect x="28" y="16" width="2" height="26" fill="#E03A2A"/>
+  <!-- 頂蓋 -->
+  <rect x="14" y="8" width="20" height="8" fill="#1A1C22"/>
+  <rect x="20" y="4" width="8" height="6" fill="#26282F"/>
+</svg>

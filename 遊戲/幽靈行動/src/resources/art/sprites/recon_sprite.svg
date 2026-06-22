@@ -75,4 +75,20 @@
   <!-- 手槍 -->
   <rect x="52" y="36" width="7" height="4" fill="#1A1A1A"/>
   <rect x="55" y="40" width="4" height="5" fill="#141414"/>
+
+  <!-- ▼ 質感強化：邊緣高光與識別亮點 ▼ -->
+  <!-- 頭盔頂部亮邊（rim light） -->
+  <rect x="22" y="5" width="14" height="1" fill="#55EEEE"/>
+  <!-- 夜視鏡鏡片發光（青色辨識，最醒目特徵更亮） -->
+  <rect x="26" y="12" width="3" height="1" fill="#22FFFF"/>
+  <rect x="35" y="12" width="3" height="1" fill="#22FFFF"/>
+  <!-- 天線尖端訊號燈 -->
+  <rect x="19" y="2" width="2" height="1" fill="#88FFFF"/>
+  <!-- 無線電螢幕高亮 -->
+  <rect x="5" y="33" width="8" height="1" fill="#33FFCC"/>
+  <!-- 肩甲頂緣高光 -->
+  <rect x="9" y="29" width="14" height="1" fill="#44DDDD"/>
+  <rect x="41" y="29" width="14" height="1" fill="#2D9A9A"/>
+  <!-- 胸甲底部陰影 -->
+  <rect x="20" y="45" width="24" height="2" fill="#061818"/>
 </svg>

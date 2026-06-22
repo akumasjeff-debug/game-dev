@@ -15,6 +15,16 @@ var mission_buttons: Array = []    # 任務板按鈕
 var _mission_cards: Array = []     # 任務卡片節點（Panel 容器）
 var ticket_label: Label
 
+# ── 統一設計配色（軍事深藍灰 + 金/橘點綴）──
+const COL_BG_DEEP := Color(0.04, 0.055, 0.085)
+const COL_PANEL   := Color(0.09, 0.12, 0.17, 0.96)
+const COL_STEEL   := Color(0.30, 0.45, 0.65)
+const COL_GOLD    := Color(1.0, 0.78, 0.25)
+const COL_ORANGE  := Color(1.0, 0.55, 0.12)
+const SAFE_BOTTOM := 60.0   # home indicator 安全邊距
+
+var _base_fade: ColorRect
+
 # 放置橫帶
 var _idle_banner_node: Control = null
 var _idle_chars: Array = []      # 4 個角色的小圖示節點
@@ -73,11 +83,11 @@ func _process(delta: float) -> void:
 	_update_idle_banner(delta)
 
 func _build_ui() -> void:
-	# 背景
+	# 背景（軍事深藍灰）
 	var bg = ColorRect.new()
 	bg.anchor_right = 1.0
 	bg.anchor_bottom = 1.0
-	bg.color = Color(0.06, 0.08, 0.06)
+	bg.color = COL_BG_DEEP
 	add_child(bg)
 
 	# ── 頂部標題列 ──
@@ -104,45 +114,107 @@ func _build_ui() -> void:
 	# ── 離線金幣彈窗（預設隱藏）──
 	_add_offline_popup()
 
+	# ── 進場淡入遮罩（最上層）──
+	_add_base_fade()
+
+func _add_base_fade() -> void:
+	var layer = CanvasLayer.new()
+	layer.layer = 90
+	layer.name = "BaseFadeLayer"
+	add_child(layer)
+	_base_fade = ColorRect.new()
+	_base_fade.color = Color(0, 0, 0, 1.0)
+	_base_fade.size = Vector2(1080, 1920)
+	_base_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_base_fade)
+	var tw = create_tween()
+	tw.tween_property(_base_fade, "color:a", 0.0, 0.45).set_ease(Tween.EASE_OUT)
+
 func _add_top_bar() -> void:
 	var top = Control.new()
 	top.anchor_right = 1.0
-	top.custom_minimum_size = Vector2(0, 100)
+	top.custom_minimum_size = Vector2(0, 108)
 	add_child(top)
 
+	# 頂欄背景（深色 + 底部金線）
 	var top_bg = ColorRect.new()
-	top_bg.anchor_right = 1.0
-	top_bg.anchor_bottom = 1.0
-	top_bg.color = Color(0.05, 0.06, 0.05, 0.95)
+	top_bg.size = Vector2(1080, 108)
+	top_bg.color = Color(0.045, 0.06, 0.09, 0.98)
 	top.add_child(top_bg)
+	var underline = ColorRect.new()
+	underline.position = Vector2(0, 106)
+	underline.size = Vector2(1080, 3)
+	underline.color = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.55)
+	top.add_child(underline)
 
+	# 標題（左側，含色塊裝飾）
+	var title_tab = ColorRect.new()
+	title_tab.position = Vector2(0, 24)
+	title_tab.size = Vector2(8, 60)
+	title_tab.color = COL_ORANGE
+	top.add_child(title_tab)
 	var title = Label.new()
-	title.text = "幽靈行動 — 基地"
-	title.position = Vector2(30, 20)
-	title.add_theme_font_size_override("font_size", 36)
-	title.modulate = Color(0.9, 0.9, 0.7)
+	title.text = "基 地"
+	title.position = Vector2(28, 14)
+	title.add_theme_font_size_override("font_size", 38)
+	title.modulate = Color(0.95, 0.95, 0.82)
 	top.add_child(title)
+	var subtitle = Label.new()
+	subtitle.text = "GHOST · HQ"
+	subtitle.position = Vector2(30, 62)
+	subtitle.add_theme_font_size_override("font_size", 18)
+	subtitle.modulate = Color(0.45, 0.58, 0.72)
+	top.add_child(subtitle)
 
-	coins_label = Label.new()
-	coins_label.position = Vector2(580, 10)
-	coins_label.add_theme_font_size_override("font_size", 28)
-	coins_label.modulate = Color(1.0, 0.9, 0.3)
-	coins_label.name = "CoinsLabel"
-	top.add_child(coins_label)
+	# ── 資源膠囊（右側，金幣 / 票券 / 體力）──
+	# 由右往左排版，避免不同位數造成擠壓
+	coins_label = _make_resource_pill(top, Vector2(560, 14), Color(1.0, 0.85, 0.30), "金", "CoinsLabel", 360)
+	# 票券（藍/金合併膠囊）
+	ticket_label = _make_resource_pill(top, Vector2(560, 60), Color(0.55, 0.80, 1.0), "票", "TicketLabel", 240)
+	stamina_label = _make_resource_pill(top, Vector2(812, 60), Color(0.45, 1.0, 0.65), "力", "StaminaLabel", 256)
 
-	ticket_label = Label.new()
-	ticket_label.position = Vector2(580, 48)
-	ticket_label.add_theme_font_size_override("font_size", 24)
-	ticket_label.modulate = Color(0.6, 0.8, 1.0)
-	ticket_label.name = "TicketLabel"
-	top.add_child(ticket_label)
+# 建立一個資源膠囊：左側圓形圖示底 + 數值文字。回傳數值 Label。
+func _make_resource_pill(parent: Control, pos: Vector2, accent: Color, icon_txt: String, label_name: String, width: float) -> Label:
+	var pill = Panel.new()
+	pill.position = pos
+	pill.size = Vector2(width, 40)
+	var st = StyleBoxFlat.new()
+	st.bg_color = Color(0.10, 0.13, 0.18, 0.95)
+	st.border_color = Color(accent.r, accent.g, accent.b, 0.55)
+	st.set_border_width_all(2)
+	st.set_corner_radius_all(20)
+	pill.add_theme_stylebox_override("panel", st)
+	parent.add_child(pill)
 
-	stamina_label = Label.new()
-	stamina_label.position = Vector2(580, 80)
-	stamina_label.add_theme_font_size_override("font_size", 22)
-	stamina_label.modulate = Color(0.4, 1.0, 0.6)
-	stamina_label.name = "StaminaLabel"
-	top.add_child(stamina_label)
+	# 圖示圓底
+	var icon_bg = Panel.new()
+	icon_bg.position = Vector2(3, 3)
+	icon_bg.size = Vector2(34, 34)
+	var ist = StyleBoxFlat.new()
+	ist.bg_color = Color(accent.r * 0.4, accent.g * 0.4, accent.b * 0.4, 1.0)
+	ist.set_corner_radius_all(17)
+	icon_bg.add_theme_stylebox_override("panel", ist)
+	pill.add_child(icon_bg)
+	var icon_lbl = Label.new()
+	icon_lbl.text = icon_txt
+	icon_lbl.position = Vector2(3, 3)
+	icon_lbl.size = Vector2(34, 34)
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_lbl.add_theme_font_size_override("font_size", 20)
+	icon_lbl.modulate = accent
+	pill.add_child(icon_lbl)
+
+	# 數值
+	var val = Label.new()
+	val.name = label_name
+	val.position = Vector2(44, 0)
+	val.size = Vector2(width - 52, 40)
+	val.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	val.add_theme_font_size_override("font_size", 24)
+	val.modulate = accent
+	pill.add_child(val)
+	return val
 
 func _add_mission_board() -> void:
 	# 區塊標題
@@ -393,48 +465,107 @@ func _add_squad_panel() -> void:
 		squad_slots.append(slot_btn)
 
 func _add_launch_button() -> void:
+	# 主行動按鈕：出發（最醒目，橘金大鈕）
 	var btn = Button.new()
-	btn.text = "出發"
-	btn.position = Vector2(90, 1460)
-	btn.custom_minimum_size = Vector2(900, 120)
-	btn.add_theme_font_size_override("font_size", 40)
+	btn.text = "出　發"
+	btn.position = Vector2(60, 1455)
+	btn.custom_minimum_size = Vector2(960, 128)
+	btn.size = Vector2(960, 128)
+	btn.add_theme_font_size_override("font_size", 46)
 	btn.name = "LaunchBtn"
-	_style_button(btn, Color(0.6, 0.25, 0.0))
+	btn.add_theme_color_override("font_color", Color(1.0, 0.97, 0.88))
+	_style_action_button(btn, Color(0.62, 0.30, 0.02), COL_GOLD, true)
+	btn.pivot_offset = Vector2(480, 64)
 	btn.pressed.connect(_on_launch_pressed)
 	add_child(btn)
+	_attach_press_fx(btn)
 
 func _add_gacha_button() -> void:
+	# 次要功能列：招募中心 / 升級管理（並排兩張卡片鈕）
+	var y = 1600.0
+	var gw = 470.0
+	var gap = 20.0
+
+	var gacha = _make_nav_card("招募中心", "抽取新幹員", Color(0.20, 0.12, 0.42), Color(0.65, 0.45, 1.0), "募")
+	gacha.position = Vector2(60, y)
+	gacha.custom_minimum_size = Vector2(gw, 120)
+	gacha.size = Vector2(gw, 120)
+	gacha.name = "GachaBtn"
+	gacha.pressed.connect(_open_gacha)
+	add_child(gacha)
+	_attach_press_fx(gacha)
+
+	var upg = _make_nav_card("升級管理", "強化你的幹員", Color(0.10, 0.22, 0.30), Color(0.40, 0.80, 1.0), "升")
+	upg.position = Vector2(60 + gw + gap, y)
+	upg.custom_minimum_size = Vector2(gw, 120)
+	upg.size = Vector2(gw, 120)
+	upg.name = "UpgradeBtn"
+	upg.pressed.connect(_open_upgrade_panel)
+	add_child(upg)
+	_attach_press_fx(upg)
+
+# 帶標題 + 副標 + 角標的導覽卡片按鈕
+func _make_nav_card(title: String, sub: String, bg: Color, accent: Color, badge: String) -> Button:
 	var btn = Button.new()
-	btn.text = "招募中心"
-	btn.position = Vector2(90, 1600)
-	btn.custom_minimum_size = Vector2(900, 110)
-	btn.add_theme_font_size_override("font_size", 34)
-	btn.name = "GachaBtn"
-	_style_button(btn, Color(0.15, 0.10, 0.35))
-	btn.pressed.connect(_open_gacha)
-	add_child(btn)
+	btn.text = ""
+	_style_action_button(btn, bg, accent, false)
+
+	var tab = ColorRect.new()
+	tab.position = Vector2(0, 0)
+	tab.size = Vector2(6, 120)
+	tab.color = accent
+	tab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(tab)
+
+	var t = Label.new()
+	t.text = title
+	t.position = Vector2(24, 24)
+	t.add_theme_font_size_override("font_size", 34)
+	t.modulate = Color(0.97, 0.97, 1.0)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(t)
+
+	var s = Label.new()
+	s.text = sub
+	s.position = Vector2(24, 72)
+	s.add_theme_font_size_override("font_size", 20)
+	s.modulate = Color(accent.r, accent.g, accent.b, 0.85)
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(s)
+
+	var b = Label.new()
+	b.text = badge
+	b.position = Vector2(400, 18)
+	b.size = Vector2(56, 56)
+	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_font_size_override("font_size", 40)
+	b.modulate = Color(accent.r, accent.g, accent.b, 0.5)
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(b)
+	return btn
 
 func _add_upgrade_button() -> void:
-	# DEMO 重置按鈕
+	# DEMO 重置按鈕（低調，置於安全邊距上方）
 	var reset_btn = Button.new()
-	reset_btn.text = "[ DEMO ] 清空所有紀錄，重新開始"
-	reset_btn.position = Vector2(90, 1730)
-	reset_btn.custom_minimum_size = Vector2(900, 80)
+	reset_btn.text = "DEMO · 清空紀錄重新開始"
+	reset_btn.position = Vector2(290, 1745)
+	reset_btn.custom_minimum_size = Vector2(500, 56)
+	reset_btn.size = Vector2(500, 56)
 	reset_btn.add_theme_font_size_override("font_size", 20)
 	reset_btn.name = "DemoResetBtn"
 	var rs = StyleBoxFlat.new()
-	rs.bg_color = Color(0.20, 0.04, 0.04, 0.85)
-	rs.border_color = Color(0.55, 0.15, 0.15, 0.8)
-	rs.set_border_width_all(2)
-	rs.set_corner_radius_all(5)
+	rs.bg_color = Color(0.16, 0.05, 0.05, 0.7)
+	rs.border_color = Color(0.50, 0.18, 0.18, 0.6)
+	rs.set_border_width_all(1)
+	rs.set_corner_radius_all(10)
 	reset_btn.add_theme_stylebox_override("normal", rs)
 	var rh = StyleBoxFlat.new()
-	rh.bg_color = Color(0.38, 0.08, 0.08)
+	rh.bg_color = Color(0.32, 0.08, 0.08)
 	rh.border_color = Color(0.70, 0.25, 0.25)
-	rh.set_border_width_all(2)
-	rh.set_corner_radius_all(5)
+	rh.set_border_width_all(1)
+	rh.set_corner_radius_all(10)
 	reset_btn.add_theme_stylebox_override("hover", rh)
-	reset_btn.modulate = Color(1.0, 0.5, 0.5)
+	reset_btn.modulate = Color(1.0, 0.6, 0.6)
 	reset_btn.pressed.connect(_on_demo_reset)
 	add_child(reset_btn)
 
@@ -455,8 +586,18 @@ func _do_demo_reset() -> void:
 
 func _open_upgrade_panel() -> void:
 	AudioManager.play_sfx("btn_click")
-	var panel = load("res://scenes/UpgradePanel.tscn").instantiate()
+	var panel
+	if ResourceLoader.exists("res://scenes/UpgradePanel.tscn"):
+		panel = load("res://scenes/UpgradePanel.tscn").instantiate()
+	else:
+		panel = load("res://scripts/upgrade_panel.gd").new()
 	get_tree().root.add_child(panel)
+	# 關閉後刷新基地資源/陣容顯示
+	if panel.has_signal("tree_exited"):
+		panel.tree_exited.connect(func():
+			_update_coins_display()
+			_build_squad_display()
+		)
 
 func _add_squad_card_display() -> void:
 	_build_squad_display()
@@ -727,7 +868,7 @@ func _load_state() -> void:
 
 func _update_coins_display() -> void:
 	if coins_label:
-		coins_label.text = "金幣：" + str(SaveManager.coins)
+		coins_label.text = str(SaveManager.coins)
 
 func _update_squad_display() -> void:
 	if squad_slots.is_empty():
@@ -820,11 +961,11 @@ func _get_class_data(char_id: String) -> Dictionary:
 
 func _update_ticket_display() -> void:
 	if ticket_label:
-		ticket_label.text = "藍票：" + str(SaveManager.blue_tickets) + "  金票：" + str(SaveManager.gold_tickets)
+		ticket_label.text = "藍%d 金%d" % [SaveManager.blue_tickets, SaveManager.gold_tickets]
 
 func _update_stamina_display() -> void:
 	if stamina_label:
-		stamina_label.text = "體力：" + str(SaveManager.stamina) + "/" + str(SaveManager.max_stamina)
+		stamina_label.text = "%d/%d" % [SaveManager.stamina, SaveManager.max_stamina]
 
 func _open_gacha() -> void:
 	AudioManager.play_sfx("btn_click")
@@ -1332,6 +1473,44 @@ func _notification(what: int) -> void:
 # ─────────────────────────────────────────
 #  輔助：按鈕樣式
 # ─────────────────────────────────────────
+
+# 行動按鈕：圓角 + 陰影 + 強調邊框（primary 用更粗框與更大陰影）
+func _style_action_button(btn: Button, bg_color: Color, accent: Color, primary: bool) -> void:
+	var st = StyleBoxFlat.new()
+	st.bg_color = bg_color
+	st.border_color = Color(accent.r, accent.g, accent.b, 0.8 if primary else 0.55)
+	st.set_border_width_all(3 if primary else 2)
+	st.set_corner_radius_all(16)
+	st.shadow_color = Color(0, 0, 0, 0.5)
+	st.shadow_size = 8 if primary else 5
+	st.shadow_offset = Vector2(0, 4)
+	btn.add_theme_stylebox_override("normal", st)
+
+	var sh = st.duplicate() as StyleBoxFlat
+	sh.bg_color = Color(minf(bg_color.r + 0.12, 1.0), minf(bg_color.g + 0.12, 1.0), minf(bg_color.b + 0.12, 1.0))
+	sh.border_color = accent
+	sh.set_border_width_all(4 if primary else 3)
+	btn.add_theme_stylebox_override("hover", sh)
+
+	var sp = st.duplicate() as StyleBoxFlat
+	sp.bg_color = Color(maxf(bg_color.r - 0.06, 0.0), maxf(bg_color.g - 0.06, 0.0), maxf(bg_color.b - 0.06, 0.0))
+	sp.shadow_size = 2
+	sp.shadow_offset = Vector2(0, 1)
+	btn.add_theme_stylebox_override("pressed", sp)
+	btn.focus_mode = Control.FOCUS_NONE
+
+# 通用按下回饋（縮放）
+func _attach_press_fx(btn: Button) -> void:
+	if btn.pivot_offset == Vector2.ZERO:
+		btn.pivot_offset = btn.custom_minimum_size / 2.0
+	btn.button_down.connect(func():
+		var tw = create_tween()
+		tw.tween_property(btn, "scale", Vector2(0.97, 0.97), 0.06)
+	)
+	btn.button_up.connect(func():
+		var tw = create_tween()
+		tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	)
 
 func _style_button(btn: Button, bg_color: Color) -> void:
 	var style = StyleBoxFlat.new()

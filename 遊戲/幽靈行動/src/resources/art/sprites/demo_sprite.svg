@@ -79,4 +79,20 @@
   <!-- 右臂 -->
   <rect x="50" y="32" width="12" height="14" fill="#0A0A0A"/>
   <rect x="51" y="33" width="10" height="12" fill="#3A0A0A"/>
+
+  <!-- ▼ 質感強化：邊緣高光與識別亮點 ▼ -->
+  <!-- 頭盔頂部亮邊（rim light） -->
+  <rect x="22" y="5" width="14" height="1" fill="#EE4444"/>
+  <!-- 引爆器螢幕綠光高亮（爆破辨識，呼應危險感） -->
+  <rect x="5" y="36" width="8" height="1" fill="#33FF33"/>
+  <!-- 引爆器紅鈕高光（蓄勢待發） -->
+  <rect x="6" y="43" width="1" height="1" fill="#FF8888"/>
+  <!-- 護目鏡冷光點 -->
+  <rect x="23" y="12" width="1" height="1" fill="#FF6666"/>
+  <rect x="36" y="12" width="1" height="1" fill="#FF6666"/>
+  <!-- 肩甲頂緣高光 -->
+  <rect x="9" y="29" width="14" height="1" fill="#DD3333"/>
+  <rect x="41" y="29" width="14" height="1" fill="#AA2222"/>
+  <!-- 胸甲底部陰影 -->
+  <rect x="20" y="45" width="24" height="2" fill="#200808"/>
 </svg>

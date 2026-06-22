@@ -148,32 +148,44 @@ func _create_option_button(opt: Dictionary) -> Button:
 	var opt_text = opt.get("text", "？")
 	var opt_desc = opt.get("desc", "")
 	btn.text = opt_text + "\n" + opt_desc
-	btn.custom_minimum_size = Vector2(280, 120)
+	btn.custom_minimum_size = Vector2(280, 130)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.add_theme_font_size_override("font_size", 18)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	# 按鈕樣式
+	# 依稀有度標記決定強調色（SSR 金、SR 紫、一般藍）
+	var base_bg := Color(0.12, 0.20, 0.35, 0.95)
+	var accent := Color(0.45, 0.72, 1.0)
+	if "[SSR]" in opt_text:
+		base_bg = Color(0.24, 0.19, 0.04, 0.95)
+		accent = Color(1.0, 0.82, 0.2)
+	elif "[SR]" in opt_text:
+		base_bg = Color(0.18, 0.10, 0.28, 0.95)
+		accent = Color(0.78, 0.5, 1.0)
+
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.20, 0.35, 0.95)
-	style.border_color = Color(0.4, 0.7, 1.0, 0.8)
+	style.bg_color = base_bg
+	style.border_color = Color(accent.r, accent.g, accent.b, 0.85)
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
+	style.set_corner_radius_all(10)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
 	style.content_margin_top = 10
 	style.content_margin_bottom = 10
 	btn.add_theme_stylebox_override("normal", style)
 
-	var hover_style = StyleBoxFlat.new()
-	hover_style.bg_color = Color(0.22, 0.35, 0.55, 0.95)
-	hover_style.border_color = Color(0.6, 0.9, 1.0, 1.0)
+	var hover_style = style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = Color(minf(base_bg.r + 0.1, 1.0), minf(base_bg.g + 0.1, 1.0), minf(base_bg.b + 0.1, 1.0), 0.97)
+	hover_style.border_color = accent
 	hover_style.set_border_width_all(3)
-	hover_style.set_corner_radius_all(8)
-	hover_style.content_margin_left = 12
-	hover_style.content_margin_right = 12
-	hover_style.content_margin_top = 10
-	hover_style.content_margin_bottom = 10
 	btn.add_theme_stylebox_override("hover", hover_style)
+
+	var pressed_style = style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color(maxf(base_bg.r - 0.04, 0.0), maxf(base_bg.g - 0.04, 0.0), maxf(base_bg.b - 0.04, 0.0), 0.97)
+	btn.add_theme_stylebox_override("pressed", pressed_style)
+
+	btn.add_theme_color_override("font_color", Color(0.95, 0.97, 1.0))
 
 	var opt_id = opt.get("id", "")
 	btn.pressed.connect(_on_option_pressed.bind(opt_id))

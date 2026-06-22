@@ -196,36 +196,52 @@ func _build_room_visual(idx: int) -> void:
 
 	var cfg: Dictionary = ROOM_CONFIGS[idx]
 	var is_boss: bool = cfg["label"] == "Boss"
-	var bg_col  := Color(0.20, 0.05, 0.05) if is_boss else _get_mission_room_color()
+	var theme := _get_room_theme()  # "office" | "warehouse" | "harbor"
+	var bg_col  := Color(0.16, 0.04, 0.05) if is_boss else _get_mission_room_color()
 
-	# 全螢幕背景
+	# ── 1. 全螢幕底色 ──
 	var bg := ColorRect.new()
 	bg.position = Vector2.ZERO
 	bg.size     = Vector2(1080, 1920)
 	bg.color    = bg_col
 	visual.add_child(bg)
 
-	# 地板紋理（中段）
+	# ── 2. 牆面區（上方為敵方背牆，建立「房間後牆」感）──
+	_build_back_wall(visual, theme, is_boss)
+
+	# ── 3. 地板：紋理 tile + 透視格線（縱深感）──
 	var tile := _get_floor_tile_path()
 	if ResourceLoader.exists(tile):
 		var tr := TextureRect.new()
 		tr.texture        = load(tile)
 		tr.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 		tr.stretch_mode   = TextureRect.STRETCH_TILE
-		tr.position       = Vector2(0, 900)
-		tr.size           = Vector2(1080, 780)
-		tr.modulate       = Color(1, 1, 1, 0.22)
+		tr.position       = Vector2(0, 470)
+		tr.size           = Vector2(1080, 1450)
+		tr.modulate       = Color(1, 1, 1, 0.20)
 		visual.add_child(tr)
+	_build_floor_perspective(visual, theme)
 
-	# 上下分界線（戰術感）
+	# ── 4. 牆/地接縫分界線（戰術感）──
 	var divider := ColorRect.new()
-	divider.position = Vector2(0, 900)
-	divider.size     = Vector2(1080, 3)
-	divider.color    = Color(0.3, 0.3, 0.4, 0.4)
+	divider.position = Vector2(0, 470)
+	divider.size     = Vector2(1080, 4)
+	divider.color    = _theme_accent(theme, 0.5)
 	visual.add_child(divider)
+	var divider_glow := ColorRect.new()
+	divider_glow.position = Vector2(0, 474)
+	divider_glow.size     = Vector2(1080, 10)
+	divider_glow.color    = _theme_accent(theme, 0.12)
+	visual.add_child(divider_glow)
 
-	# 中段環境素材（填充空白，兩側分布避開中央對戰通道）
+	# ── 5. 區域光照（敵方上方燈光錐 + 我方下方暖光）──
+	_build_ambient_lighting(visual, theme, is_boss)
+
+	# ── 6. 中段環境素材（兩側分布避開中央對戰通道）──
 	_add_environment_props(visual)
+
+	# ── 7. 氛圍光效：警示燈光帶 / 地面反光 / 暗角 ──
+	_build_atmosphere_fx(visual, theme, is_boss)
 
 	# 敵人掩體（上方）
 	var ec_defs: Array = [
@@ -295,34 +311,62 @@ func _add_environment_props(parent: Node) -> void:
 	match mid:
 		"warehouse_01":
 			props = [
-				["res://resources/art/props/parking_pillar.svg",  0, 920,  16, 500, Color(0.18, 0.18, 0.20)],
-				["res://resources/art/props/crate.svg",           20, 950,  80,  80, Color(0.35, 0.28, 0.18)],
-				["res://resources/art/props/crate.svg",           22,1050,  60,  60, Color(0.30, 0.24, 0.15)],
-				["res://resources/art/props/barrel.svg",          32,1130,  50,  70, Color(0.25, 0.28, 0.20)],
-				["res://resources/art/props/parking_pillar.svg",1064, 920,  16, 500, Color(0.18, 0.18, 0.20)],
-				["res://resources/art/props/crate.svg",          980, 950,  80,  80, Color(0.35, 0.28, 0.18)],
-				["res://resources/art/props/barrel.svg",         998,1050,  50,  70, Color(0.25, 0.28, 0.20)],
-				["res://resources/art/props/crate.svg",          982,1140,  60,  60, Color(0.30, 0.24, 0.15)],
+				# 左側：堆疊木箱（大→小，層次）+ 油桶 + 警戒斜紋
+				["res://resources/art/props/parking_pillar.svg",  0, 500,  18, 920, Color(0.16, 0.16, 0.18)],
+				["res://resources/art/props/crate.svg",           14, 560,  96,  96, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/crate.svg",           40, 656,  64,  64, Color(0.30, 0.24, 0.15)],
+				["res://resources/art/props/hazard_stripe.svg",   10, 740, 120,  24, Color(0.55, 0.45, 0.10)],
+				["res://resources/art/props/barrel.svg",          16, 930,  56,  78, Color(0.25, 0.28, 0.20)],
+				["res://resources/art/props/crate.svg",           20,1020,  74,  74, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/barrel.svg",          30,1120,  52,  72, Color(0.22, 0.30, 0.22)],
+				["res://resources/art/props/crate.svg",           18,1230,  64,  64, Color(0.30, 0.24, 0.15)],
+				# 右側鏡像
+				["res://resources/art/props/parking_pillar.svg",1062, 500,  18, 920, Color(0.16, 0.16, 0.18)],
+				["res://resources/art/props/crate.svg",          970, 560,  96,  96, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/crate.svg",          976, 656,  64,  64, Color(0.30, 0.24, 0.15)],
+				["res://resources/art/props/hazard_stripe.svg",  950, 740, 120,  24, Color(0.55, 0.45, 0.10)],
+				["res://resources/art/props/barrel.svg",        1008, 930,  56,  78, Color(0.25, 0.28, 0.20)],
+				["res://resources/art/props/crate.svg",          986,1020,  74,  74, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/barrel.svg",        1000,1120,  52,  72, Color(0.22, 0.30, 0.22)],
+				["res://resources/art/props/crate.svg",          998,1230,  64,  64, Color(0.30, 0.24, 0.15)],
 			]
 		"harbor_01":
 			props = [
-				["res://resources/art/props/harbor_container.svg",  5, 920,  90, 120, Color(0.12, 0.28, 0.40)],
-				["res://resources/art/props/harbor_rope.svg",       14,1060,  60,  20, Color(0.42, 0.35, 0.22)],
-				["res://resources/art/props/barrel.svg",            26,1090,  50,  70, Color(0.20, 0.25, 0.30)],
-				["res://resources/art/props/harbor_container.svg", 985, 920,  90, 120, Color(0.12, 0.28, 0.40)],
-				["res://resources/art/props/barrel.svg",          1004,1060,  50,  70, Color(0.20, 0.25, 0.30)],
-				["res://resources/art/props/harbor_rope.svg",      988,1150,  60,  20, Color(0.42, 0.35, 0.22)],
+				# 左側：貨櫃疊高（深藍）+ 油桶 + 繩堆 + 警戒斜紋
+				["res://resources/art/props/harbor_container.svg",  2, 520, 120, 130, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/harbor_container.svg", 10, 650,  96, 100, Color(0.10, 0.24, 0.34)],
+				["res://resources/art/props/hazard_stripe.svg",     6, 760, 120,  24, Color(0.55, 0.45, 0.10)],
+				["res://resources/art/props/barrel.svg",           18, 930,  54,  74, Color(0.20, 0.25, 0.30)],
+				["res://resources/art/props/harbor_rope.svg",      10,1018,  70,  22, Color(0.42, 0.35, 0.22)],
+				["res://resources/art/props/harbor_container.svg",  8,1060, 100, 110, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/barrel.svg",           22,1200,  54,  74, Color(0.20, 0.25, 0.30)],
+				# 右側鏡像
+				["res://resources/art/props/harbor_container.svg", 958, 520, 120, 130, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/harbor_container.svg", 974, 650,  96, 100, Color(0.10, 0.24, 0.34)],
+				["res://resources/art/props/hazard_stripe.svg",    954, 760, 120,  24, Color(0.55, 0.45, 0.10)],
+				["res://resources/art/props/barrel.svg",          1008, 930,  54,  74, Color(0.20, 0.25, 0.30)],
+				["res://resources/art/props/harbor_rope.svg",      1000,1018,  70,  22, Color(0.42, 0.35, 0.22)],
+				["res://resources/art/props/harbor_container.svg", 972,1060, 100, 110, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/barrel.svg",          1004,1200,  54,  74, Color(0.20, 0.25, 0.30)],
 			]
 		_:  # office（預設）
 			props = [
-				["res://resources/art/props/wall_crack.svg",      0, 905,  14, 480, Color(0.14, 0.14, 0.18)],
-				["res://resources/art/props/server_rack.svg",     10, 930,  70, 160, Color(0.22, 0.22, 0.28)],
-				["res://resources/art/props/locker.svg",          10,1110,  60, 100, Color(0.20, 0.30, 0.25)],
-				["res://resources/art/props/crate.svg",           18,1230,  60,  60, Color(0.32, 0.28, 0.22)],
-				["res://resources/art/props/wall_crack.svg",    1066, 905,  14, 480, Color(0.14, 0.14, 0.18)],
-				["res://resources/art/props/server_rack.svg",   1000, 930,  70, 160, Color(0.22, 0.22, 0.28)],
-				["res://resources/art/props/locker.svg",        1010,1110,  60, 100, Color(0.20, 0.30, 0.25)],
-				["res://resources/art/props/crate.svg",         1002,1230,  60,  60, Color(0.32, 0.28, 0.22)],
+				# 左側：伺服器機架 + 置物櫃 + 辦公桌 + 木箱 + 牆裂
+				["res://resources/art/props/wall_crack.svg",      0, 500,  16, 920, Color(0.13, 0.13, 0.17)],
+				["res://resources/art/props/server_rack.svg",     8, 540,  74, 170, Color(0.20, 0.20, 0.26)],
+				["res://resources/art/props/server_rack.svg",    14, 712,  64, 150, Color(0.18, 0.18, 0.24)],
+				["res://resources/art/props/locker.svg",         12, 930,  62, 104, Color(0.20, 0.30, 0.25)],
+				["res://resources/art/props/desk.svg",            6,1050,  96,  72, Color(0.30, 0.24, 0.16)],
+				["res://resources/art/props/crate.svg",          20,1150,  62,  62, Color(0.32, 0.28, 0.22)],
+				["res://resources/art/props/locker.svg",         12,1230,  62, 104, Color(0.20, 0.30, 0.25)],
+				# 右側鏡像
+				["res://resources/art/props/wall_crack.svg",    1064, 500,  16, 920, Color(0.13, 0.13, 0.17)],
+				["res://resources/art/props/server_rack.svg",    998, 540,  74, 170, Color(0.20, 0.20, 0.26)],
+				["res://resources/art/props/server_rack.svg",   1002, 712,  64, 150, Color(0.18, 0.18, 0.24)],
+				["res://resources/art/props/locker.svg",        1006, 930,  62, 104, Color(0.20, 0.30, 0.25)],
+				["res://resources/art/props/desk.svg",           978,1050,  96,  72, Color(0.30, 0.24, 0.16)],
+				["res://resources/art/props/crate.svg",          998,1150,  62,  62, Color(0.32, 0.28, 0.22)],
+				["res://resources/art/props/locker.svg",        1006,1230,  62, 104, Color(0.20, 0.30, 0.25)],
 			]
 
 	for p in props:
@@ -354,6 +398,205 @@ func _add_cover(parent: Node, svg: String, pos: Vector2, size: Vector2, fallback
 		parent.add_child(tr)
 	else:
 		var cr := ColorRect.new()
+		cr.position = pos
+		cr.size     = size
+		cr.color    = fallback
+		parent.add_child(cr)
+
+# ─────────────────────────────────────────────────────────────
+#  場景氛圍建構（背牆 / 透視地板 / 光照 / 暗角）
+#  注意：會建立 ColorRect 的區域變數一律 untyped，避免 Godot 4.6
+#  對 `var x: Node2D = ColorRect.new()` 觸發 parse 警告/錯誤。
+# ─────────────────────────────────────────────────────────────
+
+# 主題判定：office / warehouse / harbor
+func _get_room_theme() -> String:
+	var mid: String = GameManager.current_mission_id if GameManager else "demo_01"
+	match mid:
+		"warehouse_01": return "warehouse"
+		"harbor_01":    return "harbor"
+		_:              return "office"
+
+# 各主題強調色（警示燈/分界線/光暈用）
+func _theme_accent(theme: String, a: float) -> Color:
+	match theme:
+		"warehouse": return Color(0.95, 0.62, 0.15, a)   # 工業橙
+		"harbor":    return Color(0.25, 0.70, 0.95, a)   # 港口冷藍
+		_:           return Color(0.45, 0.70, 1.00, a)   # 辦公冷白藍
+
+# 背牆：上方為敵方所在的房間後牆，分層提升縱深
+func _build_back_wall(parent: Node, theme: String, is_boss: bool) -> void:
+	# 後牆主面板（頂部到地板分界 y=470）
+	var wall = ColorRect.new()
+	wall.position = Vector2(0, 0)
+	wall.size     = Vector2(1080, 470)
+	match theme:
+		"warehouse": wall.color = Color(0.09, 0.085, 0.10)
+		"harbor":    wall.color = Color(0.06, 0.10, 0.14)
+		_:           wall.color = Color(0.10, 0.11, 0.15)
+	if is_boss:
+		wall.color = Color(0.12, 0.05, 0.06)
+	parent.add_child(wall)
+
+	# 牆面踢腳暗帶（牆與地交界陰影）
+	var skirt = ColorRect.new()
+	skirt.position = Vector2(0, 430)
+	skirt.size     = Vector2(1080, 40)
+	skirt.color    = Color(0, 0, 0, 0.45)
+	parent.add_child(skirt)
+
+	# 牆面垂直分隔柱（建立牆面結構），三條
+	for wx in [270.0, 540.0, 810.0]:
+		var pil = ColorRect.new()
+		pil.position = Vector2(wx - 6, 0)
+		pil.size     = Vector2(12, 430)
+		pil.color    = Color(0, 0, 0, 0.22)
+		parent.add_child(pil)
+
+	# 主題特徵牆飾
+	match theme:
+		"office":
+			# 兩扇夜景窗
+			for ox in [120.0, 720.0]:
+				_blit_svg(parent, "res://resources/art/props/office_window.svg",
+					Vector2(ox, 70), Vector2(140, 230), Color(0.12, 0.18, 0.28))
+		"warehouse":
+			# 牆面管線
+			_blit_svg(parent, "res://resources/art/props/pipe_vertical.svg",
+				Vector2(70, 10), Vector2(40, 420), Color(0.16, 0.16, 0.18))
+			_blit_svg(parent, "res://resources/art/props/pipe_vertical.svg",
+				Vector2(970, 10), Vector2(40, 420), Color(0.16, 0.16, 0.18))
+		"harbor":
+			# 遠景起重機剪影
+			_blit_svg(parent, "res://resources/art/props/harbor_crane.svg",
+				Vector2(620, 40), Vector2(220, 400), Color(0.08, 0.14, 0.20))
+
+# 透視地板格線：縱向線向中心 (540) 收斂，橫向線間距隨深度遞增 → 假 3D 縱深
+func _build_floor_perspective(parent: Node, theme: String) -> void:
+	var line_col := _theme_accent(theme, 0.10)
+	var horizon_x := 540.0
+	var top_y := 480.0
+	var bot_y := 1900.0
+
+	# 縱向收斂線（從底部均分點連向頂部消失點附近）
+	var bottom_xs: Array = [-120.0, 120.0, 360.0, 540.0, 720.0, 960.0, 1200.0]
+	for bx in bottom_xs:
+		var top_x: float = lerpf(bx, horizon_x, 0.62)
+		var ln := Line2D.new()
+		ln.add_point(Vector2(top_x, top_y))
+		ln.add_point(Vector2(bx, bot_y))
+		ln.width = 2.0
+		ln.default_color = line_col
+		ln.antialiased = false
+		parent.add_child(ln)
+
+	# 橫向線：間距由上而下加大（近大遠小）
+	var ys: Array = [560.0, 700.0, 880.0, 1110.0, 1400.0, 1760.0]
+	for gy in ys:
+		# 越往下越寬、越亮
+		var t: float = clampf((gy - top_y) / (bot_y - top_y), 0.0, 1.0)
+		var hln := Line2D.new()
+		hln.add_point(Vector2(0, gy))
+		hln.add_point(Vector2(1080, gy))
+		hln.width = 1.0 + t * 2.0
+		hln.default_color = _theme_accent(theme, 0.05 + t * 0.08)
+		hln.antialiased = false
+		parent.add_child(hln)
+
+# 區域光照：敵方頂燈光錐（梯形 Polygon2D）+ 我方下方暖光
+func _build_ambient_lighting(parent: Node, theme: String, is_boss: bool) -> void:
+	var cone_col := _theme_accent(theme, 0.06)
+	if is_boss:
+		cone_col = Color(0.95, 0.20, 0.15, 0.07)
+
+	# 敵方上方三道頂燈光錐（梯形：燈在牆頂，向地面擴散）
+	for cx in [270.0, 540.0, 810.0]:
+		var cone := Polygon2D.new()
+		cone.polygon = PackedVector2Array([
+			Vector2(cx - 70, 40),
+			Vector2(cx + 70, 40),
+			Vector2(cx + 180, 720),
+			Vector2(cx - 180, 720),
+		])
+		cone.color = cone_col
+		parent.add_child(cone)
+		# 燈具本體
+		_blit_svg(parent, "res://resources/art/props/ceiling_light.svg",
+			Vector2(cx - 80, 24), Vector2(160, 40), _theme_accent(theme, 0.6))
+
+	# 我方下方暖色聚光（角色站位區，烘托主角）
+	var warm := Polygon2D.new()
+	warm.polygon = PackedVector2Array([
+		Vector2(120, 1920),
+		Vector2(960, 1920),
+		Vector2(760, 1340),
+		Vector2(320, 1340),
+	])
+	warm.color = Color(0.40, 0.34, 0.22, 0.10) if not is_boss else Color(0.5, 0.18, 0.15, 0.10)
+	parent.add_child(warm)
+
+# 氛圍特效：暗角(vignette) + 警示燈光斑 + 邊緣漸層
+func _build_atmosphere_fx(parent: Node, theme: String, is_boss: bool) -> void:
+	# 四邊暗角：用半透明黑長條框出（手機直屏，左右+上下）
+	var vig_specs: Array = [
+		[Vector2(0, 0),    Vector2(1080, 140)],    # 上
+		[Vector2(0, 1780), Vector2(1080, 140)],    # 下
+		[Vector2(0, 0),    Vector2(110, 1920)],    # 左
+		[Vector2(970, 0),  Vector2(110, 1920)],    # 右
+	]
+	for vs in vig_specs:
+		var vg = ColorRect.new()
+		vg.position = vs[0]
+		vg.size     = vs[1]
+		vg.color    = Color(0, 0, 0, 0.30)
+		parent.add_child(vg)
+	# 角落更深一層
+	for cp in [Vector2(0, 0), Vector2(980, 0), Vector2(0, 1820), Vector2(980, 1820)]:
+		var corner = ColorRect.new()
+		corner.position = cp
+		corner.size     = Vector2(100, 100)
+		corner.color    = Color(0, 0, 0, 0.28)
+		parent.add_child(corner)
+
+	# 警示燈：Boss 房紅色雙閃，一般房依主題色（牆角光斑 + 燈具）
+	var lamp_col := _theme_accent(theme, 1.0)
+	if is_boss:
+		lamp_col = Color(1.0, 0.22, 0.15, 1.0)
+	for lx in [60.0, 980.0]:
+		# 牆上警示燈本體
+		_blit_svg(parent, "res://resources/art/props/warning_lamp.svg",
+			Vector2(lx - 4, 360), Vector2(48, 56), lamp_col)
+		# 燈光斑（向地面投射的紅/藍暈）
+		var glow := Polygon2D.new()
+		var gx: float = float(lx) + 20.0
+		glow.polygon = PackedVector2Array([
+			Vector2(gx - 50, 400),
+			Vector2(gx + 50, 400),
+			Vector2(gx + 130, 760),
+			Vector2(gx - 130, 760),
+		])
+		glow.color = Color(lamp_col.r, lamp_col.g, lamp_col.b, 0.09)
+		parent.add_child(glow)
+
+	# Boss 房額外：地面血色警戒漫光帶
+	if is_boss:
+		var redfloor = ColorRect.new()
+		redfloor.position = Vector2(0, 470)
+		redfloor.size     = Vector2(1080, 300)
+		redfloor.color    = Color(0.6, 0.05, 0.05, 0.06)
+		parent.add_child(redfloor)
+
+# 統一的 SVG 貼圖小工具（找不到資源時用 fallback 純色塊）
+func _blit_svg(parent: Node, svg: String, pos: Vector2, size: Vector2, fallback: Color) -> void:
+	if ResourceLoader.exists(svg):
+		var tr := TextureRect.new()
+		tr.texture      = load(svg)
+		tr.position     = pos
+		tr.size         = size
+		tr.stretch_mode = TextureRect.STRETCH_SCALE
+		parent.add_child(tr)
+	else:
+		var cr = ColorRect.new()
 		cr.position = pos
 		cr.size     = size
 		cr.color    = fallback
@@ -530,20 +773,42 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	# 破門畫面定格，不自動推進 —— 顯示「點擊繼續」提示，開放 _input 點擊推進
 	tw.tween_callback(func():
 		_breach_active = true
+
+		# 提示底襯（半透明圓角深底，讓文字在任何場景上都清楚）
+		var hint_bg = ColorRect.new()
+		hint_bg.color = Color(0.0, 0.0, 0.0, 0.45)
+		hint_bg.size  = Vector2(560, 92)
+		hint_bg.position = Vector2(260, 1474)
+		hint_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cl.add_child(hint_bg)
+
+		# 提示上緣強調色細線（戰術 HUD 風格）
+		var hint_line = ColorRect.new()
+		hint_line.color = Color(0.45, 0.70, 1.0, 0.9)
+		hint_line.size  = Vector2(560, 3)
+		hint_line.position = Vector2(260, 1474)
+		hint_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cl.add_child(hint_line)
+
 		var hint := Label.new()
-		hint.text = "點擊任意處繼續"
+		hint.text = ">>  點擊任意處繼續"
 		hint.add_theme_font_size_override("font_size", 46)
-		hint.size = Vector2(700, 80)
-		hint.position = Vector2(190, 1480)
+		hint.size = Vector2(560, 92)
+		hint.position = Vector2(260, 1484)
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		hint.modulate = Color(1, 1, 1, 0.0)
 		if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
 			hint.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
 		cl.add_child(hint)
+
+		# 文字 + 底襯一起脈動（呼吸提示）
 		var ht := create_tween().set_loops()
 		ht.tween_property(hint, "modulate:a", 1.0, 0.5)
-		ht.tween_property(hint, "modulate:a", 0.35, 0.5)
+		ht.parallel().tween_property(hint_bg, "modulate:a", 1.0, 0.5)
+		ht.tween_property(hint, "modulate:a", 0.4, 0.5)
+		ht.parallel().tween_property(hint_bg, "modulate:a", 0.55, 0.5)
 	)
 
 # 破門定格時，偵測任意觸控/點擊 → 推進下一關

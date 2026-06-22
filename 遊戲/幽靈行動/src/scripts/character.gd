@@ -25,6 +25,7 @@ var is_dead: bool = false
 var in_cover: bool = false           # 是否在掩體後
 var _crouch_texture: Texture2D = null  # 蹲伏精靈（預載）
 var _stand_texture: Texture2D = null   # 站立精靈（預載）
+var _body_home: Vector2 = Vector2.ZERO  # 身體原始 position（Sprite2D=(0,0)、ColorRect=(-36,-36)），供動畫復位
 
 # 自動攻擊計時器
 var _auto_attack_timer: float = 0.0
@@ -93,6 +94,7 @@ func _build_visual() -> void:
 		cr.color = body_color
 		_body = cr
 	add_child(_body)
+	_body_home = _body.position  # 記錄原始位置，供受擊抖動 / 倒下 / 復活復位使用
 
 	var half := DISPLAY_SIZE / 2.0
 
@@ -152,12 +154,15 @@ func take_damage(amount: float) -> void:
 	if is_dead:
 		return
 	current_hp = max(0.0, current_hp - amount)
-	if _hp_bar:
-		_hp_bar.value = current_hp
+	_tween_hp_bar(current_hp)
 	emit_signal("hp_changed", current_hp, max_hp)
 	if current_hp > 0.0:
 		if AudioManager:
 			AudioManager.play_sfx("impact_hit")
+		# 受擊回饋：閃紅 + 抖動 + 紅色傷害飄字
+		_hit_flash()
+		_hit_shake()
+		_show_damage_text(amount)
 	if current_hp <= 0.0:
 		die()
 
@@ -165,9 +170,56 @@ func heal(amount: float) -> void:
 	if is_dead:
 		return
 	current_hp = min(max_hp, current_hp + amount)
-	if _hp_bar:
-		_hp_bar.value = current_hp
+	_tween_hp_bar(current_hp)
 	emit_signal("hp_changed", current_hp, max_hp)
+
+# 血條補間：數值平滑過渡而非瞬間跳變，受傷時更有「血量被削」的感受
+func _tween_hp_bar(to_value: float) -> void:
+	if _hp_bar == null or not is_instance_valid(_hp_bar):
+		return
+	_hp_bar.max_value = max_hp
+	var tw = create_tween()
+	tw.tween_property(_hp_bar, "value", to_value, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+# 受擊閃紅：身體短暫染紅再恢復
+func _hit_flash() -> void:
+	if _body == null or not is_instance_valid(_body):
+		return
+	_body.modulate = Color(1.6, 0.4, 0.4, 1.0)
+	var tw = create_tween()
+	tw.tween_property(_body, "modulate", Color(1, 1, 1, 1), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+# 受擊抖動：身體左右快速顫動數次後歸位（位移作用在 _body，不動 self 座標避免干擾隊形）
+func _hit_shake() -> void:
+	if _body == null or not is_instance_valid(_body):
+		return
+	# 以原始位置為基準（避免連續受擊時殘餘位移累積導致身體漂移）
+	var base := _body_home
+	var tw = create_tween()
+	tw.tween_property(_body, "position", base + Vector2(5, 0), 0.03)
+	tw.tween_property(_body, "position", base + Vector2(-4, 0), 0.03)
+	tw.tween_property(_body, "position", base + Vector2(3, 0), 0.03)
+	tw.tween_property(_body, "position", base, 0.04)
+
+# 受傷紅色飄字（與醫療回血綠字風格統一：同樣往上飄並淡出）
+func _show_damage_text(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	var lbl := Label.new()
+	lbl.text = "-%d" % int(round(amount))
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.modulate = Color(1.0, 0.35, 0.3)
+	lbl.add_theme_color_override("font_outline_color", Color(0.2, 0.0, 0.0, 0.9))
+	lbl.add_theme_constant_override("outline_size", 4)
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+	tree.current_scene.add_child(lbl)
+	lbl.global_position = global_position + Vector2(randf_range(-6.0, 6.0), -46.0)
+	var tw := tree.create_tween()
+	tw.tween_property(lbl, "position:y", lbl.position.y - 36.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.7)
+	tw.tween_callback(lbl.queue_free)
 
 func use_ultimate() -> bool:
 	if not is_ultimate_ready or is_dead:
@@ -193,9 +245,66 @@ func fire_shot() -> void:
 func _apply_ultimate_effect() -> void:
 	if AudioManager:
 		AudioManager.play_sfx("ult_activate")
+	# 角色身上爆發職業色光環 + 粒子（搭配橫幅）
+	_spawn_ultimate_aura()
 	# 畫面中央顯示技能敘述 + 持續時間
 	_show_ultimate_banner()
-	# 各職業大招效果 — P1 實作
+	# 套用各職業大招的實際遊戲效果
+	_apply_ultimate_gameplay()
+
+# 大招施放特效：角色身上爆發職業色光環 + 向外噴射的職業色粒子 + 短暫放大
+func _spawn_ultimate_aura() -> void:
+	var aura_col := body_color
+	# body_color 預設可能是白色，依職業給定鮮明色（與 sprite 配色一致）
+	match char_id:
+		"shield": aura_col = Color(0.27, 0.53, 1.0)
+		"medic": aura_col = Color(0.27, 0.85, 0.27)
+		"assault": aura_col = Color(1.0, 0.55, 0.1)
+		"sniper": aura_col = Color(0.67, 0.27, 1.0)
+		"demo": aura_col = Color(1.0, 0.2, 0.2)
+		"recon": aura_col = Color(0.2, 0.85, 0.85)
+
+	# 擴張光環（由小到大環狀光圈淡出）
+	var ring = ColorRect.new()
+	ring.size = Vector2(DISPLAY_SIZE * 1.6, DISPLAY_SIZE * 1.6)
+	ring.color = Color(aura_col.r, aura_col.g, aura_col.b, 0.45)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.z_index = -1  # 墊在角色後方，不遮住角色本體
+	ring.pivot_offset = ring.size / 2.0
+	add_child(ring)
+	ring.position = -ring.size / 2.0
+	ring.scale = Vector2(0.3, 0.3)
+	var rt = create_tween()
+	rt.tween_property(ring, "scale", Vector2(1.6, 1.6), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	rt.parallel().tween_property(ring, "modulate:a", 0.0, 0.55)
+	rt.tween_callback(ring.queue_free)
+
+	# 角色本體短暫染上職業色光輝後恢復（強調「我發動了」）
+	if _body and is_instance_valid(_body):
+		var bt = create_tween()
+		bt.tween_property(_body, "modulate", Color(aura_col.r + 0.6, aura_col.g + 0.6, aura_col.b + 0.6, 1.0), 0.12)
+		bt.tween_property(_body, "modulate", Color(1, 1, 1, 1), 0.35)
+
+	# 向外噴射的職業色粒子（10 顆，效能可控）
+	var count = 10
+	for i in range(count):
+		var p = ColorRect.new()
+		p.size = Vector2(7, 7)
+		p.color = aura_col
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.z_index = 2
+		add_child(p)
+		p.position = -p.size / 2.0
+		var ang = TAU * float(i) / float(count) + randf_range(-0.2, 0.2)
+		var dist = randf_range(50.0, 90.0)
+		var dest = Vector2(cos(ang), sin(ang)) * dist - p.size / 2.0
+		var pt = create_tween()
+		pt.tween_property(p, "position", dest, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		pt.parallel().tween_property(p, "modulate:a", 0.0, 0.5)
+		pt.tween_callback(p.queue_free)
+
+# 各職業大招效果 — P1 實作（與視覺特效分離，職責清晰）
+func _apply_ultimate_gameplay() -> void:
 	var gm = _get_gm()
 	if gm == null:
 		return
@@ -284,8 +393,23 @@ func _apply_ultimate_effect() -> void:
 
 func die() -> void:
 	is_dead = true
-	if _body:
-		_body.modulate = Color(0.35, 0.35, 0.35)  # 死亡灰化（Sprite2D 和 ColorRect 皆支援 modulate）
+	# 死亡表現：灰化 + 倒下（傾倒）+ 下沉淡出
+	if _body and is_instance_valid(_body):
+		# pivot 設在底部中心，傾倒看起來像從腳下倒下（Sprite2D 用 offset 不便，這裡用 ColorRect/Sprite 通用的 position 偏移近似）
+		var dt = create_tween()
+		# 先灰化
+		dt.tween_property(_body, "modulate", Color(0.35, 0.35, 0.35, 1.0), 0.18)
+		# 傾倒：旋轉約 80 度 + 略往下沉
+		dt.parallel().tween_property(_body, "rotation_degrees", 80.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		dt.parallel().tween_property(_body, "position", _body.position + Vector2(8.0, 14.0), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		# 倒地後再淡暗一點（保留灰色殘影，不完全消失，玩家仍看得到倒下的隊員）
+		dt.tween_property(_body, "modulate", Color(0.30, 0.30, 0.30, 0.7), 0.25)
+	elif _body:
+		_body.modulate = Color(0.35, 0.35, 0.35)
+	# 隱藏血條（已陣亡不需顯示）
+	if _hp_bar and is_instance_valid(_hp_bar):
+		var ht = create_tween()
+		ht.tween_property(_hp_bar, "modulate:a", 0.0, 0.25)
 	if _name_label:
 		_name_label.modulate = Color(0.5, 0.5, 0.5)
 	emit_signal("character_died")
@@ -301,12 +425,17 @@ func revive(hp_ratio: float = 0.5) -> void:
 	if _hp_bar:
 		_hp_bar.max_value = max_hp
 		_hp_bar.value = current_hp
+		_hp_bar.modulate.a = 1.0  # 恢復死亡時淡出的血條
 	if _name_label:
 		_name_label.modulate = Color.WHITE
 	emit_signal("hp_changed", current_hp, max_hp)
-	# 復活特效：閃白光
-	if _body:
+	# 復活特效：站起（復位 die() 造成的傾倒/下沉）+ 閃白光
+	if _body and is_instance_valid(_body):
 		_body.modulate = Color(1, 1, 1, 1)
+		var up = create_tween()
+		# 站回原位（rotation/position 由 die() 改動，這裡歸零）
+		up.tween_property(_body, "rotation_degrees", 0.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		up.parallel().tween_property(_body, "position", _body_home, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		var tw = create_tween()
 		tw.tween_property(_body, "modulate", Color(2, 2, 2, 1), 0.15)
 		tw.tween_property(_body, "modulate", Color(1, 1, 1, 1), 0.3)
@@ -398,18 +527,20 @@ func _do_passive_heal() -> void:
 
 func _show_heal_text(target: Node, amount: float) -> void:
 	var lbl := Label.new()
-	lbl.text = "+%dhp" % int(amount)
-	lbl.add_theme_font_size_override("font_size", 14)
-	lbl.modulate = Color(0.3, 1.0, 0.3)
+	lbl.text = "+%d" % int(amount)
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.modulate = Color(0.3, 1.0, 0.35)
+	lbl.add_theme_color_override("font_outline_color", Color(0.0, 0.2, 0.0, 0.9))
+	lbl.add_theme_constant_override("outline_size", 4)
 	var tree := get_tree()
 	if tree == null or tree.current_scene == null:
 		return
 	tree.current_scene.add_child(lbl)
 	# 飄字位置：目標全域座標轉換為主場景本地座標
-	lbl.global_position = target.global_position + Vector2(-15.0, -40.0)
+	lbl.global_position = target.global_position + Vector2(-15.0, -46.0)
 	var tw := get_tree().create_tween()
-	tw.tween_property(lbl, "position:y", lbl.position.y - 30.0, 0.8)
-	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 36.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.7)
 	tw.tween_callback(lbl.queue_free)
 
 func set_cover_mode(value: bool) -> void:
@@ -430,9 +561,10 @@ func _pop_up_animation() -> void:
 		_body.scale = Vector2(DISPLAY_SIZE / 64.0, DISPLAY_SIZE / 64.0)
 	var start_y: float = global_position.y
 	var tween = create_tween()
-	tween.tween_property(self, "global_position:y", start_y - 12.0, 0.08)
-	tween.tween_interval(0.15)
-	tween.tween_property(self, "global_position:y", start_y, 0.08)
+	# 俐落彈起：快速上彈（QUAD ease-out），短停頓，回落帶 BACK 緩衝更有彈性
+	tween.tween_property(self, "global_position:y", start_y - 12.0, 0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(0.12)
+	tween.tween_property(self, "global_position:y", start_y, 0.10).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	# 動畫結束後回到蹲伏精靈
 	tween.tween_callback(func():
 		if in_cover and _body is Sprite2D and _crouch_texture:
@@ -612,5 +744,61 @@ func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 		# 無法取得主場景，回退直接扣血
 		if target_node.has_method("take_damage"):
 			target_node.take_damage(dmg)
-	# 射擊後站起動畫（不阻塞，Tween 非同步執行）
+	# 開火回饋：槍口閃光 + 後座/站起動畫（皆非阻塞）
+	var fire_dir := Vector2.UP
+	if target_node and is_instance_valid(target_node):
+		fire_dir = (target_node.global_position - global_position).normalized()
+	_spawn_muzzle_flash(fire_dir)
+	_recoil_animation(fire_dir)
 	_pop_up_animation()
+
+# 槍口閃光：朝射擊方向在角色前方爆出一團短暫亮光（自行消失，不影響邏輯）
+func _spawn_muzzle_flash(dir: Vector2) -> void:
+	if dir == Vector2.ZERO:
+		dir = Vector2.UP
+	# 槍口位置：角色身體外緣，朝目標方向偏移
+	var origin: Vector2 = global_position + dir * (DISPLAY_SIZE * 0.45)
+	# 核心亮光（白黃，大塊）
+	var flash = ColorRect.new()
+	flash.size = Vector2(26, 26)
+	var flash_col := Color(1.0, 0.95, 0.55) if char_id != "demo" else Color(1.0, 0.7, 0.25)
+	flash.color = flash_col
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.z_index = 10
+	flash.pivot_offset = flash.size / 2.0
+	add_child(flash)
+	# 轉成本地座標（add_child 到 self，position 為相對 self）
+	flash.position = to_local(origin) - flash.size / 2.0
+	flash.scale = Vector2(0.5, 0.5)
+	var tw = create_tween()
+	tw.tween_property(flash, "scale", Vector2(1.3, 1.3), 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(flash, "modulate:a", 0.0, 0.08)
+	tw.tween_callback(flash.queue_free)
+	# 外圈小火星（3 顆，朝射擊方向小幅噴散）
+	for i in range(3):
+		var sp = ColorRect.new()
+		sp.size = Vector2(4, 4)
+		sp.color = flash_col
+		sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sp.z_index = 10
+		add_child(sp)
+		sp.position = to_local(origin) - sp.size / 2.0
+		var spread = dir.rotated(randf_range(-0.5, 0.5))
+		var dest = to_local(origin + spread * randf_range(16.0, 28.0)) - sp.size / 2.0
+		var st = create_tween()
+		st.tween_property(sp, "position", dest, 0.1).set_ease(Tween.EASE_OUT)
+		st.parallel().tween_property(sp, "modulate:a", 0.0, 0.1)
+		st.tween_callback(sp.queue_free)
+
+# 後座動畫：身體朝射擊反方向頓挫一下再回位（短促，強調「開火」力道）
+func _recoil_animation(dir: Vector2) -> void:
+	if _body == null or not is_instance_valid(_body):
+		return
+	if dir == Vector2.ZERO:
+		dir = Vector2.UP
+	# 沿射擊反方向位移（後座），幅度小而快
+	var kick: Vector2 = -dir * 6.0
+	var base := _body_home
+	var tw = create_tween()
+	tw.tween_property(_body, "position", base + kick, 0.04).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_body, "position", base, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

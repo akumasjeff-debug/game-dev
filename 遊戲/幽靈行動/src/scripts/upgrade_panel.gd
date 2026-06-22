@@ -162,12 +162,24 @@ func _build_card_row(card_id: String) -> Control:
 	var real_def = int(base_def * lv_mult * plus_mult)
 
 	var row = ColorRect.new()
-	row.custom_minimum_size = Vector2(950, 160)
+	row.custom_minimum_size = Vector2(950, 184)
 	row.color = Color(0.07, 0.09, 0.12, 0.95)
+
+	# 細邊框（稀有度色）
+	var row_frame = Panel.new()
+	row_frame.size = Vector2(950, 184)
+	row_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rf_style = StyleBoxFlat.new()
+	rf_style.bg_color = Color(0, 0, 0, 0)
+	rf_style.border_color = Color(grade_color.r, grade_color.g, grade_color.b, 0.35)
+	rf_style.set_border_width_all(1)
+	rf_style.set_corner_radius_all(8)
+	row_frame.add_theme_stylebox_override("panel", rf_style)
+	row.add_child(row_frame)
 
 	# 等級色條
 	var bar = ColorRect.new()
-	bar.size = Vector2(6, 160)
+	bar.size = Vector2(6, 184)
 	bar.color = grade_color
 	row.add_child(bar)
 
@@ -201,7 +213,7 @@ func _build_card_row(card_id: String) -> Control:
 	# Lv 與 + 值
 	var lv_lbl = Label.new()
 	lv_lbl.text = "Lv.%d / %d" % [lv, MAX_LEVEL]
-	lv_lbl.position = Vector2(86, 50)
+	lv_lbl.position = Vector2(86, 48)
 	if _font:
 		lv_lbl.add_theme_font_override("font", _font)
 	lv_lbl.add_theme_font_size_override("font_size", 20)
@@ -210,37 +222,60 @@ func _build_card_row(card_id: String) -> Control:
 
 	var plus_lbl = Label.new()
 	plus_lbl.text = "+%d" % plus if plus > 0 else ""
-	plus_lbl.position = Vector2(220, 50)
+	plus_lbl.position = Vector2(220, 48)
 	if _font:
 		plus_lbl.add_theme_font_override("font", _font)
 	plus_lbl.add_theme_font_size_override("font_size", 20)
 	plus_lbl.modulate = Color(1.0, 0.85, 0.2)
 	row.add_child(plus_lbl)
 
-	# 數值
-	var stats_lbl = Label.new()
-	stats_lbl.text = "HP %d　ATK %d　DEF %d" % [real_hp, real_atk, real_def]
-	stats_lbl.position = Vector2(86, 80)
-	if _font:
-		stats_lbl.add_theme_font_override("font", _font)
-	stats_lbl.add_theme_font_size_override("font_size", 18)
-	stats_lbl.modulate = Color(0.75, 0.95, 0.75)
-	row.add_child(stats_lbl)
+	# 等級進度條（視覺化成長度）
+	var bar_bg = ColorRect.new()
+	bar_bg.position = Vector2(86, 80)
+	bar_bg.size = Vector2(500, 10)
+	bar_bg.color = Color(0.04, 0.05, 0.07, 0.9)
+	row.add_child(bar_bg)
+	var fill_ratio = float(lv) / float(MAX_LEVEL)
+	var bar_fill = ColorRect.new()
+	bar_fill.position = Vector2(86, 80)
+	bar_fill.size = Vector2(500 * fill_ratio, 10)
+	bar_fill.color = grade_color
+	row.add_child(bar_fill)
+	# 進度條外框
+	var bar_frame = Panel.new()
+	bar_frame.position = Vector2(86, 80)
+	bar_frame.size = Vector2(500, 10)
+	bar_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bfs = StyleBoxFlat.new()
+	bfs.bg_color = Color(0, 0, 0, 0)
+	bfs.border_color = Color(grade_color.r, grade_color.g, grade_color.b, 0.5)
+	bfs.set_border_width_all(1)
+	bfs.set_corner_radius_all(5)
+	bar_frame.add_theme_stylebox_override("panel", bfs)
+	row.add_child(bar_frame)
 
-	# 升等後預覽
+	# 目前數值（含圖示色塊）
+	_add_stat_chip(row, Vector2(86, 102), "HP", real_hp, Color(0.45, 1.0, 0.55))
+	_add_stat_chip(row, Vector2(266, 102), "ATK", real_atk, Color(1.0, 0.55, 0.45))
+	_add_stat_chip(row, Vector2(446, 102), "DEF", real_def, Color(0.55, 0.78, 1.0))
+
+	# 升等後預覽（顯示增量 +N，綠色）
 	if lv < MAX_LEVEL:
 		var next_lv_mult   = 1.0 + lv * 0.05
 		var next_hp  = int(base_hp  * next_lv_mult * plus_mult)
 		var next_atk = int(base_atk * next_lv_mult * plus_mult)
 		var next_def = int(base_def * next_lv_mult * plus_mult)
-		var preview_lbl = Label.new()
-		preview_lbl.text = "→ HP %d　ATK %d　DEF %d" % [next_hp, next_atk, next_def]
-		preview_lbl.position = Vector2(86, 108)
+		var arrow = Label.new()
+		arrow.text = "升級後"
+		arrow.position = Vector2(86, 142)
 		if _font:
-			preview_lbl.add_theme_font_override("font", _font)
-		preview_lbl.add_theme_font_size_override("font_size", 16)
-		preview_lbl.modulate = Color(0.5, 0.75, 1.0, 0.8)
-		row.add_child(preview_lbl)
+			arrow.add_theme_font_override("font", _font)
+		arrow.add_theme_font_size_override("font_size", 16)
+		arrow.modulate = Color(0.55, 0.70, 0.55)
+		row.add_child(arrow)
+		_add_delta_chip(row, Vector2(180, 140), "HP", next_hp - real_hp, Color(0.45, 1.0, 0.55))
+		_add_delta_chip(row, Vector2(330, 140), "ATK", next_atk - real_atk, Color(1.0, 0.6, 0.5))
+		_add_delta_chip(row, Vector2(460, 140), "DEF", next_def - real_def, Color(0.55, 0.78, 1.0))
 
 	# 升等按鈕
 	var btn = Button.new()
@@ -256,20 +291,89 @@ func _build_card_row(card_id: String) -> Control:
 		btn.text = "升等 %d金" % cost
 		btn.disabled = false
 		_style_button(btn, Color(0.35, 0.25, 0.0))
-	btn.position = Vector2(640, 30)
-	btn.custom_minimum_size = Vector2(290, 70)
+	btn.position = Vector2(640, 56)
+	btn.custom_minimum_size = Vector2(290, 80)
+	btn.size = Vector2(290, 80)
 	if _font:
 		btn.add_theme_font_override("font", _font)
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_font_size_override("font_size", 22)
 	btn.pressed.connect(_on_upgrade.bind(card_id, cost))
 	row.add_child(btn)
 
 	return row
 
+# 數值小標籤：名稱（小、灰）+ 數值（大、彩）
+func _add_stat_chip(row: Control, pos: Vector2, name_txt: String, value: int, col: Color) -> void:
+	var n = Label.new()
+	n.text = name_txt
+	n.position = pos
+	if _font:
+		n.add_theme_font_override("font", _font)
+	n.add_theme_font_size_override("font_size", 15)
+	n.modulate = Color(0.55, 0.6, 0.65)
+	row.add_child(n)
+	var v = Label.new()
+	v.text = str(value)
+	v.position = Vector2(pos.x + 44, pos.y - 2)
+	if _font:
+		v.add_theme_font_override("font", _font)
+	v.add_theme_font_size_override("font_size", 20)
+	v.modulate = col
+	row.add_child(v)
+
+# 增量標籤：+N（綠正/灰零）
+func _add_delta_chip(row: Control, pos: Vector2, name_txt: String, delta: int, col: Color) -> void:
+	var lbl = Label.new()
+	if delta > 0:
+		lbl.text = "%s +%d" % [name_txt, delta]
+		lbl.modulate = Color(0.4, 1.0, 0.5)
+	else:
+		lbl.text = "%s +0" % name_txt
+		lbl.modulate = Color(0.5, 0.5, 0.5)
+	lbl.position = pos
+	if _font:
+		lbl.add_theme_font_override("font", _font)
+	lbl.add_theme_font_size_override("font_size", 16)
+	row.add_child(lbl)
+
 func _on_upgrade(card_id: String, cost: int) -> void:
 	AudioManager.play_sfx("btn_click")
 	if SaveManager.upgrade_card(card_id, cost):
+		_show_upgrade_feedback(cost)
 		_rebuild_list()
+
+# 升級成功回饋：中央飄出「升級！」+ 金幣扣除飄字
+func _show_upgrade_feedback(cost: int) -> void:
+	var lbl = Label.new()
+	lbl.text = "升級成功！"
+	lbl.add_theme_font_size_override("font_size", 44)
+	if _font:
+		lbl.add_theme_font_override("font", _font)
+	lbl.modulate = Color(0.5, 1.0, 0.6, 0.0)
+	lbl.position = Vector2(0, 860)
+	lbl.size = Vector2(1080, 70)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(lbl)
+	var tw = create_tween()
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
+	tw.parallel().tween_property(lbl, "position:y", 800.0, 0.5).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.3)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(lbl.queue_free)
+
+	# 金幣消耗飄字（靠近金幣標籤）
+	var cost_lbl = Label.new()
+	cost_lbl.text = "-%d" % cost
+	cost_lbl.add_theme_font_size_override("font_size", 26)
+	if _font:
+		cost_lbl.add_theme_font_override("font", _font)
+	cost_lbl.modulate = Color(1.0, 0.5, 0.3, 1.0)
+	cost_lbl.position = Vector2(250, 155)
+	add_child(cost_lbl)
+	var ct = create_tween()
+	ct.tween_property(cost_lbl, "position:y", 120.0, 0.6).set_ease(Tween.EASE_OUT)
+	ct.parallel().tween_property(cost_lbl, "modulate:a", 0.0, 0.6)
+	ct.tween_callback(cost_lbl.queue_free)
 
 func _on_close() -> void:
 	AudioManager.play_sfx("btn_click")

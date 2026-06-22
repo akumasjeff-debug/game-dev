@@ -372,4 +372,45 @@
   <!-- 氣氛：走廊中段輕微霧化層（深藍灰蒙氣） -->
   <rect x="160" y="120" width="620" height="180" fill="#080810" opacity="0.3"/>
 
+  <!-- ===== 元素七：破門焦點強化（讓「突入感」更明確） ===== -->
+
+  <!-- 門縫高熱漏光加強（門將被破，內部光更強烈） -->
+  <rect x="1014" y="80" width="8" height="300" fill="#FFAA44" opacity="0.5"/>
+  <rect x="1017" y="82" width="4" height="296" fill="#FFE0A0"/>
+  <!-- 門下方地縫強光 -->
+  <rect x="782" y="356" width="238" height="5" fill="#FFB044" opacity="0.7"/>
+  <rect x="790" y="354" width="220" height="2" fill="#FFE0A0"/>
+
+  <!-- 門框輪緣光（rim light，圈出門框輪廓 → 視覺主焦點） -->
+  <rect x="776" y="76" width="248" height="3" fill="#5A4426"/>
+  <rect x="776" y="382" width="248" height="3" fill="#3A2C18"/>
+  <rect x="776" y="76" width="3" height="310" fill="#4A3820"/>
+
+  <!-- 警示燈雙閃暈光擴大（紅色更醒目） -->
+  <rect x="878" y="58" width="28" height="26" fill="#5A0E00" opacity="0.5"/>
+  <rect x="884" y="64" width="16" height="16" fill="#FF3010" opacity="0.7"/>
+  <rect x="888" y="68" width="8" height="8" fill="#FF6040"/>
+
+  <!-- 揮錘動感線（撞門錘上方殘影弧線，3 道遞減） -->
+  <rect x="400" y="108" width="40" height="3" fill="#2A2A30" opacity="0.6"/>
+  <rect x="408" y="100" width="34" height="3" fill="#222228" opacity="0.45"/>
+  <rect x="416" y="94"  width="26" height="2" fill="#1C1C22" opacity="0.3"/>
+
+  <!-- 前鋒槍口閃焰殘影（即將開火） -->
+  <rect x="636" y="166" width="8" height="6" fill="#FFAA33" opacity="0.7"/>
+  <rect x="642" y="167" width="6" height="4" fill="#FFDD88" opacity="0.6"/>
+
+  <!-- 揚塵/碎屑（門前地面，破門瞬間的塵土） -->
+  <rect x="700" y="330" width="4" height="4" fill="#2A2A30" opacity="0.5"/>
+  <rect x="730" y="318" width="3" height="3" fill="#262630" opacity="0.45"/>
+  <rect x="688" y="300" width="3" height="3" fill="#22222A" opacity="0.4"/>
+  <rect x="752" y="345" width="4" height="3" fill="#2A2A30" opacity="0.5"/>
+  <rect x="716" y="288" width="2" height="2" fill="#20202A" opacity="0.35"/>
+
+  <!-- 整體電影感暗角（四角壓暗，聚焦中央人物與門） -->
+  <rect x="0" y="0"   width="1080" height="46" fill="#000000" opacity="0.55"/>
+  <rect x="0" y="354" width="1080" height="46" fill="#000000" opacity="0.55"/>
+  <rect x="0" y="0"   width="60"   height="400" fill="#000000" opacity="0.45"/>
+  <rect x="1020" y="0" width="60"  height="400" fill="#000000" opacity="0.35"/>
+
 </svg>

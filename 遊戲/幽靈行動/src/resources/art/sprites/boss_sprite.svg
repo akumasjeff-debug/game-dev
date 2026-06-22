@@ -24,6 +24,11 @@
   <!-- 護目鏡高光（紫色光澤） -->
   <rect x="17" y="15" width="3" height="2" fill="#CC44CC"/>
   <rect x="39" y="15" width="3" height="2" fill="#CC44CC"/>
+  <!-- 護目鏡核心威壓紅眼（首領殺氣，紫鏡透出危險紅光） -->
+  <rect x="20" y="16" width="3" height="3" fill="#FF1133"/>
+  <rect x="41" y="16" width="3" height="3" fill="#FF1133"/>
+  <rect x="21" y="17" width="1" height="1" fill="#FFAACC"/>
+  <rect x="42" y="17" width="1" height="1" fill="#FFAACC"/>
   <!-- 護目鏡底部暗影 -->
   <rect x="17" y="18" width="8" height="2" fill="#600060"/>
   <rect x="39" y="18" width="8" height="2" fill="#600060"/>

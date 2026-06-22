@@ -2,6 +2,17 @@
 
 ## 已完成
 
+### v0.6.0（2026-06-22）— 🎨 五 agent 並行全面美術/UIUX 升級
+五個 subagent 嚴格切分檔案所有權並行作業，整合後單次 headless + Playwright 驗證通過。
+- **HUD/UI（hud.gd + 新增 hud_radial.gd）**：技能卡環形 CD、就緒綠脈動、點擊回饋、HP 三段色、職業色邊框、陣亡灰階紅框；TopBar 進度條分段刻度+平滑填充；中央訊息佇列系統（新增 show_message()）；速度(Engine.time_scale x1/x2/x3)+暫停按鈕(64x64)；底部 home indicator 安全邊距
+- **玩家角色/子彈（character.gd + bullet.gd + 玩家 sprite）**：開火槍口閃光+後座、受擊閃紅震動、傷害數字飄字、血條補間、大招職業色光環+粒子、死亡傾倒下沉；子彈曳光拖尾+命中爆閃+方向旋轉；6 職業 sprite 加質感識別光
+- **敵人（enemy.gd + 敵人 sprite）**：出場掉落動畫、槍口閃光、受擊閃白、傷害數字、死亡爆裂碎片；Boss 金框大血條+金名+頭頂標記(★ BOSS ★)+紫色呼吸光環；敵人子彈紅色重畫；三型 sprite 殺氣識別光
+- **戰鬥場景（main.gd + room.gd + 場景 SVG）**：房間 7 層縱深（後牆+透視地板+區域光照+暗角），三主題差異化；頂燈光錐+警示燈光斑+Boss 血色警戒；環境道具擴充（6→14 件有堆疊層次）；新增 6 個道具 SVG；破門過場美術升級
+- **戰鬥外畫面（main_menu/base/gacha/upgrade/squad_confirm/card_gallery/story/decision）**：主選單 HUD 角框+標題光暈+智慧存檔按鈕；基地資源膠囊+任務板+導覽卡；抽卡 SSR/QR 金光放射演出；升級數值前後對比；圖鑑未擁有剪影；統一軍事配色設計系統
+- **整合修復**：main.gd:571 `var gx := lx+20`（Variant 無法推斷）→ 明確 float；豆腐字符號 ☠→★、▶→>>
+- **驗證**：headless 0 ERROR；Playwright 確認戰鬥（HUD/環形CD/技能橫幅/傷害數字/敵人紅子彈/四角色完整顯示）、主選單、基地畫面皆正常，console 零錯誤；版本 v0.5.12 → v0.6.0
+- **技術筆記**：headless --quit 在 MainMenu 主場景不載入 main.gd/戰鬥腳本，會漏 parse error；驗證戰鬥腳本須暫時把 main_scene 改 Main.tscn 再跑（見 [[feedback-godot-parse-error-blindspot]]）
+
 ### v0.5.12（2026-06-22）— 掩體圖層調整 + 敵方掩體換素材
 - **玩家掩體移到角色後方**：原本 z=5 前景層蓋住角色（只露頭）；改為 z=-1 後景層（RoomCoverBack），完整角色模組顯示在掩體前方，角色更突出。掩體 y 1496→1518 下移貼合腳部
 - **角色站立不蹲伏**：`_position_squad_for_combat()` 的 `set_cover_mode(true)` 改 `false`，掩體後移後角色保持站立完整顯示

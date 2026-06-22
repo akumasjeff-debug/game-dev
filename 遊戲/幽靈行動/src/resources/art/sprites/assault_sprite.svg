@@ -65,4 +65,17 @@
   <rect x="51" y="33" width="10" height="12" fill="#2A1800"/>
   <!-- 握把 -->
   <rect x="54" y="39" width="4" height="6" fill="#1A1000"/>
+
+  <!-- ▼ 質感強化：邊緣高光與識別亮點 ▼ -->
+  <!-- 頭盔頂部亮邊（rim light，左上受光） -->
+  <rect x="22" y="5" width="14" height="1" fill="#FF8A2A"/>
+  <!-- 護面感應燈（橙色亮點，職業辨識） -->
+  <rect x="40" y="14" width="2" height="2" fill="#FFAA44"/>
+  <!-- 槍口微光（衝鋒槍前端，暗示火力） -->
+  <rect x="2" y="37" width="2" height="2" fill="#FFB050"/>
+  <!-- 肩甲頂緣高光 -->
+  <rect x="9" y="29" width="14" height="1" fill="#FF9933"/>
+  <rect x="41" y="29" width="14" height="1" fill="#D86A22"/>
+  <!-- 胸甲底部陰影（增加立體感） -->
+  <rect x="20" y="45" width="24" height="2" fill="#1A0C00"/>
 </svg>

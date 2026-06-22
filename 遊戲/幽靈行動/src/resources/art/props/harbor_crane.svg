@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="360" shape-rendering="crispEdges">
+  <!-- 港口起重機剪影（遠景牆面，建立港口深度感） -->
+  <!-- 立柱 -->
+  <rect x="30" y="60" width="22" height="300" fill="#14222E"/>
+  <rect x="148" y="60" width="22" height="300" fill="#14222E"/>
+  <rect x="30" y="60" width="6" height="300" fill="#1C3040"/>
+  <rect x="148" y="60" width="6" height="300" fill="#1C3040"/>
+  <!-- 交叉桁架 -->
+  <rect x="52" y="120" width="96" height="8" fill="#102028"/>
+  <rect x="52" y="220" width="96" height="8" fill="#102028"/>
+  <rect x="52" y="320" width="96" height="8" fill="#102028"/>
+  <!-- 頂部橫樑（吊臂） -->
+  <rect x="10" y="40" width="180" height="22" fill="#16252F"/>
+  <rect x="10" y="40" width="180" height="5" fill="#1E3442"/>
+  <!-- 吊臂延伸 -->
+  <rect x="170" y="46" width="30" height="10" fill="#16252F"/>
+  <!-- 吊索與吊鉤 -->
+  <rect x="98" y="62" width="3" height="120" fill="#0E1A22"/>
+  <rect x="92" y="180" width="16" height="14" fill="#243846"/>
+  <rect x="96" y="194" width="8" height="10" fill="#1A2C38"/>
+  <!-- 警示燈（頂端紅點） -->
+  <rect x="96" y="32" width="8" height="8" fill="#D02020"/>
+  <rect x="92" y="28" width="16" height="14" fill="#3A0A0A" opacity="0.5"/>
+</svg>

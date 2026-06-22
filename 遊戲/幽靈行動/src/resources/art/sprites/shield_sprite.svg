@@ -63,4 +63,20 @@
   <rect x="52" y="33" width="1" height="12" fill="#404040"/>
   <!-- 彈匣 -->
   <rect x="54" y="38" width="5" height="8" fill="#222"/>
+
+  <!-- ▼ 質感強化：邊緣高光與識別亮點 ▼ -->
+  <!-- 頭盔頂部亮邊（rim light） -->
+  <rect x="22" y="5" width="14" height="1" fill="#5599FF"/>
+  <!-- 護目鏡掃描亮點 -->
+  <rect x="29" y="15" width="2" height="1" fill="#88BBFF"/>
+  <!-- 盾牌外緣強光（金屬反光，凸顯主特徵） -->
+  <rect x="3" y="31" width="12" height="1" fill="#5599FF"/>
+  <rect x="3" y="31" width="1" height="22" fill="#66AAFF"/>
+  <!-- 盾牌中央徽記高光 -->
+  <rect x="7" y="40" width="2" height="1" fill="#88CCFF"/>
+  <!-- 肩甲頂緣高光 -->
+  <rect x="9" y="29" width="14" height="1" fill="#4488FF"/>
+  <rect x="41" y="29" width="14" height="1" fill="#2D66CC"/>
+  <!-- 胸甲底部陰影 -->
+  <rect x="20" y="45" width="24" height="2" fill="#0D1830"/>
 </svg>

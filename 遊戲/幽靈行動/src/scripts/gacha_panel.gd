@@ -5,8 +5,15 @@ extends CanvasLayer
 
 signal panel_closed
 
+# ── 統一設計配色 ──
+const COL_GOLD   := Color(1.0, 0.78, 0.25)
+const COL_ORANGE := Color(1.0, 0.55, 0.12)
+const COL_STEEL  := Color(0.30, 0.45, 0.65)
+const SAFE_BOTTOM := 60.0
+
 var _cards_json: Dictionary = {}
 var _gacha_config: Dictionary = {}
+var _busy: bool = false   # 動畫播放中鎖定抽卡按鈕
 
 func _ready() -> void:
 	layer = 15
@@ -43,23 +50,34 @@ func _load_data() -> void:
 # ─────────────────────────────────────────
 
 func _build_ui() -> void:
-	# 黑色底層遮罩
+	# 黑色底層遮罩（深藍黑）
 	var overlay = ColorRect.new()
 	overlay.name = "Overlay"
-	overlay.color = Color(0.0, 0.0, 0.0, 0.92)
+	overlay.color = Color(0.03, 0.04, 0.07, 0.96)
 	overlay.anchor_right = 1.0
 	overlay.anchor_bottom = 1.0
 	add_child(overlay)
+
+	# 頂欄背景
+	var top_bg = ColorRect.new()
+	top_bg.size = Vector2(1080, 130)
+	top_bg.color = Color(0.05, 0.07, 0.11, 0.98)
+	add_child(top_bg)
+	var top_line = ColorRect.new()
+	top_line.position = Vector2(0, 128)
+	top_line.size = Vector2(1080, 3)
+	top_line.color = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.55)
+	add_child(top_line)
 
 	# 標題
 	var title = Label.new()
 	title.name = "Title"
 	title.text = "招募中心"
 	title.add_theme_font_size_override("font_size", 48)
-	title.modulate = Color(1.0, 0.85, 0.3)
-	title.position = Vector2(0, 60)
-	title.size = Vector2(1080, 80)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.modulate = COL_GOLD
+	title.position = Vector2(40, 38)
+	title.size = Vector2(700, 70)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(title)
 
 	# 關閉按鈕（右上角）
@@ -67,30 +85,62 @@ func _build_ui() -> void:
 	close_btn.name = "CloseBtn"
 	close_btn.text = "X"
 	close_btn.custom_minimum_size = Vector2(80, 80)
-	close_btn.position = Vector2(970, 30)
-	close_btn.add_theme_font_size_override("font_size", 32)
-	_style_button(close_btn, Color(0.35, 0.08, 0.08))
+	close_btn.position = Vector2(970, 28)
+	close_btn.add_theme_font_size_override("font_size", 36)
+	_style_button(close_btn, Color(0.30, 0.08, 0.08))
 	close_btn.pressed.connect(_on_close)
 	add_child(close_btn)
 
-	# 金幣顯示
+	# 金幣顯示（膠囊）
+	var coin_pill = Panel.new()
+	coin_pill.position = Vector2(40, 150)
+	coin_pill.size = Vector2(320, 46)
+	var cps = StyleBoxFlat.new()
+	cps.bg_color = Color(0.10, 0.13, 0.18, 0.95)
+	cps.border_color = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.55)
+	cps.set_border_width_all(2)
+	cps.set_corner_radius_all(23)
+	coin_pill.add_theme_stylebox_override("panel", cps)
+	add_child(coin_pill)
 	var coins_lbl = Label.new()
 	coins_lbl.name = "CoinsLabel"
-	coins_lbl.text = "金幣：%d" % SaveManager.coins
-	coins_lbl.add_theme_font_size_override("font_size", 30)
-	coins_lbl.modulate = Color(1.0, 0.85, 0.3)
-	coins_lbl.position = Vector2(40, 160)
+	coins_lbl.text = "金幣 %d" % SaveManager.coins
+	coins_lbl.add_theme_font_size_override("font_size", 28)
+	coins_lbl.modulate = COL_GOLD
+	coins_lbl.position = Vector2(58, 152)
+	coins_lbl.size = Vector2(290, 42)
+	coins_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(coins_lbl)
 
 	# 機率說明
 	_build_pool_info()
 
-	# 抽卡按鈕
+	# ── 底部抽卡按鈕區（尊重安全邊距）──
+	var pull_y = 1920.0 - SAFE_BOTTOM - 100.0
+
+	# 新手10連按鈕（未領取時顯示，置於單/十連上方，醒目綠框 + 呼吸動畫）
+	if not SaveManager.starter_claimed:
+		var btn_starter = Button.new()
+		btn_starter.name = "StarterBtn"
+		btn_starter.text = "★ 新手 10 連　免費領取 ★"
+		btn_starter.custom_minimum_size = Vector2(1000, 96)
+		btn_starter.size = Vector2(1000, 96)
+		btn_starter.position = Vector2(40, pull_y - 116.0)
+		btn_starter.add_theme_font_size_override("font_size", 34)
+		_style_button(btn_starter, Color(0.08, 0.35, 0.10))
+		btn_starter.modulate = Color(0.5, 1.0, 0.6)
+		btn_starter.pivot_offset = Vector2(500, 48)
+		btn_starter.pressed.connect(_do_starter_pull)
+		add_child(btn_starter)
+		_pulse_button(btn_starter)
+
+	# 單抽 + 十連（並排）
 	var btn_single = Button.new()
 	btn_single.name = "BtnSingle"
-	btn_single.text = "單抽（100 金幣）"
-	btn_single.custom_minimum_size = Vector2(430, 90)
-	btn_single.position = Vector2(40, 1790)
+	btn_single.text = "單抽\n100 金"
+	btn_single.custom_minimum_size = Vector2(480, 100)
+	btn_single.size = Vector2(480, 100)
+	btn_single.position = Vector2(40, pull_y)
 	btn_single.add_theme_font_size_override("font_size", 28)
 	_style_button(btn_single, Color(0.12, 0.18, 0.38))
 	btn_single.pressed.connect(func(): _do_pull(1))
@@ -98,26 +148,22 @@ func _build_ui() -> void:
 
 	var btn_ten = Button.new()
 	btn_ten.name = "BtnTen"
-	btn_ten.text = "十連（900 金幣）"
-	btn_ten.custom_minimum_size = Vector2(430, 90)
-	btn_ten.position = Vector2(610, 1790)
+	btn_ten.text = "十連\n900 金"
+	btn_ten.custom_minimum_size = Vector2(480, 100)
+	btn_ten.size = Vector2(480, 100)
+	btn_ten.position = Vector2(560, pull_y)
 	btn_ten.add_theme_font_size_override("font_size", 28)
-	_style_button(btn_ten, Color(0.30, 0.20, 0.0))
+	btn_ten.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8))
+	_style_button(btn_ten, Color(0.42, 0.28, 0.0))
 	btn_ten.pressed.connect(func(): _do_pull(10))
 	add_child(btn_ten)
-
-	# 新手10連按鈕（未領取時顯示）
-	if not SaveManager.starter_claimed:
-		var btn_starter = Button.new()
-		btn_starter.name = "StarterBtn"
-		btn_starter.text = "新手 10 連（免費）"
-		btn_starter.custom_minimum_size = Vector2(900, 90)
-		btn_starter.position = Vector2(90, 1690)
-		btn_starter.add_theme_font_size_override("font_size", 30)
-		_style_button(btn_starter, Color(0.08, 0.35, 0.10))
-		btn_starter.modulate = Color(0.4, 1.0, 0.55)
-		btn_starter.pressed.connect(_do_starter_pull)
-		add_child(btn_starter)
+	# 十連優惠標籤
+	var save_tag = Label.new()
+	save_tag.text = "省 100"
+	save_tag.position = Vector2(900, pull_y + 6.0)
+	save_tag.add_theme_font_size_override("font_size", 18)
+	save_tag.modulate = Color(0.5, 1.0, 0.6)
+	add_child(save_tag)
 
 func _build_pool_info() -> void:
 	var rates = _gacha_config.get("rates", {"R": 0.75, "SR": 0.18, "SSR": 0.06, "QR": 0.01})
@@ -149,6 +195,8 @@ func _build_pool_info() -> void:
 # ─────────────────────────────────────────
 
 func _do_starter_pull() -> void:
+	if _busy:
+		return
 	if SaveManager.starter_claimed:
 		return
 	var results = SaveManager.claim_starter_pulls()
@@ -158,6 +206,8 @@ func _do_starter_pull() -> void:
 	_show_pull_results(results)
 
 func _do_pull(count: int) -> void:
+	if _busy:
+		return
 	var cost = 100 if count == 1 else 900
 	if SaveManager.coins < cost:
 		_show_no_coins()
@@ -187,7 +237,7 @@ func _get_max_plus(card_id: String) -> int:
 func _refresh_coins_label() -> void:
 	var lbl = get_node_or_null("CoinsLabel")
 	if lbl:
-		lbl.text = "金幣：%d" % SaveManager.coins
+		lbl.text = "金幣 %d" % SaveManager.coins
 
 # ─────────────────────────────────────────
 #  揭示動畫主入口
@@ -200,10 +250,75 @@ func _show_pull_results(card_ids: Array) -> void:
 	if card_ids.is_empty():
 		return
 
+	_busy = true
+
+	# 暗化抽卡背景的點擊遮罩（兼作「點擊任意處關閉」）
+	var dim = ColorRect.new()
+	dim.name = "RC_Dim"
+	dim.color = Color(0.0, 0.0, 0.0, 0.0)
+	dim.anchor_right = 1.0
+	dim.anchor_bottom = 1.0
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(dim)
+	var dim_tw = create_tween()
+	dim_tw.tween_property(dim, "color:a", 0.80, 0.25)
+
 	if card_ids.size() == 1:
 		_show_single_spotlight(card_ids[0])
 	else:
 		_show_multi_result(card_ids)
+
+	# 最高稀有度判定 → 提示文字
+	var best = _best_grade(card_ids)
+	_show_dismiss_hint(best)
+
+	# 點擊任意處關閉結果（延遲 0.4 秒避免誤觸）
+	var gate = get_tree().create_timer(0.45)
+	gate.timeout.connect(func():
+		if is_instance_valid(dim):
+			dim.gui_input.connect(func(ev):
+				if ev is InputEventMouseButton and ev.pressed:
+					_dismiss_results()
+			)
+	)
+
+func _best_grade(card_ids: Array) -> String:
+	var order = {"R": 0, "SR": 1, "SSR": 2, "QR": 3}
+	var best = "R"
+	for cid in card_ids:
+		var g = _cards_json.get(cid, {}).get("grade", "R")
+		if order.get(g, 0) > order.get(best, 0):
+			best = g
+	return best
+
+func _show_dismiss_hint(best_grade: String) -> void:
+	var hint = Label.new()
+	hint.name = "RC_Hint"
+	var msg = "點擊任意處繼續"
+	if best_grade == "QR":
+		msg = "★ QR 傳說幹員！點擊繼續 ★"
+	elif best_grade == "SSR":
+		msg = "★ SSR 獲得！點擊繼續 ★"
+	hint.text = msg
+	hint.add_theme_font_size_override("font_size", 26)
+	hint.modulate = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.0)
+	hint.position = Vector2(0, 1920.0 - SAFE_BOTTOM - 70.0)
+	hint.size = Vector2(1080, 50)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(hint)
+	var tw = create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_property(hint, "modulate:a", 1.0, 0.4)
+	# 持續閃爍
+	var blink = create_tween()
+	blink.set_loops()
+	blink.tween_interval(1.1)
+	blink.tween_property(hint, "modulate:a", 0.4, 0.5)
+	blink.tween_property(hint, "modulate:a", 1.0, 0.5)
+
+func _dismiss_results() -> void:
+	_clear_result_nodes()
+	_busy = false
 
 func _clear_result_nodes() -> void:
 	for child in get_children():
@@ -231,6 +346,7 @@ func _show_single_spotlight(card_id: String) -> void:
 	light.size = Vector2(420, 1100)
 	light.position = Vector2(330, 0)
 	light.modulate.a = 0.0
+	light.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(light)
 
 	# 輻射暈光（圓形柔邊 — 用較大 ColorRect 模擬）
@@ -241,6 +357,7 @@ func _show_single_spotlight(card_id: String) -> void:
 	glow.size = Vector2(700, 700)
 	glow.position = Vector2(190, 550)
 	glow.modulate.a = 0.0
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(glow)
 
 	# 卡片容器：從畫面下方滑入
@@ -249,6 +366,7 @@ func _show_single_spotlight(card_id: String) -> void:
 	card_container.size = Vector2(320, 480)
 	card_container.position = Vector2(380, 1920)
 	card_container.pivot_offset = Vector2(160, 240)
+	card_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(card_container)
 	_build_result_card(card_container, card_id, card_info, grade, 320, 480)
 
@@ -312,6 +430,7 @@ func _show_multi_result(card_ids: Array) -> void:
 			slot.position = Vector2(single_start_x, start_y + row * (card_h + spacing_y))
 			slot.modulate.a = 0.0
 			slot.pivot_offset = Vector2(card_w / 2.0, card_h / 2.0)
+			slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			add_child(slot)
 			_build_result_card(slot, card_id, card_info, grade, card_w, card_h)
 			_tween_card_in(slot, i)
@@ -323,6 +442,7 @@ func _show_multi_result(card_ids: Array) -> void:
 		slot.position = Vector2(start_x + col * (card_w + spacing_x), start_y + row * (card_h + spacing_y))
 		slot.modulate.a = 0.0
 		slot.pivot_offset = Vector2(card_w / 2.0, card_h / 2.0)
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(slot)
 		_build_result_card(slot, card_id, card_info, grade, card_w, card_h)
 		_tween_card_in(slot, i)
@@ -436,6 +556,45 @@ func _build_result_card(container: Control, card_id: String, card_info: Dictiona
 
 func _play_grade_flash(container: Control, grade: String) -> void:
 	var flash_color = Color(1.0, 0.85, 0.10) if grade == "SSR" else Color(1.0, 0.42, 0.05)
+
+	# 1. 全螢幕白閃（瞬間）
+	var burst = ColorRect.new()
+	burst.name = "RC_Burst"
+	burst.color = Color(flash_color.r, flash_color.g, flash_color.b, 0.0)
+	burst.anchor_right = 1.0
+	burst.anchor_bottom = 1.0
+	burst.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(burst)
+	var bt = create_tween()
+	bt.tween_property(burst, "color:a", 0.55, 0.08)
+	bt.tween_property(burst, "color:a", 0.0, 0.35)
+	bt.tween_callback(burst.queue_free)
+
+	# 2. 卡片中心放射光線（8 道，旋轉擴散）
+	var center = container.position + container.size / 2.0
+	var rays_root = Control.new()
+	rays_root.name = "RC_Rays"
+	rays_root.position = center
+	rays_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rays_root)
+	move_child(rays_root, container.get_index())  # 置於卡片下方
+	for i in range(8):
+		var ray = ColorRect.new()
+		ray.size = Vector2(8, 460)
+		ray.position = Vector2(-4, 0)
+		ray.color = Color(flash_color.r, flash_color.g, flash_color.b, 0.0)
+		ray.pivot_offset = Vector2(4, 0)
+		ray.rotation = deg_to_rad(i * 45.0)
+		ray.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rays_root.add_child(ray)
+		var rt = create_tween()
+		rt.tween_property(ray, "color:a", 0.5, 0.2)
+		rt.tween_property(ray, "color:a", 0.0, 0.6)
+	var spin = create_tween()
+	spin.tween_property(rays_root, "rotation", deg_to_rad(30.0), 1.0)
+	spin.tween_callback(rays_root.queue_free)
+
+	# 3. 卡片邊框閃爍
 	var tw = create_tween()
 	tw.set_loops(3)
 	tw.tween_property(container, "modulate", Color(flash_color.r, flash_color.g, flash_color.b, 1.2), 0.12)
@@ -499,3 +658,20 @@ func _style_button(btn: Button, bg_color: Color) -> void:
 	hover.set_border_width_all(2)
 	hover.set_corner_radius_all(8)
 	btn.add_theme_stylebox_override("hover", hover)
+
+	var pressed = StyleBoxFlat.new()
+	pressed.bg_color = Color(maxf(bg_color.r - 0.05, 0.0), maxf(bg_color.g - 0.05, 0.0), maxf(bg_color.b - 0.05, 0.0))
+	pressed.border_color = style.border_color
+	pressed.set_border_width_all(2)
+	pressed.set_corner_radius_all(8)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.focus_mode = Control.FOCUS_NONE
+
+# 呼吸放大動畫（吸引點擊，例：免費新手十連）
+func _pulse_button(btn: Control) -> void:
+	if btn.pivot_offset == Vector2.ZERO:
+		btn.pivot_offset = btn.size / 2.0
+	var tw = create_tween()
+	tw.set_loops()
+	tw.tween_property(btn, "scale", Vector2(1.04, 1.04), 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

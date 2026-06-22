@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" shape-rendering="crispEdges">
+  <!-- 吊掛螢光燈管（俯視戰術頂燈） -->
+  <!-- 燈座外殼 -->
+  <rect x="6" y="6" width="148" height="28" fill="#23262E"/>
+  <rect x="6" y="6" width="148" height="3" fill="#363B45"/>
+  <rect x="6" y="31" width="148" height="3" fill="#13151A"/>
+  <!-- 燈管發光體 -->
+  <rect x="16" y="14" width="128" height="12" fill="#CFE6FF"/>
+  <rect x="16" y="14" width="128" height="4" fill="#FFFFFF"/>
+  <rect x="16" y="22" width="128" height="4" fill="#9CC4F0"/>
+  <!-- 兩端燈頭 -->
+  <rect x="10" y="12" width="8" height="16" fill="#454B57"/>
+  <rect x="142" y="12" width="8" height="16" fill="#454B57"/>
+  <!-- 吊桿 -->
+  <rect x="40" y="0" width="3" height="7" fill="#2A2E36"/>
+  <rect x="117" y="0" width="3" height="7" fill="#2A2E36"/>
+</svg>

@@ -20,6 +20,9 @@
   <!-- 護目鏡高光 -->
   <rect x="16" y="13" width="2" height="1" fill="#FFCC88"/>
   <rect x="27" y="13" width="2" height="1" fill="#FFCC88"/>
+  <!-- 護目鏡核心白熱光點（精英殺氣，比普通兵更亮） -->
+  <rect x="18" y="14" width="2" height="2" fill="#FFEE99"/>
+  <rect x="29" y="14" width="2" height="2" fill="#FFEE99"/>
   <!-- 護目鏡鼻橋連接 -->
   <rect x="22" y="13" width="4" height="2" fill="#200A00"/>
 

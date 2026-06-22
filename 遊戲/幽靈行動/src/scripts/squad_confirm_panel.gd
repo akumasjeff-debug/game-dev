@@ -117,11 +117,12 @@ func _build_ui() -> void:
 	# 底部換人列（初始在畫面外下方）
 	_build_swap_panel()
 
-	# 按鈕列：取消 + 出擊
+	# 按鈕列：取消 + 出擊（尊重底部安全邊距 60px）
+	var btn_y = 1920.0 - 60.0 - 110.0
 	var cancel_btn = Button.new()
 	cancel_btn.text = "取消"
-	cancel_btn.size = Vector2(400, 110)
-	cancel_btn.position = Vector2(40, 1790)
+	cancel_btn.size = Vector2(360, 110)
+	cancel_btn.position = Vector2(40, btn_y)
 	cancel_btn.add_theme_font_size_override("font_size", 32)
 	_style_btn(cancel_btn, Color(0.22, 0.08, 0.08))
 	cancel_btn.pressed.connect(_on_cancel)
@@ -129,13 +130,19 @@ func _build_ui() -> void:
 
 	var confirm_btn = Button.new()
 	confirm_btn.text = "出擊！"
-	confirm_btn.size = Vector2(560, 110)
-	confirm_btn.position = Vector2(480, 1790)
-	confirm_btn.add_theme_font_size_override("font_size", 38)
-	_style_btn(confirm_btn, Color(0.50, 0.22, 0.0))
-	confirm_btn.modulate = Color(1.0, 0.9, 0.5)
+	confirm_btn.size = Vector2(600, 110)
+	confirm_btn.position = Vector2(440, btn_y)
+	confirm_btn.add_theme_font_size_override("font_size", 40)
+	_style_btn(confirm_btn, Color(0.55, 0.26, 0.0))
+	confirm_btn.add_theme_color_override("font_color", Color(1.0, 0.96, 0.85))
+	confirm_btn.pivot_offset = Vector2(300, 55)
 	confirm_btn.pressed.connect(_on_confirm)
 	add_child(confirm_btn)
+	# 出擊鈕呼吸動畫（吸引主行動）
+	var pulse = create_tween()
+	pulse.set_loops()
+	pulse.tween_property(confirm_btn, "scale", Vector2(1.03, 1.03), 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	pulse.tween_property(confirm_btn, "scale", Vector2(1.0, 1.0), 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 # ─────────────────────────────────────────
 #  槽位建立
@@ -578,3 +585,10 @@ func _style_btn(btn: Button, bg: Color) -> void:
 	h_style.set_border_width_all(2)
 	h_style.set_corner_radius_all(8)
 	btn.add_theme_stylebox_override("hover", h_style)
+	var p_style = StyleBoxFlat.new()
+	p_style.bg_color = Color(maxf(bg.r - 0.05, 0.0), maxf(bg.g - 0.05, 0.0), maxf(bg.b - 0.05, 0.0))
+	p_style.border_color = s.border_color
+	p_style.set_border_width_all(2)
+	p_style.set_corner_radius_all(8)
+	btn.add_theme_stylebox_override("pressed", p_style)
+	btn.focus_mode = Control.FOCUS_NONE

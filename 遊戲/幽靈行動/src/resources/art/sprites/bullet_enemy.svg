@@ -1,8 +1,28 @@
-<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-  <!-- 外殼（深紅色） -->
-  <rect x="2" y="1" width="4" height="6" fill="#8B0000"/>
-  <!-- 彈頭（暗紅尖端） -->
-  <rect x="3" y="0" width="2" height="2" fill="#FF3333"/>
-  <!-- 光澤 -->
-  <rect x="2" y="2" width="1" height="4" fill="#AA1111"/>
+<svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" width="12" height="12">
+  <!-- 敵人子彈：紅色危險感，外圈紅光暈 + 高熱核心，與玩家黃色子彈明確區隔 -->
+
+  <!-- 外層紅色光暈（半透明，營造危險發光感） -->
+  <rect x="3" y="0" width="6" height="12" fill="#FF1100" opacity="0.25"/>
+  <rect x="0" y="3" width="12" height="6" fill="#FF1100" opacity="0.25"/>
+  <rect x="2" y="1" width="8" height="10" fill="#FF2200" opacity="0.35"/>
+
+  <!-- 彈體外殼（深紅） -->
+  <rect x="4" y="1" width="4" height="10" fill="#B00000"/>
+  <!-- 彈體側面暗影 -->
+  <rect x="7" y="2" width="1" height="8" fill="#7A0000"/>
+
+  <!-- 高熱核心（亮紅橘，能量彈感） -->
+  <rect x="4" y="3" width="4" height="6" fill="#FF3322"/>
+  <rect x="5" y="3" width="2" height="6" fill="#FF6644"/>
+
+  <!-- 彈頭尖端（最亮，白熱） -->
+  <rect x="4" y="0" width="4" height="2" fill="#FF5533"/>
+  <rect x="5" y="0" width="2" height="2" fill="#FFCCAA"/>
+
+  <!-- 核心高光點 -->
+  <rect x="5" y="4" width="1" height="2" fill="#FFEEDD"/>
+
+  <!-- 尾焰（向後拖尾，暗紅漸隱） -->
+  <rect x="5" y="9" width="2" height="2" fill="#CC1100" opacity="0.7"/>
+  <rect x="5" y="11" width="2" height="1" fill="#AA0000" opacity="0.4"/>
 </svg>
