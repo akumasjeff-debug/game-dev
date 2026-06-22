@@ -781,7 +781,7 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	# 破門畫面定格 —— 三重保險推進：①全螢幕 Button ②_input ③安全自動推進，確保真機絕不卡死
 	tw.tween_callback(func():
 		_breach_active = true
-		_breach_timeout = 3.0  # ④ 逐幀倒數自動推進（最可靠保險）
+		_breach_timeout = 2.0  # ④ 逐幀倒數自動推進（最可靠保險，2 秒）
 
 		# ① 全螢幕點擊捕捉 Button（Control GUI 輸入，真機點按鈕證實可用；process_always 防任何 pause）
 		var catcher := Button.new()
