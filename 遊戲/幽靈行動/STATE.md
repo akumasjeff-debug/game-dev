@@ -2,6 +2,12 @@
 
 ## 已完成
 
+### v0.5.7（2026-06-22）— 掩體層次修正
+- **玩家掩體改為前景層**：原本跟 RoomVisual 一起 z=-10 跑到角色後面；改成獨立 `_room_foreground` 節點 z=5，畫在角色之上 → 角色躲在掩體後方
+- **掩體固定不隨角色移動**：前景層加在 Main 固定座標，不在角色節點下
+- **角色站位**：y=1520 在掩體（y=1450）下方，朝上方敵人射擊
+- 每次換房間時 `_room_foreground` 一併 queue_free
+
 ### v0.5.6（2026-06-22）— 🔴 重大根因修復：戰鬥場景全黑
 - **真機測試暴露致命 bug**：iPhone 進入戰鬥後畫面全黑（只有 HUD），headless `--quit` 與 Playwright 都漏掉
 - **根因1（致命）**：`main.gd` 有 Parse Error（`var cfg := ROOM_CONFIGS[idx]` 無法推斷 Variant 型別）→ 整個 main.gd 載入失敗 → `_spawn_squad()`/`_start_room()` 全沒執行 → 戰鬥場景空白。之前 headless 主場景是 MainMenu、第一幀就 `--quit`，**根本沒載入 main.gd**，故 parse error 從未被觸發。自 v0.5.0 獨立房間架構起戰鬥就一直空白，Playwright 看到的「房間1/4」只是 hud.gd 預設值，被誤判為「SwiftShader 渲染限制」

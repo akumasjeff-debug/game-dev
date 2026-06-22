@@ -159,7 +159,7 @@ func _build_button() -> void:
 # ── 版本標示 ──────────────────────────────────────────────────────────
 func _build_version() -> void:
 	var lbl := Label.new()
-	lbl.text     = "v0.5.6 DEMO"
+	lbl.text     = "v0.5.7 DEMO"
 	# 右下角：x=800, y=1880，寬 260，高 30
 	lbl.position = Vector2(800, 1880)
 	lbl.size     = Vector2(260, 30)

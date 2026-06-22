@@ -67,6 +67,7 @@ var hud_scene: Node
 var _active_room: Node = null
 var _current_room_idx: int = 0
 var _room_visual: Node = null
+var _room_foreground: Node = null  # 玩家掩體前景層（z=5，畫在角色之上）
 
 # 門動畫節點（left/right/frame — 保留 breach animation 用）
 var _door_left: ColorRect  = null
@@ -96,6 +97,9 @@ func _start_room(idx: int) -> void:
 	if _room_visual and is_instance_valid(_room_visual):
 		_room_visual.queue_free()
 		_room_visual = null
+	if _room_foreground and is_instance_valid(_room_foreground):
+		_room_foreground.queue_free()
+		_room_foreground = null
 
 	_build_room_visual(idx)
 
@@ -224,17 +228,24 @@ func _build_room_visual(idx: int) -> void:
 			Vector2(ecd["x"], ecd["y"]), Vector2(ecd["w"], ecd["h"]),
 			Color(0.40, 0.30, 0.25, 0.7))
 
-	# 玩家掩體（下方，y=1360 確保在隊員站位 1520 上方）
-	_add_cover(visual, "res://resources/art/props/player_cover.svg",
-		Vector2(80, 1360), Vector2(920, 26),
-		Color(0.35, 0.38, 0.45, 0.8))
+	# 玩家掩體：獨立前景層（z=5），畫在角色之上 → 角色躲在掩體後方
+	# 固定位置，不隨角色移動。y=1450 緊貼角色站位 1520 上緣，營造掩護感
+	var fg := Node2D.new()
+	fg.name = "RoomForeground"
+	fg.z_index = 5
+	_room_foreground = fg
+	add_child(fg)
+
+	_add_cover(fg, "res://resources/art/props/player_cover.svg",
+		Vector2(80, 1450), Vector2(920, 30),
+		Color(0.35, 0.38, 0.45, 0.92))
 
 	# 玩家掩體下方陰影
 	var pshadow := ColorRect.new()
-	pshadow.position = Vector2(80, 1386)
-	pshadow.size     = Vector2(920, 4)
-	pshadow.color    = Color(0.15, 0.15, 0.20, 0.7)
-	visual.add_child(pshadow)
+	pshadow.position = Vector2(80, 1480)
+	pshadow.size     = Vector2(920, 5)
+	pshadow.color    = Color(0.10, 0.10, 0.14, 0.8)
+	fg.add_child(pshadow)
 
 	# 房間標籤底色（提升可讀性，半透明深色帶）
 	var lbl_bg := ColorRect.new()
