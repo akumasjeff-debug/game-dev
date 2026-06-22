@@ -177,11 +177,12 @@ func _on_room_cleared() -> void:
 		_start_room(next_idx)
 	)
 
-# room.gd 呼叫此方法時小隊已在正確站位，只啟動掩護模式
+# room.gd 呼叫此方法時小隊已在正確站位
+# 掩體改為後景層後，角色保持站立完整顯示（不蹲伏），讓模組更突出
 func _position_squad_for_combat(_rp: Vector2, _rs: Vector2) -> void:
 	for m in GameManager.squad_members:
 		if m and is_instance_valid(m) and m.has_method("set_cover_mode"):
-			m.set_cover_mode(true)
+			m.set_cover_mode(false)
 
 # ─────────────────────────────────────────────────────────────
 #  房間視覺建立
@@ -238,17 +239,17 @@ func _build_room_visual(idx: int) -> void:
 			Color(0.40, 0.30, 0.25, 0.7))
 
 	# 玩家掩體：4 段獨立沙袋堆（中間不相連），各對應一個角色站位
-	# 獨立前景層（z=5）畫在角色之上 → 角色躲在掩體後方探頭射擊
+	# 後景層（z=-1）畫在角色之下 → 完整角色模組顯示在掩體前方，更突出
 	# 固定位置不隨角色移動
 	var fg := Node2D.new()
-	fg.name = "RoomForeground"
-	fg.z_index = 5
+	fg.name = "RoomCoverBack"
+	fg.z_index = -1
 	_room_foreground = fg
 	add_child(fg)
 
 	for sx in SQUAD_X_SLOTS:
 		_add_cover(fg, "res://resources/art/props/player_cover_seg.svg",
-			Vector2(sx - 90.0, 1496.0), Vector2(180, 56),
+			Vector2(sx - 90.0, 1518.0), Vector2(180, 56),
 			Color(0.43, 0.42, 0.30, 0.95))
 
 	# 房間標籤底色（提升可讀性，半透明深色帶）

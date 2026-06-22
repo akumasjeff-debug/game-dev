@@ -2,6 +2,12 @@
 
 ## 已完成
 
+### v0.5.12（2026-06-22）— 掩體圖層調整 + 敵方掩體換素材
+- **玩家掩體移到角色後方**：原本 z=5 前景層蓋住角色（只露頭）；改為 z=-1 後景層（RoomCoverBack），完整角色模組顯示在掩體前方，角色更突出。掩體 y 1496→1518 下移貼合腳部
+- **角色站立不蹲伏**：`_position_squad_for_combat()` 的 `set_cover_mode(true)` 改 `false`，掩體後移後角色保持站立完整顯示
+- **敵方掩體換素材**：enemy_cover_left/mid/right.svg 從混凝土護欄 → **深色鉚釘鋼板路障 + 紅色警示帶**（呼應敵人紅色主題，與玩家沙袋、舊混凝土皆區隔）
+- **驗證**：Playwright 確認四名角色完整模組顯示在前、掩體在後；版本 v0.5.11 → v0.5.12
+
 ### v0.5.11（2026-06-22）— 🔴 破門卡死修復 + 敵方攻擊力調降
 - **🔴 破門點擊失效修復**：v0.5.10 的破門定格用 Button.pressed 偵測點擊，真機 iOS 觸控收不到 → 卡死無法推進。改用 main.gd `_input()` 直接攔截 `InputEventScreenTouch`（真機觸控）+ `InputEventMouseButton`（滑鼠），這是 Godot 最底層、不受 GUI 圖層影響的輸入路徑。新增 `_breach_active/_breach_cl/_breach_tween/_breach_on_complete` 狀態 + `_finish_breach()`
 - **敵方攻擊力調降**：普通兵 45→28、精英 55→38、Boss 65→48；攻擊間隔普通兵 2.5→2.8、精英 2.0→2.2、Boss 2.0→2.2。緩解隨機目標後脆皮後排（醫療兵/狙擊手）被秒問題
