@@ -2,6 +2,15 @@
 
 ## 已完成
 
+### v0.5.6（2026-06-22）— 🔴 重大根因修復：戰鬥場景全黑
+- **真機測試暴露致命 bug**：iPhone 進入戰鬥後畫面全黑（只有 HUD），headless `--quit` 與 Playwright 都漏掉
+- **根因1（致命）**：`main.gd` 有 Parse Error（`var cfg := ROOM_CONFIGS[idx]` 無法推斷 Variant 型別）→ 整個 main.gd 載入失敗 → `_spawn_squad()`/`_start_room()` 全沒執行 → 戰鬥場景空白。之前 headless 主場景是 MainMenu、第一幀就 `--quit`，**根本沒載入 main.gd**，故 parse error 從未被觸發。自 v0.5.0 獨立房間架構起戰鬥就一直空白，Playwright 看到的「房間1/4」只是 hud.gd 預設值，被誤判為「SwiftShader 渲染限制」
+- **修復1**：`var cfg: Dictionary = ROOM_CONFIGS[idx]`（×2）、`var is_boss: bool = ...`
+- **根因2**：修復1後敵人/掩體顯示了但小隊角色仍不可見 → RoomVisual（全螢幕不透明背景 ColorRect）在 `_spawn_squad` 之後 add_child，同 z_index=0 下 tree order 較後 → **蓋住角色**
+- **修復2**：`RoomVisual.z_index = -10`（背景層永遠在角色/敵人之下）
+- **驗證手段升級**：臨時把 main_scene 改成 Main.tscn 直接匯出測試版，Playwright 截圖確認戰鬥場景完整渲染（敵人+掩體+4角色+HUD），驗證後改回 MainMenu
+- **渲染後端**：順手把 forward_plus → gl_compatibility（Web/iOS 必須，雖非本次根因）
+
 ### v0.5.5（2026-06-22）
 - **game_manager.gd**：`trigger_game_over()` 修復 `current_room_index` 未歸零（第二局房間計數出錯 bug）
 - **數值重校 Round 2**：普通兵 HP 1200→1000 / ATK 35→45；Boss ATK 75→65 + 間隔 1.5→2.0s；盾兵 HP 400→500；大招初始 CD 盾兵 15s / 爆破手 20s（其他角色維持立即可用）

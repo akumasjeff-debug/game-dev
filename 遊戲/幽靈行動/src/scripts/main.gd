@@ -101,7 +101,7 @@ func _start_room(idx: int) -> void:
 
 	# 小隊進場動畫，結束後建立戰鬥房間
 	_squad_enter(func():
-		var cfg := ROOM_CONFIGS[idx]
+		var cfg: Dictionary = ROOM_CONFIGS[idx]
 		var room = ROOM_SCRIPT.new()
 		room.room_label  = cfg["label"]
 		room.enemy_configs = cfg["enemies"].duplicate(true)
@@ -179,11 +179,12 @@ func _position_squad_for_combat(_rp: Vector2, _rs: Vector2) -> void:
 func _build_room_visual(idx: int) -> void:
 	var visual := Node2D.new()
 	visual.name = "RoomVisual"
+	visual.z_index = -10  # 背景層：永遠在小隊角色與敵人之下（否則全螢幕 bg 會蓋住角色）
 	_room_visual  = visual
 	add_child(visual)
 
-	var cfg     := ROOM_CONFIGS[idx]
-	var is_boss := cfg["label"] == "Boss"
+	var cfg: Dictionary = ROOM_CONFIGS[idx]
+	var is_boss: bool = cfg["label"] == "Boss"
 	var bg_col  := Color(0.20, 0.05, 0.05) if is_boss else _get_mission_room_color()
 
 	# 全螢幕背景

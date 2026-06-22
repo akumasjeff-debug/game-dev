@@ -9,7 +9,7 @@ config_version=5
 config/name="幽靈行動"
 config/description="戰術指揮 Roguelite — 核心原型"
 run/main_scene="res://scenes/MainMenu.tscn"
-config/features=PackedStringArray("4.3", "Forward Plus")
+config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [display]
@@ -33,5 +33,6 @@ theme/custom="res://resources/default_theme.tres"
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.02, 0.04, 0.08, 1)
