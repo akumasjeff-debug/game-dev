@@ -2,6 +2,16 @@
 
 ## 已完成
 
+### v0.5.9（2026-06-22）— 🔴 子彈/扣血根因修復 + 血條上移 + 掩體換裝
+- **🔴 根因1（致命，戰鬥完全卡住）**：main.gd `_build_room_visual()` 呼叫了未定義的 `_add_environment_props()` → main.gd parse error → `_spawn_squad`/`_start_room` 全不執行 → 戰鬥場景卡住、沒子彈、不扣血。**補上函式本體解決。**
+- **🔴 根因2（致命，子彈不顯示）**：bullet.gd `var _body: Node2D` 但實際會指派 ColorRect（非 Node2D）→ `_body is ColorRect` 被編譯器判定恆假 → **整個 bullet.gd parse error 無法載入 → 子彈永遠不出現**。改為 `var _body`（untyped）解決。此 bug 自始存在，headless 在 MainMenu `--quit` 從不載入 bullet.gd 故一直漏掉，**只有 Playwright 真機 WebGL 才抓到**。
+- **血條上移頭頂**：character.gd 玩家血條從身體下方移到頭頂上方（y = -half-16）；enemy.gd 敵人血條同步移到頭頂（y = -size.y/2-18），名稱標籤再上移
+- **敵人掩體換素材**：enemy_cover_left/mid/right.svg 從棕色沙袋 → **混凝土澤西護欄 + 黃黑危險條紋**（梯形塊、彈孔磨損），與玩家沙袋明顯區隔
+- **玩家掩體確認**：已是 4 段獨立沙袋（player_cover_seg.svg × 4 站位，段間 36px 斷開），非整片相連
+- **中段環境素材**：`_add_environment_props()` 依任務類型在兩側擺道具（office：server_rack/locker/crate；warehouse：pillar/crate/barrel；harbor：container/barrel/rope）
+- **匯出路徑修正**：export_presets.cfg `../../build/web` → `../build/web`（原路徑指向不存在的 遊戲/build/web）
+- **驗證**：Playwright headless WebGL 確認子彈雙向射擊、雙方扣血、醫療兵 +14hp 治療、血條在頭頂、4 段獨立掩體；主選單無 console error；版本號 v0.5.8 → v0.5.9
+
 ### v0.5.8（2026-06-22）— 掩體素材升級為沙袋牆
 - **玩家掩體**：灰色矩形 → 暗橄欖綠**沙袋牆**（11 段交錯沙袋，高光/陰影/綁繩縫），軍事戰術風格
 - **敵人掩體**：暗紅棕破舊沙袋（含彈孔破損細節）

@@ -88,30 +88,32 @@ func _build_visual() -> void:
 		_body = cr
 	add_child(_body)
 
-	# 敵人名稱標籤 — 字型放大（原 12px 在手機上太小）
-	_name_label = Label.new()
-	_name_label.text = enemy_name
-	_name_label.position = Vector2(-size.x / 2.0 - 4, -size.y / 2.0 - 26)
-	_name_label.add_theme_font_size_override("font_size", 16)
-	_name_label.modulate = Color(1.0, 0.85, 0.7)
-	add_child(_name_label)
-
-	# 敵人血條 — 寬度依類型放大確保手機可見，加背景底色提升對比
+	# 敵人血條 — 寬度依類型放大確保手機可見，加背景底色提升對比（移到頭頂上方）
 	var hp_bar_w: float = 80.0
 	if enemy_type == EnemyType.ELITE:
 		hp_bar_w = 100.0
 	elif enemy_type == EnemyType.BOSS:
 		hp_bar_w = 130.0
 
+	var hp_y: float = -size.y / 2.0 - 18.0  # 血條在頭頂上方
+
 	var hp_bg_rect = ColorRect.new()
 	hp_bg_rect.size     = Vector2(hp_bar_w, 12)
-	hp_bg_rect.position = Vector2(-hp_bar_w / 2.0, size.y / 2.0 + 4)
+	hp_bg_rect.position = Vector2(-hp_bar_w / 2.0, hp_y)
 	hp_bg_rect.color    = Color(0.08, 0.05, 0.05, 0.90)
 	add_child(hp_bg_rect)
 
+	# 敵人名稱標籤 — 字型放大（原 12px 在手機上太小），放在血條上方
+	_name_label = Label.new()
+	_name_label.text = enemy_name
+	_name_label.position = Vector2(-size.x / 2.0 - 4, hp_y - 22.0)
+	_name_label.add_theme_font_size_override("font_size", 16)
+	_name_label.modulate = Color(1.0, 0.85, 0.7)
+	add_child(_name_label)
+
 	_hp_bar = ProgressBar.new()
 	_hp_bar.size = Vector2(hp_bar_w, 12)
-	_hp_bar.position = Vector2(-hp_bar_w / 2.0, size.y / 2.0 + 4)
+	_hp_bar.position = Vector2(-hp_bar_w / 2.0, hp_y)
 	_hp_bar.min_value = 0.0
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = current_hp

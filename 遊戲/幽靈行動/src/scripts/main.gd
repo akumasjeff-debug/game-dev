@@ -217,6 +217,9 @@ func _build_room_visual(idx: int) -> void:
 	divider.color    = Color(0.3, 0.3, 0.4, 0.4)
 	visual.add_child(divider)
 
+	# 中段環境素材（填充空白，兩側分布避開中央對戰通道）
+	_add_environment_props(visual)
+
 	# 敵人掩體（上方）
 	var ec_defs: Array = [
 		{"svg": "res://resources/art/props/enemy_cover_left.svg",  "x": 55,  "y": 380, "w": 300, "h": 22},
@@ -228,24 +231,19 @@ func _build_room_visual(idx: int) -> void:
 			Vector2(ecd["x"], ecd["y"]), Vector2(ecd["w"], ecd["h"]),
 			Color(0.40, 0.30, 0.25, 0.7))
 
-	# 玩家掩體：獨立前景層（z=5），畫在角色之上 → 角色躲在掩體後方
-	# 固定位置，不隨角色移動。y=1450 緊貼角色站位 1520 上緣，營造掩護感
+	# 玩家掩體：4 段獨立沙袋堆（中間不相連），各對應一個角色站位
+	# 獨立前景層（z=5）畫在角色之上 → 角色躲在掩體後方探頭射擊
+	# 固定位置不隨角色移動
 	var fg := Node2D.new()
 	fg.name = "RoomForeground"
 	fg.z_index = 5
 	_room_foreground = fg
 	add_child(fg)
 
-	_add_cover(fg, "res://resources/art/props/player_cover.svg",
-		Vector2(80, 1450), Vector2(920, 30),
-		Color(0.35, 0.38, 0.45, 0.92))
-
-	# 玩家掩體下方陰影
-	var pshadow := ColorRect.new()
-	pshadow.position = Vector2(80, 1480)
-	pshadow.size     = Vector2(920, 5)
-	pshadow.color    = Color(0.10, 0.10, 0.14, 0.8)
-	fg.add_child(pshadow)
+	for sx in SQUAD_X_SLOTS:
+		_add_cover(fg, "res://resources/art/props/player_cover_seg.svg",
+			Vector2(sx - 90.0, 1496.0), Vector2(180, 56),
+			Color(0.43, 0.42, 0.30, 0.95))
 
 	# 房間標籤底色（提升可讀性，半透明深色帶）
 	var lbl_bg := ColorRect.new()
@@ -279,6 +277,65 @@ func _build_room_visual(idx: int) -> void:
 		if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
 			boss_warn.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
 		visual.add_child(boss_warn)
+
+func _add_environment_props(parent: Node) -> void:
+	var mid: String = GameManager.current_mission_id if GameManager else "demo_01"
+
+	# [svg, x, y, w, h, fallback_color]
+	# 兩側貼牆擺放，避開中央對戰通道（y=920~1380，x<140 或 x>940）
+	var props: Array = []
+
+	match mid:
+		"warehouse_01":
+			props = [
+				["res://resources/art/props/parking_pillar.svg",  0, 920,  16, 500, Color(0.18, 0.18, 0.20)],
+				["res://resources/art/props/crate.svg",           20, 950,  80,  80, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/crate.svg",           22,1050,  60,  60, Color(0.30, 0.24, 0.15)],
+				["res://resources/art/props/barrel.svg",          32,1130,  50,  70, Color(0.25, 0.28, 0.20)],
+				["res://resources/art/props/parking_pillar.svg",1064, 920,  16, 500, Color(0.18, 0.18, 0.20)],
+				["res://resources/art/props/crate.svg",          980, 950,  80,  80, Color(0.35, 0.28, 0.18)],
+				["res://resources/art/props/barrel.svg",         998,1050,  50,  70, Color(0.25, 0.28, 0.20)],
+				["res://resources/art/props/crate.svg",          982,1140,  60,  60, Color(0.30, 0.24, 0.15)],
+			]
+		"harbor_01":
+			props = [
+				["res://resources/art/props/harbor_container.svg",  5, 920,  90, 120, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/harbor_rope.svg",       14,1060,  60,  20, Color(0.42, 0.35, 0.22)],
+				["res://resources/art/props/barrel.svg",            26,1090,  50,  70, Color(0.20, 0.25, 0.30)],
+				["res://resources/art/props/harbor_container.svg", 985, 920,  90, 120, Color(0.12, 0.28, 0.40)],
+				["res://resources/art/props/barrel.svg",          1004,1060,  50,  70, Color(0.20, 0.25, 0.30)],
+				["res://resources/art/props/harbor_rope.svg",      988,1150,  60,  20, Color(0.42, 0.35, 0.22)],
+			]
+		_:  # office（預設）
+			props = [
+				["res://resources/art/props/wall_crack.svg",      0, 905,  14, 480, Color(0.14, 0.14, 0.18)],
+				["res://resources/art/props/server_rack.svg",     10, 930,  70, 160, Color(0.22, 0.22, 0.28)],
+				["res://resources/art/props/locker.svg",          10,1110,  60, 100, Color(0.20, 0.30, 0.25)],
+				["res://resources/art/props/crate.svg",           18,1230,  60,  60, Color(0.32, 0.28, 0.22)],
+				["res://resources/art/props/wall_crack.svg",    1066, 905,  14, 480, Color(0.14, 0.14, 0.18)],
+				["res://resources/art/props/server_rack.svg",   1000, 930,  70, 160, Color(0.22, 0.22, 0.28)],
+				["res://resources/art/props/locker.svg",        1010,1110,  60, 100, Color(0.20, 0.30, 0.25)],
+				["res://resources/art/props/crate.svg",         1002,1230,  60,  60, Color(0.32, 0.28, 0.22)],
+			]
+
+	for p in props:
+		var svg: String = p[0]
+		var pos := Vector2(float(p[1]), float(p[2]))
+		var sz  := Vector2(float(p[3]), float(p[4]))
+		var col: Color = p[5]
+		if ResourceLoader.exists(svg):
+			var tr := TextureRect.new()
+			tr.texture      = load(svg)
+			tr.position     = pos
+			tr.size         = sz
+			tr.stretch_mode = TextureRect.STRETCH_SCALE
+			parent.add_child(tr)
+		else:
+			var cr := ColorRect.new()
+			cr.position = pos
+			cr.size     = sz
+			cr.color    = col
+			parent.add_child(cr)
 
 func _add_cover(parent: Node, svg: String, pos: Vector2, size: Vector2, fallback: Color) -> void:
 	if ResourceLoader.exists(svg):

@@ -4,7 +4,7 @@ extends Node2D
 # 由 enemy._do_attack() 或 character._try_auto_attack() 動態 instance 並加到主場景
 
 var damage: float = 10.0
-var speed: float = 400.0
+var speed: float = 850.0       # 飛行速度（提高：原 400 太慢，打擊感不足）
 var direction: Vector2 = Vector2.ZERO
 var target: Node = null       # 目標節點（到達後扣血）
 var owner_type: String = ""   # "player" 或 "enemy"
@@ -13,13 +13,16 @@ var owner_type: String = ""   # "player" 或 "enemy"
 var _bullet_color: Color = Color(1.0, 0.9, 0.2)  # 預設黃色（玩家子彈）
 
 # 最大飛行距離（防止子彈無限飛行）
-var _max_distance: float = 600.0
+# 注意：角色 y≈1520、敵人 y≈400，垂直距離就有 ~1120，原本 600 會讓子彈
+# 飛到半空就消失、永遠打不到對方 → 必須涵蓋全螢幕對角（√(1080²+1920²)≈2200）
+var _max_distance: float = 2500.0
 var _traveled: float = 0.0
 
-# 視覺節點
-var _body: Node2D
+# 視覺節點（Sprite2D 或 ColorRect — 不可標註為 Node2D，否則 `_body is ColorRect` 會 parse error）
+var _body
 
 func _ready() -> void:
+	z_index = 8  # 子彈在角色(0)與掩體(5)之上，飛行全程可見
 	_build_visual()
 
 func _build_visual() -> void:
@@ -31,16 +34,17 @@ func _build_visual() -> void:
 		var sprite = Sprite2D.new()
 		sprite.texture = load(sprite_path)
 		sprite.centered = true
+		sprite.scale = Vector2(2.4, 2.4)  # 放大子彈，手機上清晰可見
 		_body = sprite
 	else:
-		# 回退：保留原 ColorRect
+		# 回退：保留原 ColorRect（放大）
 		var cr = ColorRect.new()
 		if owner_type == "enemy":
 			cr.color = Color(1.0, 0.3, 0.3)
-			cr.size = Vector2(6, 6)
+			cr.size = Vector2(14, 14)
 		else:
 			cr.color = Color(1.0, 0.95, 0.3)
-			cr.size = Vector2(5, 5)
+			cr.size = Vector2(12, 12)
 		cr.position = -cr.size / 2.0
 		_body = cr
 	add_child(_body)

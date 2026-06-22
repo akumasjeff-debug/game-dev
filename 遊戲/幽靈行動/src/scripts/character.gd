@@ -38,6 +38,9 @@ const HEAL_AMOUNT_RATIO: float = 0.08  # 8% 最大 HP
 # 爆破手首次大招 CD 標記（Demo 教學特例：首次 CD 縮短為 20 秒）
 var _first_ult_used: bool = false
 
+# 角色顯示尺寸（放大人物模組，讓戰鬥區不空）
+const DISPLAY_SIZE: float = 72.0
+
 # 視覺節點
 var _body: Node  # Sprite2D（有 SVG 素材時）或 ColorRect（回退色塊）
 var _name_label: Label
@@ -76,7 +79,7 @@ func _build_visual() -> void:
 		var sprite = Sprite2D.new()
 		sprite.texture = load(sprite_path)
 		sprite.centered = true
-		sprite.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)  # 64px SVG 縮至 40px 顯示
+		sprite.scale = Vector2(DISPLAY_SIZE / 64.0, DISPLAY_SIZE / 64.0)  # 放大人物模組
 		_body = sprite
 		# 預載站立與蹲伏貼圖
 		_stand_texture = sprite.texture
@@ -85,29 +88,43 @@ func _build_visual() -> void:
 			_crouch_texture = load(crouch_path)
 	else:
 		var cr = ColorRect.new()
-		cr.size = Vector2(40, 40)
-		cr.position = Vector2(-20, -20)
+		cr.size = Vector2(DISPLAY_SIZE, DISPLAY_SIZE)
+		cr.position = Vector2(-DISPLAY_SIZE / 2.0, -DISPLAY_SIZE / 2.0)
 		cr.color = body_color
 		_body = cr
 	add_child(_body)
 
-	# 名稱標籤
-	_name_label = Label.new()
-	_name_label.text = char_name
-	_name_label.position = Vector2(-30, -42)
-	_name_label.add_theme_font_size_override("font_size", 11)
-	_name_label.modulate = Color.WHITE
-	add_child(_name_label)
+	var half := DISPLAY_SIZE / 2.0
 
-	# HP 條
+	# HP 條（角色頭頂上方，綠色醒目）
 	_hp_bar = ProgressBar.new()
-	_hp_bar.size = Vector2(50, 8)
-	_hp_bar.position = Vector2(-25, 24)
+	_hp_bar.size = Vector2(64, 10)
+	_hp_bar.position = Vector2(-32, -half - 16)
 	_hp_bar.min_value = 0.0
 	_hp_bar.max_value = max_hp
 	_hp_bar.value = current_hp
 	_hp_bar.show_percentage = false
+	var hp_bg := StyleBoxFlat.new()
+	hp_bg.bg_color = Color(0.10, 0.10, 0.12, 0.9)
+	hp_bg.set_corner_radius_all(2)
+	var hp_fill := StyleBoxFlat.new()
+	hp_fill.bg_color = Color(0.30, 0.85, 0.35)
+	hp_fill.set_corner_radius_all(2)
+	_hp_bar.add_theme_stylebox_override("background", hp_bg)
+	_hp_bar.add_theme_stylebox_override("fill", hp_fill)
 	add_child(_hp_bar)
+
+	# 名稱標籤（移到血條下方，小字，上方不再有任何 UI）
+	_name_label = Label.new()
+	_name_label.text = char_name
+	_name_label.size = Vector2(80, 16)
+	_name_label.position = Vector2(-40, half + 18)
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.add_theme_font_size_override("font_size", 12)
+	_name_label.modulate = Color(0.85, 0.9, 1.0)
+	if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
+		_name_label.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
+	add_child(_name_label)
 
 func _process(delta: float) -> void:
 	if is_dead:
@@ -400,17 +417,17 @@ func set_cover_mode(value: bool) -> void:
 	if _body is Sprite2D:
 		if value and _crouch_texture:
 			_body.texture = _crouch_texture
-			_body.scale = Vector2(40.0 / 32.0, 40.0 / 32.0)  # 32px SVG 縮至 40px 顯示
+			_body.scale = Vector2(DISPLAY_SIZE / 32.0, DISPLAY_SIZE / 32.0)
 		elif _stand_texture:
 			_body.texture = _stand_texture
-			_body.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)  # 64px SVG 縮至 40px 顯示
+			_body.scale = Vector2(DISPLAY_SIZE / 64.0, DISPLAY_SIZE / 64.0)
 
 func _pop_up_animation() -> void:
 	# 射擊站起動畫：向上彈出 12px 再回原位
 	# 若在掩體中，暫時切換到站立精靈
 	if in_cover and _body is Sprite2D and _stand_texture:
 		_body.texture = _stand_texture
-		_body.scale = Vector2(40.0 / 64.0, 40.0 / 64.0)
+		_body.scale = Vector2(DISPLAY_SIZE / 64.0, DISPLAY_SIZE / 64.0)
 	var start_y: float = global_position.y
 	var tween = create_tween()
 	tween.tween_property(self, "global_position:y", start_y - 12.0, 0.08)
@@ -420,7 +437,7 @@ func _pop_up_animation() -> void:
 	tween.tween_callback(func():
 		if in_cover and _body is Sprite2D and _crouch_texture:
 			_body.texture = _crouch_texture
-			_body.scale = Vector2(40.0 / 32.0, 40.0 / 32.0)
+			_body.scale = Vector2(DISPLAY_SIZE / 32.0, DISPLAY_SIZE / 32.0)
 	)
 
 # 從卡牌資料套用數值（grade 倍率 + plus 強化）
