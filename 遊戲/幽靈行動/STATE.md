@@ -2,6 +2,14 @@
 
 ## 已完成
 
+### v0.5.10（2026-06-22）— 隨機目標 + 破門定格 + 技能橫幅
+- **破門動畫改為「點擊才繼續」**：main.gd `_play_door_open_animation()` 移除自動推進的 tween 尾段，破門 flash 後定格並顯示「點擊任意處繼續」脈動提示，唯一推進路徑是全螢幕 skip_btn 點擊
+- **我方隨機射擊**：character.gd `_try_auto_attack()` 從「鎖定最近敵人」改為「隨機選一名存活敵人」
+- **敵方隨機射擊**：enemy.gd `_get_frontline_member()` 從「優先打盾兵」改為「隨機選一名存活隊員」（脆皮後排也會中彈）
+- **技能釋放橫幅**：character.gd `_apply_ultimate_effect()` 開頭呼叫 `_show_ultimate_banner()`，畫面中央顯示「角色 發動！技能名」+ 效果敘述 + 持續時間（buff 類用 `tween_method` 即時倒數「持續 X.X 秒」，瞬發類顯示「立即生效」2.2s 後消失）；左側職業色條
+- **驗證**：Playwright 確認技能橫幅（突擊手火力全開）、隨機目標（敵人逐一 ELIMINATED 血量分散、醫療兵/狙擊手會中彈陣亡）、破門點擊推進房間 1→2；版本 v0.5.9 → v0.5.10
+- **平衡備註**：敵人隨機目標後不再集火盾兵，後排脆皮（醫療兵/狙擊手）存活率下降，1-1 難度上升，後續可能需微調敵人 ATK 或隊員 HP
+
 ### v0.5.9（2026-06-22）— 🔴 子彈/扣血根因修復 + 血條上移 + 掩體換裝
 - **🔴 根因1（致命，戰鬥完全卡住）**：main.gd `_build_room_visual()` 呼叫了未定義的 `_add_environment_props()` → main.gd parse error → `_spawn_squad`/`_start_room` 全不執行 → 戰鬥場景卡住、沒子彈、不扣血。**補上函式本體解決。**
 - **🔴 根因2（致命，子彈不顯示）**：bullet.gd `var _body: Node2D` 但實際會指派 ColorRect（非 Node2D）→ `_body is ColorRect` 被編譯器判定恆假 → **整個 bullet.gd parse error 無法載入 → 子彈永遠不出現**。改為 `var _body`（untyped）解決。此 bug 自始存在，headless 在 MainMenu `--quit` 從不載入 bullet.gd 故一直漏掉，**只有 Playwright 真機 WebGL 才抓到**。

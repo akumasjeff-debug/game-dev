@@ -181,14 +181,14 @@ func _fire_bullet(target_node: Node) -> void:
 			gm.apply_damage_to_member(target_node, attack_power)
 
 func _get_frontline_member(gm: Node) -> Node:
-	# 盾兵優先作為前線（有盾兵且未死亡）；否則取第一個存活隊員
-	for member in gm.squad_members:
-		if member != null and is_instance_valid(member) and not member.is_dead and member.char_id == "shield":
-			return member
+	# 隨機鎖定一名存活隊員（不再固定優先打盾兵）
+	var alive: Array = []
 	for member in gm.squad_members:
 		if member != null and is_instance_valid(member) and not member.is_dead:
-			return member
-	return null
+			alive.append(member)
+	if alive.is_empty():
+		return null
+	return alive[randi() % alive.size()]
 
 func take_damage(amount: float) -> void:
 	if is_dead:

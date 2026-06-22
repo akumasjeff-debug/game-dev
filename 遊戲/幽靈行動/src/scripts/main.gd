@@ -533,13 +533,20 @@ func _play_door_open_animation(_door_y: float, on_complete: Callable) -> void:
 	tw.tween_property(flash, "color:a", 0.85, 0.06)
 	tw.tween_property(flash, "color:a", 0.0, 0.10)
 	tw.parallel().tween_property(breach_label, "modulate:a", 0.0, 0.10)
-	tw.tween_interval(0.15)
-	if scene_tex:
-		tw.tween_property(scene_tex, "modulate:a", 0.0, 0.10)
-	tw.parallel().tween_property(center_bg, "modulate:a", 0.0, 0.10)
-	tw.tween_property(bar_top, "position:y", -260.0, 0.15).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(bar_bot, "position:y", 1920.0, 0.15).set_ease(Tween.EASE_IN)
+	# 破門畫面定格，不自動推進 —— 顯示「點擊繼續」提示，必須點擊螢幕（skip_btn）才進入下一關
 	tw.tween_callback(func():
-		cl.queue_free()
-		on_complete.call()
+		var hint := Label.new()
+		hint.text = "點擊任意處繼續"
+		hint.add_theme_font_size_override("font_size", 46)
+		hint.size = Vector2(700, 80)
+		hint.position = Vector2(190, 1480)
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hint.modulate = Color(1, 1, 1, 0.0)
+		if ResourceLoader.exists("res://resources/fonts/chinese_font.ttf"):
+			hint.add_theme_font_override("font", load("res://resources/fonts/chinese_font.ttf"))
+		cl.add_child(hint)
+		var ht := create_tween().set_loops()
+		ht.tween_property(hint, "modulate:a", 1.0, 0.5)
+		ht.tween_property(hint, "modulate:a", 0.35, 0.5)
 	)

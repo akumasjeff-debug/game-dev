@@ -193,6 +193,8 @@ func fire_shot() -> void:
 func _apply_ultimate_effect() -> void:
 	if AudioManager:
 		AudioManager.play_sfx("ult_activate")
+	# 畫面中央顯示技能敘述 + 持續時間
+	_show_ultimate_banner()
 	# 各職業大招效果 — P1 實作
 	var gm = _get_gm()
 	if gm == null:
@@ -336,21 +338,19 @@ func _try_auto_attack() -> void:
 	var tree = get_tree()
 	if tree == null:
 		return
+	# 隨機射擊一名存活敵人（不再固定鎖定最近）
 	var enemies = tree.get_nodes_in_group("enemies")
-	var best_target: Node = null
-	var best_dist: float = 9999.0
+	var alive_enemies: Array = []
 	for e in enemies:
 		if e == null or not is_instance_valid(e):
 			continue
 		if e.get("is_dead") and e.is_dead:
 			continue
-		var d = global_position.distance_to(e.global_position)
-		if d < best_dist:
-			best_dist = d
-			best_target = e
+		alive_enemies.append(e)
 
-	if best_target == null:
+	if alive_enemies.is_empty():
 		return
+	var best_target: Node = alive_enemies[randi() % alive_enemies.size()]
 
 	# 計算最終攻擊力（含突擊手 buff 倍率）
 	var total_atk = attack_power
@@ -504,6 +504,94 @@ func _load_card_info(card_id: String) -> Dictionary:
 			if c is Dictionary and c.get("id") == card_id:
 				return c
 	return {}
+
+# 大招敘述 + 持續時間
+func _get_ultimate_info() -> Dictionary:
+	match char_id:
+		"shield":
+			return {"desc": "全隊受到傷害 -50%", "duration": 5.0}
+		"assault":
+			return {"desc": "鎖定最弱敵人，造成 80% 當前 HP 傷害", "duration": 0.0}
+		"sniper":
+			return {"desc": "精準狙殺，對最弱目標致命一擊", "duration": 0.0}
+		"medic":
+			if level >= 6:
+				return {"desc": "戰場復甦：復活倒下隊員 / 全隊回血", "duration": 0.0}
+			return {"desc": "全隊立即回復 HP", "duration": 0.0}
+		"demo":
+			return {"desc": "全場敵人 -40% 最大 HP（AoE）", "duration": 0.0}
+		"recon":
+			return {"desc": "煙霧封鎖，敵人攻擊全失效", "duration": 5.0}
+		_:
+			return {"desc": "", "duration": 0.0}
+
+func _show_ultimate_banner() -> void:
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return
+	var info := _get_ultimate_info()
+	var desc: String = info["desc"]
+	var dur: float = info["duration"]
+
+	var cl := CanvasLayer.new()
+	cl.layer = 15
+	tree.current_scene.add_child(cl)
+
+	var panel := ColorRect.new()
+	panel.color    = Color(0.05, 0.07, 0.12, 0.82)
+	panel.size     = Vector2(760, 132)
+	panel.position = Vector2(160, 540)
+	cl.add_child(panel)
+
+	# 左側職業色條
+	var color_bar := ColorRect.new()
+	color_bar.color    = body_color
+	color_bar.size     = Vector2(10, 132)
+	color_bar.position = Vector2(160, 540)
+	cl.add_child(color_bar)
+
+	var has_font := ResourceLoader.exists("res://resources/fonts/chinese_font.ttf")
+	var font: Font = load("res://resources/fonts/chinese_font.ttf") if has_font else null
+
+	var title := Label.new()
+	title.text     = "%s 發動！%s" % [char_name, ultimate_name]
+	title.position = Vector2(192, 556)
+	title.size     = Vector2(700, 44)
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	if font: title.add_theme_font_override("font", font)
+	cl.add_child(title)
+
+	var sub := Label.new()
+	sub.text     = desc
+	sub.position = Vector2(192, 604)
+	sub.size     = Vector2(700, 34)
+	sub.add_theme_font_size_override("font_size", 26)
+	sub.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	if font: sub.add_theme_font_override("font", font)
+	cl.add_child(sub)
+
+	var cd := Label.new()
+	cd.position = Vector2(192, 638)
+	cd.size     = Vector2(700, 30)
+	cd.add_theme_font_size_override("font_size", 24)
+	cd.add_theme_color_override("font_color", Color(0.45, 1.0, 0.5))
+	if font: cd.add_theme_font_override("font", font)
+	cl.add_child(cd)
+
+	if dur > 0.0:
+		cd.text = "持續 %.1f 秒" % dur
+		var cdt := tree.create_tween()
+		cdt.tween_method(_update_cd_label.bind(cd), dur, 0.0, dur)
+		cdt.tween_callback(cl.queue_free)
+	else:
+		cd.text = "立即生效"
+		var t := tree.create_timer(2.2)
+		t.timeout.connect(cl.queue_free)
+
+func _update_cd_label(value: float, label: Label) -> void:
+	if is_instance_valid(label):
+		label.text = "持續 %.1f 秒" % value
 
 func _fire_player_bullet(target_node: Node, dmg: float) -> void:
 	var bullet_script = load("res://scripts/bullet.gd")
